@@ -16,7 +16,7 @@ class ShipFactoryMapActor extends BaseMapActor;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-event trigger(Actor other, Pawn eventInstigator) {
+simulated function trigger(Actor other, Pawn eventInstigator) {
   local BaseUser user;
   local ShipProxyActor shipActorReference;
   local Ship shipResult;

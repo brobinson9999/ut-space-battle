@@ -11,7 +11,7 @@ var InputDriver                         inputDriver;
 var HUDAdapter                          HUD;
 var LevelChangeInteraction              cleanupWatcher;
 var GameSimulationAnchor                gameSimulationAnchor;
-var protected UnrealEngineCanvasObject canvasObject;
+var protected UnrealEngineCanvasObject  canvasObject;
 
 // Debugging.
 var bool                                bDebugReferences;   // If true, check references when destroying GameInfo to entities that haven't been cleaned up.
@@ -23,16 +23,13 @@ var bool                                bDebugReferences;   // If true, check re
 
 simulated function initialize()
 {
-  local actor newAnchor;
-  
 //  bDebugReferences = true;
   
   setPawnClass("ClientScripts.PawnAdapter");
   setPlayerControllerClass("ClientScripts.PlayerControllerAdapter");
   setHUDClass("ClientScripts.HUDAdapter");
   
-  newAnchor = GameSimulationAnchor(spawnEngineObject(class'GameSimulationAnchor'));
-  gameSimulationAnchor = GameSimulationAnchor(newAnchor);
+  gameSimulationAnchor = GameSimulationAnchor(spawnEngineObject(class'GameSimulationAnchor'));
   propogateGlobalsActor(self, gameSimulationAnchor);
 }
 
@@ -46,7 +43,7 @@ simulated function setHUDClass(String HUDClass);
 // ********************************************************************************************************************************************
 
 simulated function setCameraLocation(vector newCameraLocation) {
-  PC.setCameraLocation(newCameraLocation * class'UnrealEngine2CanvasObject'.static.getGlobalPositionScaleFactor());  
+  PC.setCameraLocation(newCameraLocation * class'UnrealEngineCanvasObject'.static.getGlobalPositionScaleFactor());  
 }
 
 simulated function setCameraRotation(rotator newCameraRotation) {
@@ -162,14 +159,14 @@ simulated function addInputView(InputView newView)
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-simulated function UnrealEngineCanvasObject getCanvasObject(Canvas unrealCanvas) {
+simulated function UnrealEngineCanvasObjectBase getCanvasObject(Canvas unrealCanvas) {
   if (canvasObject == none)
-    canvasObject = UnrealEngineCanvasObject(allocateObject(class'UnrealEngine2CanvasObject'));
+    canvasObject = UnrealEngineCanvasObject(allocateObject(class'UnrealEngineCanvasObject'));
     
   canvasObject.setUnrealCanvas(unrealCanvas);
   if (HUD != none) {
-    UnrealEngine2CanvasObject(canvasObject).consoleFont = HUD.getConsoleFont(canvasObject.unrealCanvas);
-    UnrealEngine2CanvasObject(canvasObject).consoleColor = HUD.consoleColor;
+    canvasObject.consoleFont = HUD.getConsoleFont(canvasObject.unrealCanvas);
+    canvasObject.consoleColor = HUD.consoleColor;
   }
   
   return canvasObject;

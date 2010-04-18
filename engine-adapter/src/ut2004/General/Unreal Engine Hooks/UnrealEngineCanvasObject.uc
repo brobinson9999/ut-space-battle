@@ -1,5 +1,16 @@
-class UnrealEngine3CanvasObject extends UnrealEngineCanvasObject;
+class UnrealEngineCanvasObject extends UnrealEngineCanvasObjectBase;
 
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+
+var object defaultMaterial;
+
+var float globalDrawscale;    // Global factor for the drawScale only.
+var float globalWorldScale;   // Global factor for both drawScale and location.
+
+var Font consoleFont;
 var Color consoleColor;
 
 // ********************************************************************************************************************************************
@@ -7,59 +18,40 @@ var Color consoleColor;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
+simulated function drawIcon(object materialObject, float centerX, float centerY, float iconScale) {
+  local Material mat;
+  local float matXSize;
+  local float matYSize;
+  local float iconXSize;
+  local float iconYSize;
+  
+  mat = Material(materialObject);
+  matXSize = mat.materialUSize();
+  matYSize = mat.materialVSize();
+  iconXSize = matXSize * iconScale;
+  iconYSize = matYSize * iconScale;
+  
+  setPos(centerX - (iconXSize / 2), centerY - (iconYSize / 2));
+  unrealCanvas.drawTile(mat, iconXSize, iconYSize, 0, 0, matXSize, matYSize);
+}
+
 simulated function drawTile(object Mat, float XL, float YL, float U, float V, float UL, float VL) {
-  local float oldX, oldY, newX, newY;
-  local bool bRestorePosition;
-  
-  if (UL < 0) {
-    U += UL;
-    UL = abs(UL);
-  }
-  
-  if (VL < 0) {
-    V += VL;
-    VL = abs(VL);
-  }
-
-  if (XL < 0 || YL < 0) {
-    bRestorePosition = true;
-    oldX = unrealCanvas.curX;
-    oldY = unrealCanvas.curY;
-    
-    if (XL < 0) {
-      newX = oldX + XL;
-      XL = abs(XL);
-    } else {
-      newX = oldX;
-    }
-
-    if (YL < 0) {
-      newY = oldY + YL;
-      YL = abs(YL);
-    } else {
-      newY = oldY;
-    }
-    
-    unrealCanvas.setPos(newX, newY);
-  }
-    
-
-  unrealCanvas.drawTile(Texture2D(mat), XL, YL, U, V, UL, VL);
-  
-  if (bRestorePosition)
-    unrealCanvas.setPos(oldX, oldY);
+  unrealCanvas.drawTile(Material(mat), XL, YL, U, V, UL, VL);
 }
 
 simulated function vector convertWorldPositionToCanvasPosition(vector worldPosition) {
-  return unrealCanvas.project(worldPosition);
+  return unrealCanvas.worldToScreen(worldPosition * getGlobalPositionScaleFactor());
 }
 
 simulated function Font getFont(int fontHeight) {
-  return getConsoleFont();
+  if (fontHeight >= 12)
+    return getConsoleFont();
+  else
+    return unrealCanvas.tinyFont;
 }
 
 simulated function Font getConsoleFont() {
-  return unrealCanvas.default.font;
+  return consoleFont;
 }
 
 simulated function Color getConsoleColor() {
@@ -67,20 +59,32 @@ simulated function Color getConsoleColor() {
 }
 
 simulated function wrapStringToArray(string text, out array<string> result, float dx, optional string EOL) {
-  parseStringIntoArray(text, result, EOL, true);
+  unrealCanvas.wrapStringToArray(text, result, dx, EOL);
 }
 
 simulated function drawScreenText(String text, float x, float y) {
-  setPosFractional(x, y);
-  unrealCanvas.drawText(text);
-}
+  local float backupAlpha;
+  
+  // Transparency on text results in invisible text.
+  backupAlpha = unrealCanvas.drawColor.a;
+  unrealCanvas.drawColor.a = 255;
+  
+  // bump text location slightly for consistency with UE3.
+  y = ((y * getSizeY()) + 2) / getSizeY();
+  
+  unrealCanvas.drawScreenText(text, x, y, DP_UpperLeft);
 
-simulated function setPosFractional(float x, float y) {
-  setPos(x * getSizeX(), y * getSizeY());
+  unrealCanvas.drawColor.a = backupAlpha;
 }
 
 simulated function object getDefaultMaterial() {
-  return unrealCanvas.defaultTexture;
+  return defaultMaterial;
+}
+
+simulated function cleanup() {
+  consoleFont = none;
+  
+  super.cleanup();
 }
 
 // ********************************************************************************************************************************************
@@ -103,4 +107,9 @@ simulated static function float getGlobalPositionScaleFactor() {
 
 defaultproperties
 {
+  defaultMaterial=Texture'engine.WhiteSquareTexture'
+  globalDrawscale=2.5
+//  globalDrawscale=1
+  globalWorldScale=0.5
+//  globalWorldScale=0.1
 }

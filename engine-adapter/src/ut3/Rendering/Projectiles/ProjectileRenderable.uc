@@ -5,88 +5,97 @@ class ProjectileRenderable extends BaseRenderable;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-  var Projectile projectile;
+var Projectile projectile;
+var private ProjectileRenderableProjectileObserver projectileObserver;
 
-  var float fireShakeMagnitude;
-  
-  var float impactShakeMagnitude;
- 
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
+var float fireShakeMagnitude;
 
-  simulated function initialize();
-  
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-
-  simulated function tick(float delta)
-  {
-    updateLocation();
-    
-    super.tick(delta);
-  }
-
-  simulated function updateLocation() {
-    local vector worldLocation;
-    
-    if (projectile != none) {
-      worldLocation = projectile.getProjectileLocation();
-      
-      if (worldLocation != location)
-        setLocation(worldLocation);
-    }
-  }
-  
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-  
-  simulated function impact() {
-    if (impactShakeMagnitude > 0)
-      cameraShake(location, impactShakeMagnitude);
-  }
-
-  simulated function missed();
-  
-  simulated function notifyProjectileFired(actor renderableFiredFrom) {
-    if (renderableFiredFrom != none) {
-      if (fireShakeMagnitude > 0)
-        cameraShake(renderableFiredFrom.location, fireShakeMagnitude);
-    }
-  }
-  
-  // Removes the renderable from the game simulation. The actor can continue to exist.
-  simulated function tearOffGameSim() {
-    setProjectile(none);
-  }
-
-  simulated function setProjectile(Projectile newProjectile) {
-    if (projectile != none)
-      projectile.removeObserver(self);
-    projectile = newProjectile;
-    if (projectile != none)
-      projectile.addObserver(self);
-  }
-  
-  simulated function notifyCameraLeftSector() {
-    destroy();
-  }
+var float impactShakeMagnitude;
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-  simulated function cleanup() {
-    setProjectile(none);
-    
-    super.cleanup();
+simulated function initialize();
+
+simulated function ProjectileRenderableProjectileObserver getProjectileObserver() {
+  if (projectileObserver == none) {
+    projectileObserver = new class'ProjectileRenderableProjectileObserver';
   }
+
+  return projectileObserver;
+}
+
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+
+simulated function tick(float delta)
+{
+  updateLocation();
+
+  super.tick(delta);
+}
+
+simulated function updateLocation() {
+  local vector worldLocation;
+
+  if (projectile != none) {
+    worldLocation = projectile.getProjectileLocation();
+
+    if (worldLocation != location)
+      setLocation(worldLocation);
+  }
+}
+
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+
+simulated function impact() {
+  if (impactShakeMagnitude > 0)
+    cameraShake(location, impactShakeMagnitude);
+}
+
+simulated function missed();
+
+simulated function notifyProjectileFired(actor renderableFiredFrom) {
+  if (renderableFiredFrom != none) {
+    if (fireShakeMagnitude > 0)
+      cameraShake(renderableFiredFrom.location, fireShakeMagnitude);
+  }
+}
+
+// Removes the renderable from the game simulation. The actor can continue to exist.
+simulated function tearOffGameSim() {
+  setProjectile(none);
+}
+
+simulated function setProjectile(Projectile newProjectile) {
+  if (projectileObserver != none)
+    projectileObserver.cleanup();
+  projectile = newProjectile;
+  if (newProjectile != none)
+    getProjectileObserver().initialize(newProjectile, self);
+}
+
+simulated function notifyCameraLeftSector() {
+  destroy();
+}
+
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+
+simulated function cleanup() {
+  setProjectile(none);
+
+  super.cleanup();
+}
   
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************

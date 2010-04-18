@@ -1,4 +1,6 @@
-class UnrealEngineAdapter extends BaseObject abstract;
+// This should be extended, but I have not made it abstract so that it can be used alone in tests.
+class UnrealEngineAdapter extends BaseObject;
+
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -100,7 +102,7 @@ simulated function PerformanceThrottle getPerformanceThrottle() {
   return result;
 }
 
-simulated function UnrealEngineCanvasObject getCanvasObject(Canvas unrealCanvas);
+simulated function UnrealEngineCanvasObjectBase getCanvasObject(Canvas unrealCanvas);
 
 simulated function setGameSimulation(BaseObject other)  {
   super.setGameSimulation(other);
@@ -221,10 +223,14 @@ simulated function cleanup() {
 
 simulated function cleanUpAllBaseActors() {
   local BaseActor other;
-
-  foreach AllObjects(class'BaseActor', other)
+  local Actor actorAnchor;
+  
+  actorAnchor = getGameInfoFacade();
+  foreach actorAnchor.AllActors(class'BaseActor', other)
     other.cleanup();
 }
+
+simulated function Actor getGameInfoFacade();
 
 simulated static function propogateGlobalsActor(BaseObject from, BaseActor to) {
   to.setGameSimulation(from.getGameSimulation());
@@ -543,7 +549,7 @@ simulated function string getPlayerNameForEngineObject(object engineObject) {
 simulated function worldSpaceOverlays();
 
 simulated function postRender(Canvas canvas) {
-  local UnrealEngineCanvasObject canvasObject;
+  local UnrealEngineCanvasObjectBase canvasObject;
     
   if (getGameSimulation() != none && SGIinterface != none) { 
     canvasObject = getCanvasObject(canvas);

@@ -15,20 +15,20 @@ class PartRenderable extends BaseRenderable;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-	simulated function setPart(Part newPart) {
-		part = newPart;
-	}
-	
-	simulated function initialize();
-	
+  simulated function setPart(Part newPart) {
+    part = newPart;
+  }
+  
+  simulated function initialize();
+  
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-	simulated function clearRenderData() {
-		destroy();
-	}
+  simulated function clearPartRenderData() {
+    destroy();
+  }
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -47,26 +47,26 @@ class PartRenderable extends BaseRenderable;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-	simulated function setRenderLocation(vector newLocation) {
-		setLocation(newLocation);
-	}
-	
-	simulated function setRenderRotation(rotator newRotation) {
-		setRotation(newRotation);
-	}
-	
+  simulated function setRenderLocation(vector newLocation) {
+    setLocation(newLocation);
+  }
+  
+  simulated function setRenderRotation(rotator newRotation) {
+    setRotation(newRotation);
+  }
+  
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-	simulated function FiredWeapon();
+  simulated function FiredWeapon();
   simulated function notifyPartDamaged();
   simulated function notifyPartRepaired();
   simulated function notifyShipCritical();
   simulated function notifyShipDestroyed();
-	simulated function notifyPartFiredWeapon(Projectile projectile);
-	
+  simulated function notifyPartFiredWeapon(Projectile projectile);
+  
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -74,11 +74,11 @@ class PartRenderable extends BaseRenderable;
 
   simulated function ParticleSystemComponent SpawnParticleSystem(ParticleSystem EffectTemplate, vector SpawnLocation, rotator SpawnRotation)
   {
-  	local ParticleSystemComponent EffectInstance;
-  	
-		EffectInstance = WorldInfo.MyEmitterPool.SpawnEmitter(EffectTemplate, SpawnLocation, SpawnRotation);
-		
-		return EffectInstance;
+    local ParticleSystemComponent EffectInstance;
+    
+    EffectInstance = WorldInfo.MyEmitterPool.SpawnEmitter(EffectTemplate, SpawnLocation, SpawnRotation);
+    
+    return EffectInstance;
   }
 
 // ********************************************************************************************************************************************

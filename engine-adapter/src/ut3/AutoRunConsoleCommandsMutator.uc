@@ -21,12 +21,12 @@ simulated function attemptInitialization() {
   bInitialized = true;
 }
 
-simulated function runConsoleCommands(array<string> commands)
+simulated function runConsoleCommands(array<string> localCommands)
 {
   local int i;
 
-  for (i=0;i<commands.Length;i++)
-    consoleCommand("gl "$commands[i]);
+  for (i=0;i<localCommands.Length;i++)
+    consoleCommand("gl "$localCommands[i]);
 }
 
 simulated function array<string> getConsoleCommands() {

@@ -23,14 +23,11 @@ var class<HUDAdapter>                   defaultHUDAdapterClass;
 
 simulated function initialize()
 {
-  local actor newAnchor;
-  
   setPawnClass(class'PawnAdapter');
   setPlayerControllerClass(class'PlayerControllerAdapter');
   setHUDClass(getHUDClass());
 
-  newAnchor = spawnEngineObject(class'GameSimulationAnchor');
-  gameSimulationAnchor = GameSimulationAnchor(newAnchor);
+  gameSimulationAnchor = GameSimulationAnchor(spawnEngineObject(class'GameSimulationAnchor'));
   propogateGlobalsActor(self, gameSimulationAnchor);
 }
 
@@ -51,11 +48,11 @@ simulated function class<HUDAdapter> getHUDAdapterClass() {
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-simulated function SetCameraLocation(vector newCameraLocation) {
-  PC.setCameraLocation(newCameraLocation * class'BaseActor'.default.globalWorldScale);  
+simulated function setCameraLocation(vector newCameraLocation) {
+  PC.setCameraLocation(newCameraLocation * class'UnrealEngineCanvasObject'.static.getGlobalPositionScaleFactor());  
 }
 
-simulated function SetCameraRotation(rotator newCameraRotation) {
+simulated function setCameraRotation(rotator newCameraRotation) {
   PC.setCameraRotation(newCameraRotation);  
 }
 
@@ -186,13 +183,13 @@ simulated function addInputView(InputView newView)
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-simulated function UnrealEngineCanvasObject getCanvasObject(Canvas unrealCanvas) {
+simulated function UnrealEngineCanvasObjectBase getCanvasObject(Canvas unrealCanvas) {
   if (canvasObject == none)
-    canvasObject = UnrealEngineCanvasObject(allocateObject(class'UnrealEngine3CanvasObject'));
+    canvasObject = UnrealEngineCanvasObject(allocateObject(class'UnrealEngineCanvasObject'));
     
   canvasObject.setUnrealCanvas(unrealCanvas);
   if (HUD != none) {
-    UnrealEngine3CanvasObject(canvasObject).consoleColor = HUD.getConsoleColor();
+    canvasObject.consoleColor = HUD.getConsoleColor();
   }
   
   return canvasObject;
@@ -240,11 +237,11 @@ simulated function cleanup()
     canvasObject = none;
   }
   
-  game                      = none;
   inputDriver               = none;
   cleanupWatcher            = none;
   HUD                       = none;
   PC                        = none;
+  gameSimulationAnchor      = none;
   
   super.cleanup();
 }

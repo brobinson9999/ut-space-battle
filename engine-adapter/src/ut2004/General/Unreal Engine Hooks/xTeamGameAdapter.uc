@@ -29,6 +29,10 @@ class xTeamGameAdapter extends UnrealEngine2Adapter;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
+  simulated function Actor getGameInfoFacade() {
+    return gameInfoFacade;
+  }
+
   simulated function setGameInfoFacade(xTeamGameFacade other) {
     gameInfoFacade = other;
   }

@@ -20,7 +20,7 @@ simulated function bungeeShip(Ship other, float delta)
   local vector locationDifference;
 
   // multiplied by getGlobalPositionScaleFactor to convert internal units to game engine specific units
-  locationDifference = (other.getShipLocation() - location) * class'UnrealEngine2CanvasObject'.static.getGlobalPositionScaleFactor();
+  locationDifference = (other.getShipLocation() - location) * class'UnrealEngineCanvasObject'.static.getGlobalPositionScaleFactor();
 
   bungeeVelocity = -normal(locationDifference) * fmax(0, (VSize(locationDifference) - 200000) * 0.1);
 

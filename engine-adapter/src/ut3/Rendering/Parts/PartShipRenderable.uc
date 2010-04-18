@@ -23,11 +23,20 @@ simulated function initialize() {
     initializePartRenderable(PartShip(ship).parts[i]);
 }
 
+simulated function class<PartRenderable> getPartRenderableClass(Part part) {
+//  local string shipTypeName;
+
+//  if (part.ship != none)
+//    shipTypeName = part.ship.shipTypeName;
+    
+  return class'FighterBPartRenderable';
+}
+
 simulated function initializePartRenderable(Part part) {
   local class<PartRenderable> partRenderableClass;
   local PartRenderable newPartRenderable;
   
-  partRenderableClass = class<PartRenderable>(part.getRenderableClass());
+  partRenderableClass = getPartRenderableClass(part);
   newPartRenderable = spawn(partRenderableClass,,,locationForPart(none, part), rotationForPart(none, part));
   propogateGlobals(newPartRenderable);
   newPartRenderable.setPart(part);

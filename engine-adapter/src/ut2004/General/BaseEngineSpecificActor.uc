@@ -24,11 +24,11 @@ simulated function LevelInfo getLevel() {
 // ********************************************************************************************************************************************
 
   simulated static function float getGlobalDrawscaleFactor() {
-    return class'UnrealEngine2CanvasObject'.static.getGlobalDrawscaleFactor();
+    return class'UnrealEngineCanvasObject'.static.getGlobalDrawscaleFactor();
   }
   
   simulated static function float getGlobalPositionScaleFactor() {
-    return class'UnrealEngine2CanvasObject'.static.getGlobalPositionScaleFactor();
+    return class'UnrealEngineCanvasObject'.static.getGlobalPositionScaleFactor();
   }
 
 // ********************************************************************************************************************************************

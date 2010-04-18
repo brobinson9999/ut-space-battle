@@ -15,7 +15,7 @@ class SpawnUserMapActor extends BaseMapActor;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-event trigger(Actor other, Pawn eventInstigator) {
+simulated function trigger(Actor other, Pawn eventInstigator) {
   getUser();
 }
 
