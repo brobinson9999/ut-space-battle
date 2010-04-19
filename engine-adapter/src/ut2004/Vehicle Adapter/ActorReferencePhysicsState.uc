@@ -1,17 +1,19 @@
-class ShipReferencePhysicsState extends PhysicsStateInterface;
+class ActorReferencePhysicsState extends PhysicsStateInterface;
 
-var private Ship storedReference;
+var private Actor storedReference;
+var private float rotationVelocity;
 
-simulated function setReference(Ship newReference) {
+simulated function setReference(Actor newReference) {
   storedReference = newReference;
 }
 
 simulated function vector getLocation() {
-  return storedReference.shipLocation;
+  return storedReference.location;
 }
 
 simulated function setLocation(vector newValue) {
-  storedReference.shipLocation = newValue;
+  if (newValue != getLocation())
+    storedReference.setLocation(newValue);
 }
 
 simulated function vector getVelocity() {
@@ -27,15 +29,16 @@ simulated function rotator getRotation() {
 }
 
 simulated function setRotation(rotator newValue) {
-  storedReference.rotation = newValue;
+  if (newValue != getRotation())
+    storedReference.setRotation(newValue);
 }
 
 simulated function float getRotationVelocity() {
-  return storedReference.lastRotationSpeed;
+  return rotationVelocity;
 }
 
 simulated function setRotationVelocity(float newValue) {
-  storedReference.lastRotationSpeed = newValue;
+  rotationVelocity = newValue;
 }
 
 simulated function cleanup() {

@@ -68,7 +68,7 @@ var Contact DesiredLocation_RelativeTo;
 simulated function PhysicsStateInterface getPhysicsState() {
   if (physicsState == none) {
     physicsState = PhysicsStateInterface(allocateObject(class'ShipReferencePhysicsState'));
-    ShipReferencePhysicsState(physicsState).storedShip = self;
+    ShipReferencePhysicsState(physicsState).setReference(self);
   }
 
   return physicsState;
