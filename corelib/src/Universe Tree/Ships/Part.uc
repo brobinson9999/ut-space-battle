@@ -32,6 +32,12 @@ class Part extends PartBase;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
+  simulated function reset() {
+    super.reset();
+    
+    bOnline = true;
+  }
+  
   simulated function cleanup()
   {
     technology = none;
@@ -57,10 +63,11 @@ class Part extends PartBase;
     return clone;
   }
 
-  simulated function InitializeClonedPart(Part Clone)
+  simulated function initializeClonedPart(Part clone)
   {
     super.initializeClonedPart(clone);
     
+    clone.bOnline = bOnline;
     clone.setTechnology(technology);
     clone.partID = partID;
     clone.friendlyName = friendlyName;
