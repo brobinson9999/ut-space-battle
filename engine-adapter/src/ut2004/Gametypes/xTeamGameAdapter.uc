@@ -1,36 +1,27 @@
-class ProjectileRenderable extends BaseRenderable;
+class xTeamGameAdapter extends UnrealEngine2Adapter;
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-var Projectile projectile;
-var private ProjectileRenderableProjectileObserver projectileObserver;
-var vector worldLocation;
-
-var class<actor>  fireEffect;
-var Sound         fireSound;
-var float         fireSoundBaseVolume;
-var float         fireSoundBaseRadius;
-
-var float         fireShakeMagnitude;
-
-var float         impactShakeMagnitude;
+var xTeamGameFacade gameInfoFacade;
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-simulated function initialize();
+simulated function setPawnClass(String pawnClass) {
+  gameInfoFacade.defaultPlayerClassName = pawnClass;
+}
 
-simulated function ProjectileRenderableProjectileObserver getProjectileObserver() {
-  if (projectileObserver == none) {
-    projectileObserver = new class'ProjectileRenderableProjectileObserver';
-  }
+simulated function setPlayerControllerClass(String playerControllerClass) {
+  gameInfoFacade.playerControllerClassName = playerControllerClass;
+}
 
-  return projectileObserver;
+simulated function setHUDClass(String HUDClass) {
+  gameInfoFacade.HUDType = HUDClass;
 }
 
 // ********************************************************************************************************************************************
@@ -38,24 +29,12 @@ simulated function ProjectileRenderableProjectileObserver getProjectileObserver(
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-simulated function tick(float delta)
-{
-  updateLocation();
-
-  super.tick(delta);
+simulated function Actor getGameInfoFacade() {
+  return gameInfoFacade;
 }
 
-simulated function updateLocation() {
-  if (projectile != none)
-    setWorldLocation(projectile.getProjectileLocation());
-}
-
-simulated function setWorldLocation(vector newWorldLocation) {
-  if (worldLocation != location) {
-    worldLocation = newWorldLocation;
-
-    setLocation(worldLocation * getGlobalPositionScaleFactor());
-  }
+simulated function setGameInfoFacade(xTeamGameFacade other) {
+  gameInfoFacade = other;
 }
 
 // ********************************************************************************************************************************************
@@ -63,67 +42,12 @@ simulated function setWorldLocation(vector newWorldLocation) {
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-simulated function float getEffectScale() {
-  return sqrt(projectile.damage);
+simulated function PlayerController facadeLogin(string portal, string options, out string error) {
+  return gameInfoFacade.superLogin(portal, options, error);
 }
 
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-
-simulated function impact() {
-  if (impactShakeMagnitude > 0)
-    cameraShake(location, impactShakeMagnitude * getEffectScale() * getGlobalDrawscaleFactor());
-}
-
-simulated function missed();
-
-simulated function notifyProjectileFired(actor renderableFiredFrom) {
-  local rotator fireEffectRotation;
-  local actor fireEffectInstance;
-
-  if (renderableFiredFrom != none) {
-    if (fireEffect != none)  {
-      fireEffectRotation = rotator(projectile.endLocation - projectile.startLocation);
-      fireEffectRotation.roll = FRand() * 65535;
-      fireEffectInstance = spawn(fireEffect,,,renderableFiredFrom.location, fireEffectRotation);
-      fireEffectInstance.setBase(renderableFiredFrom);
-
-      // some effects display when triggered and they expect to be kept around...
-      // I don't want to bother with that for now so I will just trigger them once and give them a limited lifespan so they clean themselves up.
-      // but don't do this for my scalableemitters because that shuts them down.
-      // wish I had written down which effects need this...
-      if (ScalableEmitter(fireEffectInstance) == none) {
-        fireEffectInstance.trigger(self, none);
-        fireEffectInstance.lifespan = 5;
-      }
-    }
-
-    if (fireSound != none) {
-      renderableFiredFrom.playSound(fireSound,,transientSoundVolume * fireSoundBaseVolume * getEffectScale() * getGlobalDrawscaleFactor(),,transientSoundRadius * fireSoundBaseRadius * getEffectScale() * getGlobalPositionScaleFactor());
-    }
-
-    if (fireShakeMagnitude > 0)
-      cameraShake(renderableFiredFrom.location, fireShakeMagnitude);
-  }
-}
-
-// Removes the renderable from the game simulation. The actor can continue to exist.
-simulated function tearOffGameSim() {
-  setProjectile(none);
-}
-
-simulated function setProjectile(Projectile newProjectile) {
-  if (projectileObserver != none)
-    projectileObserver.cleanup();
-  projectile = newProjectile;
-  if (newProjectile != none)
-    getProjectileObserver().initialize(newProjectile, self);
-}
-
-simulated function notifyCameraLeftSector() {
-  destroy();
+simulated event facadePostLogin(PlayerController newPlayer) {
+  gameInfoFacade.superPostLogin(newPlayer);
 }
 
 // ********************************************************************************************************************************************
@@ -132,12 +56,27 @@ simulated function notifyCameraLeftSector() {
 // ********************************************************************************************************************************************
 
 simulated function cleanup() {
-  setProjectile(none);
-  projectileObserver = none;
-
   super.cleanup();
+
+  if (gameInfoFacade != none) {
+    gameInfoFacade.cleanup();
+    gameInfoFacade = none;
+  }
 }
-  
+
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+
+simulated function LevelInfo getLevel() {
+  return gameInfoFacade.getLevel();
+}
+
+simulated function GameInfo getGameInfo() {
+  return gameInfoFacade;
+}
+
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -145,8 +84,4 @@ simulated function cleanup() {
 
 defaultproperties
 {
-  transientSoundVolume=1
-  transientSoundRadius=1
-  fireSoundBaseVolume=5
-  fireSoundBaseRadius=300
 }

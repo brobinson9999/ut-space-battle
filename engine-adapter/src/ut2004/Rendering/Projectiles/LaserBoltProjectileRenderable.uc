@@ -65,8 +65,8 @@ defaultproperties
   fragmentFadeRate=1.5
   
   fireShakeMagnitude=50
-  fireEffect=class'LinkMuzFlashProj3rd'
-  fireSound=Sound'AssaultSounds.HnShipFire01'
+  fireEffect=class'LinkProjectileMuzFlash'
+  fireSound=(soundObject=Sound'AssaultSounds.HnShipFire01')
 
   impactShakeMagnitude=75
 }

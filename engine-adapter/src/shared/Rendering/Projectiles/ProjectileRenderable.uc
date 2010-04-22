@@ -7,10 +7,16 @@ class ProjectileRenderable extends BaseRenderable;
 
 var Projectile projectile;
 var private ProjectileRenderableProjectileObserver projectileObserver;
+var vector worldLocation;
 
-var float fireShakeMagnitude;
+var class<actor>  fireEffect;
+var SoundSettings fireSound;
+var float         fireSoundBaseVolume;
+var float         fireSoundBaseRadius;
 
-var float impactShakeMagnitude;
+var float         fireShakeMagnitude;
+
+var float         impactShakeMagnitude;
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -40,14 +46,25 @@ simulated function tick(float delta)
 }
 
 simulated function updateLocation() {
-  local vector worldLocation;
+  if (projectile != none)
+    setWorldLocation(projectile.getProjectileLocation());
+}
 
-  if (projectile != none) {
-    worldLocation = projectile.getProjectileLocation();
+simulated function setWorldLocation(vector newWorldLocation) {
+  if (worldLocation != location) {
+    worldLocation = newWorldLocation;
 
-    if (worldLocation != location)
-      setLocation(worldLocation);
+    setLocation(worldLocation * getGlobalPositionScaleFactor());
   }
+}
+
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+
+simulated function float getEffectScale() {
+  return sqrt(projectile.damage);
 }
 
 // ********************************************************************************************************************************************
@@ -57,13 +74,27 @@ simulated function updateLocation() {
 
 simulated function impact() {
   if (impactShakeMagnitude > 0)
-    cameraShake(location, impactShakeMagnitude);
+    cameraShake(location, impactShakeMagnitude * getEffectScale() * getGlobalDrawscaleFactor());
 }
 
 simulated function missed();
 
 simulated function notifyProjectileFired(actor renderableFiredFrom) {
+  local rotator fireEffectRotation;
+  local actor fireEffectInstance;
+
   if (renderableFiredFrom != none) {
+    if (fireEffect != none)  {
+      fireEffectRotation = rotator(projectile.endLocation - projectile.startLocation);
+      fireEffectRotation.roll = FRand() * 65535;
+      fireEffectInstance = spawn(fireEffect,,,renderableFiredFrom.location, fireEffectRotation);
+      fireEffectInstance.setBase(renderableFiredFrom);
+    }
+
+    if (fireSound.soundObject != none) {
+      playSoundStruct(fireSound, fireSoundBaseVolume * getEffectScale() * getGlobalDrawscaleFactor(), fireSoundBaseRadius * getEffectScale() * getGlobalPositionScaleFactor(), renderableFiredFrom);
+    }
+
     if (fireShakeMagnitude > 0)
       cameraShake(renderableFiredFrom.location, fireShakeMagnitude);
   }
@@ -93,6 +124,7 @@ simulated function notifyCameraLeftSector() {
 
 simulated function cleanup() {
   setProjectile(none);
+  projectileObserver = none;
 
   super.cleanup();
 }
@@ -104,4 +136,6 @@ simulated function cleanup() {
 
 defaultproperties
 {
+  fireSoundBaseVolume=5
+  fireSoundBaseRadius=300
 }

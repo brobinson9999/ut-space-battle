@@ -55,7 +55,7 @@ defaultproperties
   
   fireShakeMagnitude=50
   fireEffect=class'LinkMuzFlashProj3rd'
-  fireSound=Sound'WeaponSounds.PulseRifle.PulseRifleFire'
+  fireSound=(soundObject=Sound'WeaponSounds.PulseRifle.PulseRifleFire')
 
   impactShakeMagnitude=75
 }

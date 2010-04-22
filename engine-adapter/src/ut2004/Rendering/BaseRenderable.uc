@@ -1,5 +1,16 @@
 class BaseRenderable extends Renderable;
 
+struct SoundSettings {
+  var Sound soundObject;
+};
+
+simulated function playSoundStruct(SoundSettings soundStruct, float volume, float radius, optional Actor soundOrigin) {
+  if (soundOrigin == none)
+    soundOrigin = self;
+    
+  soundOrigin.playSound(soundStruct.soundObject,,volume,,radius);
+}
+
 simulated function ScalableEmitter spawnScaledEffect(class<ScalableEmitter> emitterClass, optional float scaleFactor) {
   local ScalableEmitter result;
 
@@ -16,6 +27,9 @@ simulated function ScalableEmitter spawnScaledEffect(class<ScalableEmitter> emit
 
 defaultproperties
 {
+  transientSoundVolume=1
+  transientSoundRadius=1
+
   bBlockActors=false
   bBlockKarma=false
   bBlockPlayers=false

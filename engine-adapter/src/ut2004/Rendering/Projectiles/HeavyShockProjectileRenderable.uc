@@ -40,7 +40,7 @@ defaultproperties
 
   fireShakeMagnitude=250
   fireEffect=class'OnslaughtBP.ONSShockTankMuzzleFlash'
-  fireSound=sound'ONSBPSounds.ShockTank.ShockBallFire'
+  fireSound=(soundObject=Sound'ONSBPSounds.ShockTank.ShockBallFire')
 
   impactShakeMagnitude=500
 }

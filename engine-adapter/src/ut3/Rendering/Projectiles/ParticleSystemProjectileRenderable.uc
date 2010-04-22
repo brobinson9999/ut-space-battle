@@ -6,7 +6,6 @@ class ParticleSystemProjectileRenderable extends DrunkenProjectileRenderable;
 // ********************************************************************************************************************************************
 
 var ParticleSystem          fireTemplate;
-var SoundCue                fireSound;
 var float                   fireEffectMaxLifetime;
 
 var ParticleSystem          trailTemplate;
@@ -30,9 +29,6 @@ var SoundCue                explosionSound;
     
     if (fireTemplate != none)
       spawnTransientEffect(fireTemplate, renderableFiredFrom.location, rotator(projectile.endLocation - projectile.startLocation), fireEffectMaxLifetime, drawScale, renderableFiredFrom);
-
-    if (fireSound != none)
-      renderableFiredFrom.playSound(fireSound);
   }
   
   simulated function float getEffectScale() {

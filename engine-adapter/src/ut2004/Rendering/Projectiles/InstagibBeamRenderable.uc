@@ -7,11 +7,11 @@ class InstagibBeamRenderable extends BeamRenderable;
 
 defaultproperties
 {
-	fireShakeMagnitude=75
-	fireEffect=class'ShockMuzzleFlash'
-	fireSound=Sound'WeaponSounds.instagib_rifleshot'
+  fireShakeMagnitude=75
+  fireEffect=class'ShockMuzzleFlash'
+  fireSound=(soundObject=Sound'WeaponSounds.instagib_rifleshot')
 
-	impactShakeMagnitude=150
+  impactShakeMagnitude=150
 
-	beamColor=(R=255,G=128,B=128)
+  beamColor=(R=255,G=128,B=128)
 }

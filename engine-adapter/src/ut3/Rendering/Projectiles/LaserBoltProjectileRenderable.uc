@@ -12,7 +12,7 @@ defaultproperties
   // the muzzle flash looks a bit off - the particle system itself is not centered.
   fireShakeMagnitude=50
   fireTemplate=ParticleSystem'VH_Manta.Effects.PS_Manta_Gun_MuzzleFlash'
-  fireSound=SoundCue'A_Vehicle_Manta.SoundCues.A_Vehicle_Manta_Fire'
+  fireSound=(soundObject=SoundCue'A_Vehicle_Manta.SoundCues.A_Vehicle_Manta_Fire')
   
   trailTemplate=ParticleSystem'WP_LinkGun.Effects.P_WP_Linkgun_Projectile'
 

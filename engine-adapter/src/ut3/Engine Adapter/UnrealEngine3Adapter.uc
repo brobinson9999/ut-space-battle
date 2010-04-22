@@ -11,7 +11,7 @@ var InputDriver                         inputDriver;
 var HUDAdapter                          HUD;
 var LevelChangeInteraction              cleanupWatcher;
 var GameSimulationAnchor                gameSimulationAnchor;
-var protected UnrealEngineCanvasObject canvasObject;
+var protected UnrealEngineCanvasObject  canvasObject;
 
 var class<HUD>                          defaultHUDClass;
 var class<HUDAdapter>                   defaultHUDAdapterClass;

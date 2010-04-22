@@ -29,7 +29,7 @@ defaultproperties
 
   fireShakeMagnitude=25
   fireEffect=class'ShockProjMuzFlash3rd'
-  fireSound=Sound'WeaponSounds.ShockRifle.ShockRifleAltFire'
+  fireSound=(soundObject=Sound'WeaponSounds.ShockRifle.ShockRifleAltFire')
 
   impactShakeMagnitude=75
 }

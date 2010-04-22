@@ -14,16 +14,16 @@ var Actor Trailer2;
 // ********************************************************************************************************************************************
 
   simulated function initialize() {
-		super.initialize();
-		
-		setDrawscale(sqrt(projectile.damage) * 0.8);
+    super.initialize();
+    
+    setDrawscale(sqrt(projectile.damage) * 0.8);
 
-		trailer = Spawn(class'RocketCorona', self);
-		trailer.SetBase(self);
+    trailer = Spawn(class'RocketCorona', self);
+    trailer.SetBase(self);
 
-		trailer2 = Spawn(class'ONSAvrilSmokeTrail', self);
-		trailer2.SetBase(self);
-	}
+    trailer2 = Spawn(class'ONSAvrilSmokeTrail', self);
+    trailer2.SetBase(self);
+  }
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -32,10 +32,10 @@ var Actor Trailer2;
 
 simulated function DestroyTrails()
 {
-	if (Trailer != None)
-			Trailer.Destroy();
-	if (Emitter(Trailer2) != None)
-		Emitter(Trailer2).Kill();
+  if (Trailer != None)
+      Trailer.Destroy();
+  if (Emitter(Trailer2) != None)
+    Emitter(Trailer2).Kill();
 }
 
 // ********************************************************************************************************************************************
@@ -68,9 +68,9 @@ simulated function bool CheckMaxEffectDistance(PlayerController P, vector SpawnL
   
   simulated function impact()
   {
-		updateLocation();
+    updateLocation();
 
-		spawnScaledEffect(class'FX_FireballExplosion_Dense');
+    spawnScaledEffect(class'FX_FireballExplosion_Dense');
 
     super.impact();
   }
@@ -82,40 +82,40 @@ simulated function bool CheckMaxEffectDistance(PlayerController P, vector SpawnL
 
 defaultproperties
 {
-	DrunkenRateMin=10000
-	DrunkenRateMax=20000
-	DrunkenMagnitudeMin=10
-	DrunkenMagnitudeMax=100
+  DrunkenRateMin=10000
+  DrunkenRateMax=20000
+  DrunkenMagnitudeMin=10
+  DrunkenMagnitudeMax=100
 
-	AmbientSound=Sound'WeaponSounds.RocketLauncher.RocketLauncherProjectile'
-	SoundVolume=255
-	SoundRadius=100
+  AmbientSound=Sound'WeaponSounds.RocketLauncher.RocketLauncherProjectile'
+  SoundVolume=255
+  SoundRadius=100
 
-	DrawType=DT_StaticMesh
-	StaticMesh=StaticMesh'WeaponStaticMesh.RocketProj'
-	DrawScale=1.0
+  DrawType=DT_StaticMesh
+  StaticMesh=StaticMesh'WeaponStaticMesh.RocketProj'
+  DrawScale=1.0
 
-	bUnlit=True
-	AmbientGlow=96
-	LightType=LT_Steady
-	LightEffect=LE_QuadraticNonIncidence
-	LightBrightness=255
-	LightHue=28
-	LightRadius=5
-	bDynamicLight=true
+  bUnlit=True
+  AmbientGlow=96
+  LightType=LT_Steady
+  LightEffect=LE_QuadraticNonIncidence
+  LightBrightness=255
+  LightHue=28
+  LightRadius=5
+  bDynamicLight=true
 
-//	bBounce=false
-	bFixedRotationDir=True
-	RotationRate=(Roll=50000)
-	DesiredRotation=(Roll=30000)
+//  bBounce=false
+  bFixedRotationDir=True
+  RotationRate=(Roll=50000)
+  DesiredRotation=(Roll=30000)
 
 //  CullDistance=0.0
 
-	fireShakeMagnitude=100
-	fireEffect=class'RocketMuzFlash3rd'
-	fireSound=Sound'WeaponSounds.RocketLauncher.RocketLauncherFire'
+  fireShakeMagnitude=100
+  fireEffect=class'RocketMuzFlash3rd'
+  fireSound=(soundObject=Sound'WeaponSounds.RocketLauncher.RocketLauncherFire')
 
-	impactShakeMagnitude=200
+  impactShakeMagnitude=200
 }
 
 // ********************************************************************************************************************************************

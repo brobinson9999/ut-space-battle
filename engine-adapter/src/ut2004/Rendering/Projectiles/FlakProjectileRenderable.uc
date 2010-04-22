@@ -14,16 +14,16 @@ var Actor Trailer2;
 // ********************************************************************************************************************************************
 
   simulated function initialize() {
-		super.initialize();
-		
-		setDrawscale(sqrt(projectile.damage) * 0.25);
+    super.initialize();
+    
+    setDrawscale(sqrt(projectile.damage) * 0.25);
 
-		trailer = Spawn(class'FlakGlow', self);
-		trailer.SetBase(self);
+    trailer = Spawn(class'FlakGlow', self);
+    trailer.SetBase(self);
 
-		trailer2 = Spawn(class'ONSAvrilSmokeTrail', Self,, Location, Rotation);
-		trailer2.SetBase(self);
-	}
+    trailer2 = Spawn(class'ONSAvrilSmokeTrail', Self,, Location, Rotation);
+    trailer2.SetBase(self);
+  }
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -32,10 +32,10 @@ var Actor Trailer2;
 
 simulated function DestroyTrails()
 {
-	if (Trailer != None)
-			Trailer.Destroy();
-	if (Emitter(Trailer2) != None)
-		Emitter(Trailer2).Kill();
+  if (Trailer != None)
+      Trailer.Destroy();
+  if (Emitter(Trailer2) != None)
+    Emitter(Trailer2).Kill();
 }
 
 // ********************************************************************************************************************************************
@@ -69,12 +69,12 @@ simulated function bool CheckMaxEffectDistance(PlayerController P, vector SpawnL
 
   simulated function impact()
   {
-		updateLocation();
+    updateLocation();
 
-		spawnScaledEffect(class'FX_FireballExplosion');
+    spawnScaledEffect(class'FX_FireballExplosion');
 
     super.impact();
-	}
+  }
   
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -83,30 +83,30 @@ simulated function bool CheckMaxEffectDistance(PlayerController P, vector SpawnL
 
 defaultproperties
 {
-	DrunkenRateMin=10000
-	DrunkenRateMax=20000
-	DrunkenMagnitudeMin=10
-	DrunkenMagnitudeMax=100
+  DrunkenRateMin=10000
+  DrunkenRateMax=20000
+  DrunkenMagnitudeMin=10
+  DrunkenMagnitudeMax=100
 
-	Physics=PHYS_Rotating
-	bFixedRotationDir=True
-	RotationRate=(Roll=180000)
+  Physics=PHYS_Rotating
+  bFixedRotationDir=True
+  RotationRate=(Roll=180000)
 
-	bHidden=false
-	DrawType=DT_StaticMesh
-	StaticMesh=StaticMesh'WeaponStaticMesh.FlakShell'
-	Skins(0)=texture'NewFlakSkin'
-	DrawScale=1.0
+  bHidden=false
+  DrawType=DT_StaticMesh
+  StaticMesh=StaticMesh'WeaponStaticMesh.FlakShell'
+  Skins(0)=texture'NewFlakSkin'
+  DrawScale=1.0
 
-	AmbientGlow=100
+  AmbientGlow=100
 
-	AmbientSound=Sound'WeaponSounds.BaseProjectileSounds.BFlakCannonProjectile'
-	SoundRadius=100
-	SoundVolume=255
+  AmbientSound=Sound'WeaponSounds.BaseProjectileSounds.BFlakCannonProjectile'
+  SoundRadius=100
+  SoundVolume=255
 
-	fireShakeMagnitude=150
-	fireEffect=class'FlakMuzFlash3rd'
-	fireSound=Sound'WeaponSounds.FlakCannon.FlakCannonAltFire'  
+  fireShakeMagnitude=150
+  fireEffect=class'FlakMuzFlash3rd'
+  fireSound=(soundObject=Sound'WeaponSounds.FlakCannon.FlakCannonAltFire')
 
-	impactShakeMagnitude=500
+  impactShakeMagnitude=500
 }

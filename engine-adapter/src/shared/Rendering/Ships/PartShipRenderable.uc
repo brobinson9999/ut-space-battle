@@ -1,85 +1,185 @@
-class PartRenderable extends BaseRenderable;
+class PartShipRenderable extends ShipRenderable;
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-  var Part part;
-
-  var rotator rotationOffset;
-  var vector locationOffset;
-  
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-
-  simulated function setPart(Part newPart) {
-    part = newPart;
-  }
-  
-  simulated function initialize();
-  
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-
-  simulated function clearPartRenderData() {
-    destroy();
-  }
+var RenderablePartShipObserver shipObserver;
+var array<PartRenderable> partRenderables;
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-  simulated function cleanup()
-  {
-    part = none;
+simulated function initialize() {
+  local int i;
+
+  super.initialize();
     
-    super.cleanup();
-  }
+  shipObserver = new class'RenderablePartShipObserver';
+  shipObserver.initialize(ship, self);
   
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
+  setScale(getGlobalDrawscaleFactor());
 
-  simulated function setRenderLocation(vector newLocation) {
-    setLocation(newLocation);
-  }
-  
-  simulated function setRenderRotation(rotator newRotation) {
-    setRotation(newRotation);
-  }
-  
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
+  for (i=0;i<PartShip(ship).parts.length;i++)
+    initializePartRenderable(PartShip(ship).parts[i]);
+}
 
-  simulated function FiredWeapon();
-  simulated function notifyPartDamaged();
-  simulated function notifyPartRepaired();
-  simulated function notifyShipCritical();
-  simulated function notifyShipDestroyed();
-  simulated function notifyPartFiredWeapon(Projectile projectile);
-  
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
+simulated function ShipObserver getShipObserver() {
+  return shipObserver;
+}
 
-  simulated function ParticleSystemComponent SpawnParticleSystem(ParticleSystem EffectTemplate, vector SpawnLocation, rotator SpawnRotation)
-  {
-    local ParticleSystemComponent EffectInstance;
+simulated function class<PartRenderable> getPartRenderableClass(Part part) {
+//  local string shipTypeName;
+
+//  if (part.ship != none)
+//    shipTypeName = part.ship.shipTypeName;
     
-    EffectInstance = WorldInfo.MyEmitterPool.SpawnEmitter(EffectTemplate, SpawnLocation, SpawnRotation);
+  return class'FighterBPartRenderable';
+}
+  
+simulated function initializePartRenderable(Part part) {
+  local class<PartRenderable> partRenderableClass;
+  local PartRenderable newPartRenderable;
+  
+  partRenderableClass = getPartRenderableClass(part);
+  newPartRenderable = spawn(partRenderableClass,,,locationForPart(part), rotationForPart(part));
+  propogateGlobals(newPartRenderable);
+  newPartRenderable.setPart(part);
+  positionPart(newPartRenderable, part);
+  newPartRenderable.initialize();
+
+  partRenderables[partRenderables.length] = newPartRenderable;
+}
+
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+
+simulated function clearRenderData() {
+  local int i;
+  
+  for (i=0;i<partRenderables.length;i++)
+    partRenderables[i].clearPartRenderData();
     
-    return EffectInstance;
+  super.clearRenderData();
+}
+
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+
+simulated function PartRenderable getPartRenderableForPart(Part part)
+{
+  local int i;
+  
+  for (i=0;i<partRenderables.length;i++)
+    if (partRenderables[i].part == part)
+      return partRenderables[i];
+  
+  return none;
+}
+
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+
+simulated function tick(float Delta) {
+  super.tick(delta);
+  
+  positionParts();
+}
+
+simulated function positionParts() {
+  local int i;
+  
+  for (i=0;i<partRenderables.length;i++)
+    positionPart(partRenderables[i], partRenderables[i].part);
+}
+
+simulated function positionPart(PartRenderable partRenderable, Part part) {
+  partRenderable.setRenderLocation(locationForPart(part));
+  partRenderable.setRenderRotation(rotationForPart(part));
+}
+
+simulated function vector locationForPart(Part part) {
+  return location + ((part.relativeLocation CoordRot rotation) * drawScale);
+}
+
+simulated function rotator rotationForPart(Part part) {
+  return part.getPartRotation();
+}
+
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+
+simulated function cleanup() {
+  if (shipObserver != none) {
+    shipObserver.cleanup();
+    shipObserver = none;
   }
+  
+  while (partRenderables.length > 0) {
+    if (partRenderables[partRenderables.length-1] != none)
+      partRenderables[partRenderables.length-1].cleanup();
+    partRenderables.remove(partRenderables.length-1,1);
+  }
+  
+  super.cleanup();
+}
+
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ** Events.
+
+simulated function notifyPartDamaged(Part part) {
+  local PartRenderable partRenderable;
+  
+  partRenderable = getPartRenderableForPart(part);
+  if (partRenderable != none)
+    partRenderable.notifyPartDamaged();
+}
+
+simulated function notifyPartRepaired(Part part) {
+  local PartRenderable partRenderable;
+  
+  partRenderable = getPartRenderableForPart(part);
+  if (partRenderable != none)
+    partRenderable.notifyPartRepaired();
+}
+
+simulated function notifyPartFiredWeapon(Part part, Projectile projectile) {
+  local PartRenderable partRenderable;
+  
+  partRenderable = getPartRenderableForPart(part);
+  if (partRenderable != none)
+    partRenderable.notifyPartFiredWeapon(projectile);
+}
+
+simulated function notifyShipCritical() {
+  local int i;
+  
+  for (i=0;i<partRenderables.length;i++)
+    partRenderables[i].notifyShipCritical();
+}
+
+simulated function notifyShipDestroyed() {
+  local int i;
+  
+  for (i=0;i<partRenderables.length;i++)
+    partRenderables[i].notifyShipDestroyed();
+
+  clearRenderData();
+}
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -88,8 +188,4 @@ class PartRenderable extends BaseRenderable;
 
 defaultproperties
 {
-  bBlockActors=false
-  bCollideWorld=false
-  bCollideActors=false
-  bProjTarget=false
 }

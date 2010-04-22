@@ -1,101 +1,82 @@
-class DrunkenProjectileRenderable extends MovingProjectileRenderable;
+class UTDeathmatchAdapter extends UnrealEngine3Adapter;
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-  var float drunkenMagnitudeMax;
-  var float drunkenMagnitudeMin;
-  var int drunkenRateMax;
-  var int drunkenRateMin;
+var UTDeathmatchFacade  gameInfoFacade;
 
-  var float drunkenYMagnitude;
-  var float drunkenZMagnitude;
-  var float drunkenYMagnitude2;
-  var float drunkenZMagnitude2;
-  var int drunkenYOscillations;
-  var int drunkenZOscillations;
-  var int drunkenYOscillations2;
-  var int drunkenZOscillations2;
-
-	var float startTime;
-	var float travelTime;
-	
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-  
-	simulated function float FRandRange(float LowerBound, float UpperBound)
-	{
-		return (FRand() * (UpperBound-LowerBound)) + LowerBound;
-	}
-	
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-	simulated function float randomSign(float in)
-	{
-		if (FRand() < 0.5)
-			return -in;
-		else
-			return in;
-	}
-	
+simulated function setPawnClass(class<Pawn> pawnClass) {
+  gameInfoFacade.defaultPawnClass = pawnClass;
+}
+
+simulated function setPlayerControllerClass(class<PlayerController> playerControllerClass) {
+  gameInfoFacade.playerControllerClass = playerControllerClass;
+}
+
+simulated function setHUDClass(class<HUD> HUDClass) {
+  gameInfoFacade.HUDType = HUDClass;
+}
+
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-  // Set drawtype and other rendering parameters.
-  simulated function initialize()
-  {
-  	local float distance;
-  	
-    super.initialize();
-    
-		if (drunkenRateMin > 0 && drunkenRateMax > 0)
-		{
-	    distance = VSize(projectile.endLocation - projectile.startLocation);
+simulated function Actor getGameInfoFacade() {
+  return gameInfoFacade;
+}
 
-			drunkenZMagnitude = 0.5 * randomSign(FRandRange(drunkenMagnitudeMin, drunkenMagnitudeMax));
-			drunkenYMagnitude = 0.5 * randomSign(FRandRange(drunkenMagnitudeMin, drunkenMagnitudeMax));
-			drunkenZMagnitude2 = 0.5 * randomSign(FRandRange(drunkenMagnitudeMin, drunkenMagnitudeMax));
-			drunkenYMagnitude2 = 0.5 * randomSign(FRandRange(drunkenMagnitudeMin, drunkenMagnitudeMax));
-			drunkenZOscillations = (distance / FRandRange(drunkenRateMin, drunkenRateMax)) + 0.5;
-			drunkenYOscillations = (distance / FRandRange(drunkenRateMin, drunkenRateMax)) + 0.5;
-			drunkenZOscillations2 = (distance / FRandRange(drunkenRateMin, drunkenRateMax)) + 0.5;
-			drunkenYOscillations2 = (distance / FRandRange(drunkenRateMin, drunkenRateMax)) + 0.5;
-		}
-		
-    startTime = worldInfo.timeSeconds;
-    travelTime = FMax(0.1,(projectile.endTime - projectile.startTime));
+simulated function setGameInfoFacade(UTDeathmatchFacade other) {
+  gameInfoFacade = other;
+}
+
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+
+simulated function PlayerController facadeLogin(string portal, string options, out string error) {
+  return gameInfoFacade.superLogin(portal, options, error);
+}
+
+simulated event facadePostLogin(PlayerController newPlayer) {
+  gameInfoFacade.superPostLogin(newPlayer);
+}
+
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+
+simulated function cleanup() {
+  super.cleanup();
+
+  if (gameInfoFacade != none) {
+    gameInfoFacade.cleanup();
+    gameInfoFacade = none;
   }
+}
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
-  
-  simulated function updateTornOffLocation(float Delta)
-  {
-		local vector drunkenVectorOffset;
-		local float travelAngle;
-  	local vector newLocation;
 
-		travelAngle = 2 * PI * ((worldInfo.timeSeconds - startTime) / travelTime);
-		drunkenVectorOffset.Y = drunkenYMagnitude * sin(travelAngle * drunkenYOscillations);
-		drunkenVectorOffset.Z = drunkenZMagnitude * sin(travelAngle * drunkenZOscillations);
-		drunkenVectorOffset.Y += drunkenYMagnitude2 * sin(travelAngle * drunkenYOscillations2);
-		drunkenVectorOffset.Z += drunkenZMagnitude2 * sin(travelAngle * drunkenZOscillations2);
+simulated function WorldInfo getLevel() {
+  return gameInfoFacade.getLevel();
+}
 
-		newLocation = location;
-		newLocation += (tearOffVelocity * delta);
-		newLocation += drunkenVectorOffset CoordRot rotation;
+simulated function GameInfo getGameInfo() {
+  return gameInfoFacade;
+}
 
-		setLocation(newLocation);
-  }
-  
-  
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -103,4 +84,6 @@ class DrunkenProjectileRenderable extends MovingProjectileRenderable;
 
 defaultproperties
 {
+  defaultHUDClass=class'UTHUDFacade'
+  defaultHUDAdapterClass=class'UTHUDAdapter'
 }

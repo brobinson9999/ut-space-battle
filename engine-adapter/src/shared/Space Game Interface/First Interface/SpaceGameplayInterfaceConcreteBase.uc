@@ -64,6 +64,8 @@ var UnrealEngineAdapter engineAdapter;
   var Color                                   barColorParts;
   var Color                                   barColorEnemyParts;
 
+  var array<Material>                         shipSizeIcons;
+  
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -462,7 +464,7 @@ var UnrealEngineAdapter engineAdapter;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
-
+  
   simulated function drawContactOverlays(Contact target, CanvasObject canvas)
   {
     drawReticle_Contact(target, canvas);
@@ -509,21 +511,31 @@ var UnrealEngineAdapter engineAdapter;
     
     canvas.setDrawColor(iconColor);
     
+    if (shipSizeIcons.length == 0)
+      shipSizeIcons = loadShipSizeIcons();
+    
     screenPosition = convertWorldPositionToCanvasPosition_BehindEdge(canvas, contactLocation);
     if (targetRadius < 50) {
-      canvas.drawIcon(Material(DynamicLoadObject("interfaceContent.Menu.arrowBlueDown", class'Material')), screenPosition.x, screenPosition.y, iconSize * 0.05);
+      canvas.drawIcon(shipSizeIcons[0], screenPosition.x, screenPosition.y, iconSize * 0.05);
+//      canvas.drawIcon(Material(DynamicLoadObject("interfaceContent.Menu.arrowBlueDown", class'Material')), screenPosition.x, screenPosition.y, iconSize * 0.05);
     } else if (targetRadius < 100) {
-      canvas.drawIcon(Material(DynamicLoadObject("interfaceContent.Menu.arrowBlueRight", class'Material')), screenPosition.x, screenPosition.y, iconSize * 0.05);
+      canvas.drawIcon(shipSizeIcons[1], screenPosition.x, screenPosition.y, iconSize * 0.05);
+//      canvas.drawIcon(Material(DynamicLoadObject("interfaceContent.Menu.arrowBlueRight", class'Material')), screenPosition.x, screenPosition.y, iconSize * 0.05);
     } else if (targetRadius < 200) {
-      canvas.drawIcon(Material(DynamicLoadObject("interfaceContent.Menu.arrowBlueLeft", class'Material')), screenPosition.x, screenPosition.y, iconSize * 0.05);
+      canvas.drawIcon(shipSizeIcons[2], screenPosition.x, screenPosition.y, iconSize * 0.05);
+//      canvas.drawIcon(Material(DynamicLoadObject("interfaceContent.Menu.arrowBlueLeft", class'Material')), screenPosition.x, screenPosition.y, iconSize * 0.05);
     } else if (targetRadius < 400) {
-      canvas.drawIcon(Material(DynamicLoadObject("interfaceContent.Menu.arrowBlueUp", class'Material')), screenPosition.x, screenPosition.y, iconSize * 0.05);
+      canvas.drawIcon(shipSizeIcons[3], screenPosition.x, screenPosition.y, iconSize * 0.05);
+//      canvas.drawIcon(Material(DynamicLoadObject("interfaceContent.Menu.arrowBlueUp", class'Material')), screenPosition.x, screenPosition.y, iconSize * 0.05);
     } else if (targetRadius < 800) {
-      canvas.drawIcon(Material(DynamicLoadObject("interfaceContent.Menu.arrowDown", class'Material')), screenPosition.x, screenPosition.y, iconSize * 0.15);
+      canvas.drawIcon(shipSizeIcons[4], screenPosition.x, screenPosition.y, iconSize * 0.15);
+//      canvas.drawIcon(Material(DynamicLoadObject("interfaceContent.Menu.arrowDown", class'Material')), screenPosition.x, screenPosition.y, iconSize * 0.15);
     } else if (targetRadius < 1600) {
-      canvas.drawIcon(Material(DynamicLoadObject("interfaceContent.Menu.arrowLeft", class'Material')), screenPosition.x, screenPosition.y, iconSize * 0.15);
+      canvas.drawIcon(shipSizeIcons[5], screenPosition.x, screenPosition.y, iconSize * 0.15);
+//      canvas.drawIcon(Material(DynamicLoadObject("interfaceContent.Menu.arrowLeft", class'Material')), screenPosition.x, screenPosition.y, iconSize * 0.15);
     } else {
-      canvas.drawIcon(Material(DynamicLoadObject("interfaceContent.Menu.arrowRight", class'Material')), screenPosition.x, screenPosition.y, iconSize * 0.15);
+      canvas.drawIcon(shipSizeIcons[6], screenPosition.x, screenPosition.y, iconSize * 0.15);
+//      canvas.drawIcon(Material(DynamicLoadObject("interfaceContent.Menu.arrowRight", class'Material')), screenPosition.x, screenPosition.y, iconSize * 0.15);
     }
   }
   
