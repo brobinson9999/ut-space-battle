@@ -44,7 +44,7 @@ class AIPilot extends Pilot;
   
   var int                 ManueverMode;
 
-  var SpaceWorker_Ship    worker;
+  var protected SpaceWorker_Ship    pilotShipWorker;
   
   var float               desiredStrafeAccuracy;
   var float               desiredDefenseAccuracy;
@@ -71,7 +71,6 @@ class AIPilot extends Pilot;
 
   var Contact             InterceptTarget_Contact;
   var Ship                InterceptTarget_Ship;
-  var Contact             Weapons_Target;
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -570,6 +569,7 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
   simulated function AMDefense()
   {
     local bool bFixedWeapons;
+    local Contact fixedWeaponsTarget;
     
     // Abort if no target.
     if (interceptTarget_Contact == None)
@@ -579,13 +579,16 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
     }
     
     bFixedWeapons = hasFixedWeapons(ship);
-    if (bFixedWeapons)
-      weapons_Target = getFixedWeaponsTarget();
+    if (bFixedWeapons) {
+      fixedWeaponsTarget = getFixedWeaponsTarget();
+    }
     
     // Use generic orbit.
     Generic_Orbit(InterceptTarget_Contact.getContactLocation(), strafeDistanceForShip(interceptTarget_Contact, ship.acceleration * 2, desiredDefenseAccuracy), Ship.Acceleration * 5);
-    if (bFixedWeapons && weapons_Target != none)
-      rotationManuever(rm_faceWeaponsTargetLeadIn);
+
+
+    if (fixedWeaponsTarget != none)
+        rotateToFaceLeadIn(fixedWeaponsTarget.getContactLocation(), fixedWeaponsTarget.getContactVelocity(), projectileSpeed());
     else
       rotationManuever(rm_faceDesiredVelocity);
   }
@@ -721,9 +724,12 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-  simulated function Set_Worker(SpaceWorker_Ship NewWorker)
-  {
-    Worker = NewWorker;
+  simulated function SpaceWorker_Ship getPilotShipWorker() {
+    return pilotShipWorker;
+  }
+
+  simulated function setPilotShipWorker(SpaceWorker_Ship newWorker) {
+    pilotShipWorker = newWorker;
   }
   
 // ********************************************************************************************************************************************
@@ -732,11 +738,13 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
 // ********************************************************************************************************************************************
 
   simulated function Manuever_Completed() {
-    if (Worker != None) Worker.Manuever_Completed();
+    if (pilotShipWorker != None)
+      pilotShipWorker.Manuever_Completed();
   }
   
   simulated function Manuever_Cannot_Be_Completed() {
-    if (Worker != None) Worker.Manuever_Cannot_Be_Completed();
+    if (pilotShipWorker != None)
+      pilotShipWorker.Manuever_Cannot_Be_Completed();
   }
 
 // ********************************************************************************************************************************************
@@ -746,14 +754,13 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
 
   simulated function cleanup()
   {
-    if (worker != none) {
-      worker.cleanup();
-      worker = none;
+    if (pilotShipWorker != none) {
+      pilotShipWorker.cleanup();
+      setPilotShipWorker(none);
     }
     
     interceptTarget_Contact = none;
     interceptTarget_Ship = none;
-    weapons_Target = none;
     
     super.cleanup();
   }
@@ -830,9 +837,9 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
       case rm_faceInterceptTargetLeadIn:
         rotateToFaceLeadIn(interceptTarget_Contact.getContactLocation(), interceptTarget_Contact.getContactVelocity(), projectileSpeed());
         break;
-      case rm_faceWeaponsTargetLeadIn:
-        rotateToFaceLeadIn(weapons_Target.getContactLocation(), weapons_Target.getContactVelocity(), projectileSpeed());
-        break;
+//      case rm_faceWeaponsTargetLeadIn:
+//        rotateToFaceLeadIn(weapons_Target.getContactLocation(), weapons_Target.getContactVelocity(), projectileSpeed());
+//        break;
       case rm_freeFlight:
         setDesiredRotation(freeFlightRotation);
         break;

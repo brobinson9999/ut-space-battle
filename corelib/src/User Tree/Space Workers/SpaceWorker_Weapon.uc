@@ -222,14 +222,14 @@ simulated function updateTimerElapsed()
   }
 
   simulated function bool isShipDefending() {
-    return (Task_Defense(AIPilot(weapon.ship.pilot).worker.current_task) != none);
+    return (Task_Defense(weapon.ship.getShipWorker().current_task) != none);
   }
   
   simulated function float getAssignmentFactorForTask(SpaceTask task) {
     local float result;
     
     // Give a slight increase to likelyhood that they will attack the ship's weapon target.
-    if (Task_Attack(task).Target == AIPilot(weapon.ship.pilot).weapons_Target)
+    if (Task_Attack(task).Target == weapon.ship.getShipWorker().mainWeaponsTarget)
       result = 1.05;
     else
       result = 1;

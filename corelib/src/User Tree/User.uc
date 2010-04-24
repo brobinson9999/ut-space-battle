@@ -393,7 +393,7 @@ simulated function SpaceWorker_Ship getNewShipWorker(Ship Other)
 
   NewWorker = SpaceWorker_Ship(allocateObject(class'SpaceWorker_Ship'));
   NewWorker.Ship = Other;
-  AIPilot(Other.Pilot).Worker = NewWorker;
+  AIPilot(Other.Pilot).setPilotShipWorker(newWorker);
   NewWorker.Initialize();
 
   return NewWorker;
@@ -508,8 +508,7 @@ simulated function removeWorkerForShip(CompositeSpaceWorker parentWorker, Ship o
   local SpaceWorker worker;
 
   // Remove Ship Worker.
-  if (AIPilot(other.pilot) != none)
-    worker = AIPilot(other.pilot).worker;
+  worker = other.getShipWorker();
   if (worker != none)
     parentWorker.removeWorker(worker);
 

@@ -106,23 +106,11 @@ var UnrealEngineAdapter engineAdapter;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-  simulated function AIPilot getPlayerPilot()
-  {
-    if (playerShip == None) return none;
-    return AIPilot(playerShip.pilot);
-  }
-  
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-
   simulated function renderInterface(UserInterfaceMediator mediator, CanvasObject canvas) {
     local Contact target;
     local int i;
     
     local SectorPresence sectorPresence;
-    local AIPilot playerPilot;
 
     local color bracketColor;
     local float aimAccuracy;
@@ -184,13 +172,27 @@ var UnrealEngineAdapter engineAdapter;
       drawBracketString(canvas, playerShip.getShipLocation(), vector(playerShip.rotation), 10, playerShip.radius * 0.25, 1, playerShip.radius * 5, playerShip.radius * 5);
 
       // Show lead in.
-      if (AIPilot(playerShip.pilot) != none && AIPilot(playerShip.pilot).weapons_Target != none && AIPilot(playerShip.pilot).hasFixedWeapons(playerShip)) {
-        leadInPosition = AIPilot(playerShip.pilot).AM_Intercept_Calculate_Lead_In(AIPilot(playerShip.pilot).weapons_Target.getContactLocation(), AIPilot(playerShip.pilot).weapons_Target.getContactVelocity(), AIPilot(playerShip.pilot).projectileSpeed());
-        leadInDelta = leadInPosition - AIPilot(playerShip.pilot).weapons_Target.getContactLocation();
+      if (playerShip.getShipWorker().mainWeaponsTarget != none && AIPilot(playerShip.pilot).hasFixedWeapons(playerShip)) {
+        leadInPosition = AIPilot(playerShip.pilot).AM_Intercept_Calculate_Lead_In(playerShip.getShipWorker().mainWeaponsTarget.getContactLocation(), playerShip.getShipWorker().mainWeaponsTarget.getContactVelocity(), AIPilot(playerShip.pilot).projectileSpeed());
+        leadInDelta = leadInPosition - playerShip.getShipWorker().mainWeaponsTarget.getContactLocation();
         
         canvas.setDrawColor(reticleColorHostile);
-        drawBracketString(canvas, AIPilot(playerShip.pilot).weapons_Target.getContactLocation(), normal(leadInDelta), 9, 5, 1, vsize(leadInDelta) * 0.5, vsize(leadInDelta) * 0.1);
+        drawBracketString(canvas, playerShip.getShipWorker().mainWeaponsTarget.getContactLocation(), normal(leadInDelta), 9, 5, 1, vsize(leadInDelta) * 0.5, vsize(leadInDelta) * 0.1);
       }
+
+      // Render Hostile Health Bar.
+      if (playerShip.getShipWorker() != none) {
+        target = playerShip.getShipWorker().mainWeaponsTarget;
+        if (target != none) {
+          target.estimateTargetCondition(targetCurrentCondition, targetOptimalCondition);
+          draw_Segmented_Bar(canvas, targetCurrentCondition, targetOptimalCondition, barColorEnemyParts);
+          canvas.setDrawColor(barColorEnemyParts);
+          drawStatusMessage(canvas, "Primary Target: "$getTextDescriptionForContact(target));
+        }
+      }
+
+      // show weapons
+      renderWeaponsStatus(mediator, canvas);
     }
     
     if (bRenderProjectilesOnHUD) {
@@ -198,22 +200,6 @@ var UnrealEngineAdapter engineAdapter;
         drawProjectile(canvas, cameraSector.projectiles[i]);
       }
     }
-
-    // Render Hostile Health Bar.
-    playerPilot = getPlayerPilot();
-    if (playerPilot != none) {
-      target = playerPilot.weapons_Target;
-      if (target != none) {
-        target.estimateTargetCondition(targetCurrentCondition, targetOptimalCondition);
-        draw_Segmented_Bar(canvas, targetCurrentCondition, targetOptimalCondition, barColorEnemyParts);
-        canvas.setDrawColor(barColorEnemyParts);
-        drawStatusMessage(canvas, "Primary Target: "$getTextDescriptionForContact(target));
-      }
-    }
-    
-    // show weapons
-    if (playerShip != none)
-      renderWeaponsStatus(mediator, canvas);
   }
 
   simulated function renderWeaponsStatus(UserInterfaceMediator mediator, CanvasObject canvas) {
@@ -555,7 +541,9 @@ var UnrealEngineAdapter engineAdapter;
     local vector Dv, RotDv;
     local array<string> ReadoutText;
     
-    local AIPilot PlayerPilot;
+    local SpaceWorker_Ship playerShipWorker;
+    local Contact playerShipTarget;
+    
     local float readoutTextSize;
     
     local User contactOwner;
@@ -580,11 +568,14 @@ var UnrealEngineAdapter engineAdapter;
     canvas.setDrawColor(baseColor);
     drawReticle_PositionRadius(canvas, reticlePosition, targetRadius, 1, true);
 
-    PlayerPilot = GetPlayerPilot();
+    if (playerShip != none)
+      playerShipWorker = playerShip.getShipWorker();
+    if (playerShipWorker != none)
+      playerShipTarget = playerShipWorker.mainWeaponsTarget;
 
     // I'd rather these be a fixed # of pixels maybe, rather than increasing the radius - that depends on distance. It looks okay at long distance but up close the gap between the
     // brackets is too big.
-    if (PlayerPilot != None && PlayerPilot.Weapons_Target == Target) {
+    if (playerShipTarget == target) {
       canvas.setDrawColor(alphaModColor(reticleColorTargeted, alphaMod));
       drawReticle_PositionRadius(canvas, reticlePosition, targetRadius * 1.25, 5, true);
     } else if (IsItemInArray(Target, friendlyTargetContacts)) {
@@ -592,7 +583,7 @@ var UnrealEngineAdapter engineAdapter;
       drawReticle_PositionRadius(canvas, reticlePosition, targetRadius * 1.25, 5, true);
     }
     
-    if (bShowHUDReadoutsForAllContacts || (PlayerPilot != None && PlayerPilot.Weapons_Target == Target)) {
+    if (bShowHUDReadoutsForAllContacts || (playerShipTarget == target)) {
       if (HUDReadoutType != HUD_None) {
         readoutText[ReadoutText.Length] = getTextDescriptionForContact(target);
       }
@@ -702,21 +693,17 @@ var UnrealEngineAdapter engineAdapter;
 
   simulated function bool keyEvent(string key, string action, float delta)
   {
-    local AIPilot playerPilot;
-
     local rotator rotationDelta;
     local rotator rotationFrame;
     
     if (bStrategicControls) {
       if (keyEvent_Strategic(key, action, delta)) return true;
     }
-
-    playerPilot = getPlayerPilot();
     
     // Mouse Axis.
     if (Key == "IK_MouseX" || Key == "IK_MouseY")
     {
-      if (playerPilot != None) {
+      if (playerShip != None) {
         if (Key == "IK_MouseX")
           rotationDelta = rot(0,1,0);
         else
@@ -726,14 +713,14 @@ var UnrealEngineAdapter engineAdapter;
         // It must be relative to the player's free flight rotation since we will be rotating it into that reference frame later.
         // Pitch and yaw of the camera should not be considered, else even a small rotation becomes large when placed in the reference
         // frame of the camera.
-        rotationFrame = cameraRotation UncoordRot playerPilot.freeFlightRotation;
+        rotationFrame = cameraRotation uncoordRot getFreeFlightRotation();
         rotationFrame.pitch = 0;
         rotationFrame.yaw = 0;
 
         rotationDelta = (delta * strategicCameraSensitivity * rotationDelta) CoordRot rotationFrame;
         rotationDelta.roll = 0;
 
-        playerPilot.freeFlightRotation = rotationDelta CoordRot playerPilot.freeFlightRotation;
+        setFreeFlightRotation(rotationDelta coordRot getFreeFlightRotation());
       }
       
       return true;
@@ -759,24 +746,7 @@ var UnrealEngineAdapter engineAdapter;
     
     return false;
   }
-
   
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-
-  simulated function SetAIControl(bool bNewAIControl)
-  {
-    local AIPilot PlayerPilot;
-    
-    PlayerPilot = GetPlayerPilot();
-    if (PlayerPilot == None) return;
-    
-    bAIControl = bNewAIControl;
-    PlayerPilot.bFreeFlight = !bNewAIControl;
-    if (!bAIControl && PlayerPilot.Ship != None)
-      PlayerPilot.FreeFlightRotation = PlayerPilot.Ship.DesiredRotation;
-  }
-
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -784,7 +754,6 @@ var UnrealEngineAdapter engineAdapter;
 
   simulated function cycle(InputView inputView, float delta)
   {
-    local AIPilot PlayerPilot;
     local vector forwardDesiredVelocity;
     local vector inertialCompensationDesiredVelocity;
     local vector newDesiredVelocity;
@@ -794,14 +763,10 @@ var UnrealEngineAdapter engineAdapter;
     
     updateCameraShakeMagnitude(delta);
     
-    playerPilot = getPlayerPilot();
-    
-    
     strategicCameraStrategy.focusLocation += (strategicCameraPanSpeed * delta) CoordRot cameraRotation;
-
     
-    if (playerPilot != none && playerPilot.ship != none) {
-      myAssert(!playerPilot.ship.bCleanedUp, "SpaceGameplayInterfaceConcreteBase playerPilot.ship != none but playerPilot.ship.bCleanedUp");
+    if (playerShip != none) {
+      myAssert(!playerShip.bCleanedUp, "SpaceGameplayInterfaceConcreteBase playerShip != none but playerShip.bCleanedUp");
 
       if (!bAIControl)
       {
@@ -809,17 +774,17 @@ var UnrealEngineAdapter engineAdapter;
         updateJoystickControls(inputView, delta);
 
         // Update acceleration.
-        if (playerPilot.ship.acceleration != 0)
+        if (playerShip.acceleration != 0)
         {
-          inertialCompensationDesiredVelocity = Vector(playerPilot.freeFlightRotation) * (VSize(playerPilot.ship.velocity) + (manualAcceleration * playerPilot.ship.acceleration));
-          forwardDesiredVelocity = playerPilot.ship.velocity + (Vector(playerPilot.freeFlightRotation) * manualAcceleration * playerPilot.ship.acceleration);
+          inertialCompensationDesiredVelocity = Vector(getFreeFlightRotation()) * (VSize(playerShip.velocity) + (manualAcceleration * playerShip.acceleration));
+          forwardDesiredVelocity = playerShip.velocity + (Vector(getFreeFlightRotation()) * manualAcceleration * playerShip.acceleration);
 
           newDesiredVelocity = (inertialCompensationDesiredVelocity * freeFlightInertialCompensationFactor) + (forwardDesiredVelocity * (1-freeFlightInertialCompensationFactor));
-          newAcceleration = newDesiredVelocity - playerPilot.ship.velocity;
+          newAcceleration = newDesiredVelocity - playerShip.velocity;
           if (VSize(newAcceleration) > 1)
             newAcceleration = Normal(newAcceleration);
             
-          playerPilot.freeFlightAcceleration = newAcceleration;
+          setFreeFlightAcceleration(newAcceleration);
         }
       } 
 
@@ -850,17 +815,13 @@ var UnrealEngineAdapter engineAdapter;
   {
     local int i;
     local Contact Target;
-    local AIPilot playerPilot;
     local ShipWeapon weapon;
     
-    playerPilot = getPlayerPilot();
-    if (playerPilot == none)
+    if (playerShip.getShipWorker() == none || playerShip.getShipWorker().mainWeaponsTarget == none)
       return;
       
-    target = playerPilot.weapons_Target;
-    if (target == none)
-      return;
-    
+    target = playerShip.getShipWorker().mainWeaponsTarget;
+
     for (i=0;i<playerShip.weapons.length;i++) {
       weapon = playerShip.weapons[i];
       
@@ -1001,517 +962,550 @@ var UnrealEngineAdapter engineAdapter;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-  simulated function updateJoystickControls(InputView inputView, float delta)
+simulated function AIPilot getPlayerPilot() {
+  if (playerShip != none)
+    return AIPilot(playerShip.pilot);
+  else
+    return none;
+}
+
+simulated function setAIControl(bool bNewAIControl)
+{
+  local AIPilot playerPilot;
+
+  bAIControl = bNewAIControl;
+
+  playerPilot = getPlayerPilot();
+  if (playerPilot != none)
+    playerPilot.bFreeFlight = !bNewAIControl;
+
+  if (!bAIControl && playerShip != none)
+    setFreeFlightRotation(playerShip.desiredRotation);
+}
+
+simulated function rotator getFreeFlightRotation() {
+  local AIPilot playerPilot;
+
+  playerPilot = getPlayerPilot();
+  if (playerPilot != none)
+    return playerPilot.freeFlightRotation;
+  else
+    return rot(0,0,0);
+}
+
+simulated function setFreeFlightRotation(rotator newRotation) {
+  local AIPilot playerPilot;
+
+  playerPilot = getPlayerPilot();
+  if (playerPilot != none)
+    playerPilot.freeFlightRotation = newRotation;
+}
+
+simulated function setFreeFlightAcceleration(vector newAcceleration) {
+  local AIPilot playerPilot;
+
+  playerPilot = getPlayerPilot();
+  if (playerPilot != none)
+    playerPilot.freeFlightAcceleration = newAcceleration;
+}
+
+simulated function updateJoystickControls(InputView inputView, float delta)
+{
+  local Rotator RotMod;
+  local vector joy1Position;
+
+  joy1Position = inputView.joysticks[0];
+  if (joy1Position != Vect(0,0,0))
   {
-    local Rotator RotMod;
-    local AIPilot PlayerPilot;
-    local vector joy1Position;
-    
-    PlayerPilot = GetPlayerPilot();
-    
-    joy1Position = inputView.joysticks[0];
-    if (joy1Position != Vect(0,0,0))
-    {
-      rotMod.yaw    = joy1Position.y * delta * joyAimSensitivity;
-      rotMod.pitch  = joy1Position.x * delta * joyAimSensitivity;
-      
-      if (bRelativeJoystickControls)
-        PlayerPilot.freeFlightRotation = RotMod CoordRot PlayerPilot.Ship.Rotation;
-      else
-        PlayerPilot.freeFlightRotation = RotMod CoordRot PlayerPilot.freeFlightRotation;
-    }
-  }
+    rotMod.yaw    = joy1Position.y * delta * joyAimSensitivity;
+    rotMod.pitch  = joy1Position.x * delta * joyAimSensitivity;
 
-  simulated function bool receivedConsoleCommand(UserInterfaceMediator mediator, string command)
-  {
-//    local int i;
-    local array<Contact> targetContacts;
-    local array<string> StringParts;
-    local AIPilot PlayerPilot;
-    
-    // Get command and arguments.
-    StringParts = splitString(command, " ");
-
-    if (StringParts[0] ~= "set_ai_control") {
-      SetAIControl(Int(StringParts[1]) == 1);     
-      return true;
-    }
-    
-    if (StringParts[0] ~= "set_strategic_controls") {
-      bStrategicControls = (Int(StringParts[1]) == 1);
-      return true;
-    }
-    
-    if (StringParts[0] ~= "renderHUD") {
-      bRenderHUD = (Int(stringParts[1]) == 1);
-      return true;
-    }
-
-    if (StringParts[0] ~= "renderProjectilesOnHUD") {
-      bRenderProjectilesOnHUD = (Int(stringParts[1]) == 1);
-      return true;
-    }
-
-    if (StringParts[0] ~= "renderWorld") {
-      setRenderWorld(mediator, Int(stringParts[1]) == 1);
-      return true;
-    }
-
-    if (StringParts[0] ~= "toggleRenderHUD") {
-      bRenderHUD = !bRenderHUD;
-      return true;
-    }
-
-    if (StringParts[0] ~= "toggleRenderProjectilesOnHUD") {
-      bRenderProjectilesOnHUD = !bRenderProjectilesOnHUD;
-      return true;
-    }
-
-    if (StringParts[0] ~= "toggleRenderWorld") {
-      setRenderWorld(mediator, !bRenderWorld);
-      return true;
-    }
-
-    if (StringParts[0] ~= "toggleShowAllHUDReadouts") {
-      bShowHUDReadoutsForAllContacts = !bShowHUDReadoutsForAllContacts;
-      return true;
-    }
-
-    if (StringParts[0] ~= "set_hud_readout_delta") {
-      ReceivedConsoleCommand(mediator, "set_hud_readout "$(HUDReadoutType + Int(StringParts[1])));
-      return true;
-    }
-
-    if (StringParts[0] ~= "set_hud_readout") {
-      HUDReadoutType = Int(StringParts[1]);
-      if (HUDReadoutType > HUD_Max)
-        HUDReadoutType = HUD_Min;
-      infoMessage("Now using HUD Scheme " $ HUDReadoutType);
-      
-      return true;
-    }
-
-    if (stringParts[0] ~= "cameraShake")
-    {
-      cameraShake(cameraLocation, float(stringParts[1]));
-      
-      return true;
-    }
-
-    if (stringParts[0] ~= "set_acceleration")
-    {
-      manualAcceleration = Float(stringParts[1]);
-      
-      return true;
-    }
-
-    if (stringParts[0] ~= "set_acceleration_delta")
-    {
-      manualAcceleration = FClamp(manualAcceleration + Float(stringParts[1]), -1, 1);
-      
-      return true;
-    }    
-    
-    if (stringParts[0] ~= "set_inertial")
-    {
-      freeFlightInertialCompensationFactor = Float(stringParts[1]);
-      
-      return true;
-    }
-
-    if (stringParts[0] ~= "set_relative_controls")
-    {
-      bRelativeJoystickControls = (Int(stringParts[1]) == 1);
-
-      return true;
-    }
-
-    if (StringParts[0] ~= "set_bFire")
-    {
-      bFire = (Int(StringParts[1]) == 1);
-      
-      return true;
-    }
-
-    if (StringParts[0] ~=  "set_camera") {
-      setCameraStrategyByID(stringParts[1]);
-      return true;
-    }
-
-    if (stringParts[0] ~=  "strategic_camera_distance") {
-      setStrategicCameraDistance(Float(stringParts[1]));
-      return true;
-    }
-
-    if (stringParts[0] ~=  "strategic_camera_distance_delta") {
-      setStrategicCameraDistance(strategicCameraStrategy.cameraDistance + float(stringParts[1]));
-      return true;
-    }
-
-    if (stringParts[0] ~=  "multiplystrategicCameraDistance") {
-      setStrategicCameraDistance(strategicCameraStrategy.cameraDistance * float(stringParts[1]));
-      return true;
-    }
-
-    if (stringParts[0] ~= "strategicCameraPanX") {
-      setStrategicCameraFocusContact(none);
-      strategicCameraPanSpeed.x = float(stringParts[1]);
-      return true;
-    }
-    
-    if (stringParts[0] ~= "strategicCameraPanY") {
-      setStrategicCameraFocusContact(none);
-      strategicCameraPanSpeed.y = float(stringParts[1]);
-      return true;
-    }
-
-    if (stringParts[0] ~= "strategicCameraPanZ") {
-      setStrategicCameraFocusContact(none);
-      strategicCameraPanSpeed.z = float(stringParts[1]);
-      return true;
-    }
-
-    if (StringParts[0] ~=  "strategic_camera_yaw_delta") {
-      setStrategicCameraRotationDelta(float(stringParts[1]) * rot(0,1,0));
-      return true;
-    }
-
-    if (StringParts[0] ~=  "strategic_camera_pitch_delta") {
-      setStrategicCameraRotationDelta(float(stringParts[1]) * rot(1,0,0));
-      return true;
-    }
-  
-    if (StringParts[0] ~= "set_strategic_camera_sensitivity") {
-      strategicCameraSensitivity = Int(stringParts[1]);
-      infoMessage("Now using Strategic Camera Sensitivity: "$strategicCameraSensitivity);
-      
-      return true;
-    }
-
-    if (StringParts[0] ~= "set_joystick_sensitivity")
-    {
-      JoyAimSensitivity = Int(StringParts[1]);
-      infoMessage("Now using Joystick Sensitivity: " $ JoyAimSensitivity);
-      
-      return true;
-    }
-
-    if ((StringParts[0] ~= "o" || StringParts[0] ~= "order"))
-    {
-      if (StringParts.Length >= 4)
-        parseOrder(mediator, StringParts[1], StringParts[2], StringParts[3]);
-      else if (StringParts.Length >= 3)
-        parseOrder(mediator, StringParts[1], StringParts[2], "");
-      else infoMessage("Order failed: Too few arguments.");
-
-      return true;
-    }
-
-    if (stringParts[0] ~=  "setFleetDelta") {
-      if (UTSpaceBattleGameSimulation(getGameSimulation()) != none) {
-        UTSpaceBattleGameSimulation(getGameSimulation()).setFleetDelta(Int(stringParts[1]), BaseUser(mediator.getPlayerUser()));
-        infoMessage("Selected Fleet "$UTSpaceBattleGameSimulation(getGameSimulation()).getPlayerFleet().fleetName); 
-      }
-
-      return true;
-    }
-
-    // 20090405: Pretty sure this is never used.
-    if (StringParts[0] ~= "reset_free_flight_rotation")
-    {
-      PlayerPilot = GetPlayerPilot();
-      if (PlayerPilot != None)
-        PlayerPilot.FreeFlightRotation = Rot(0,0,0);
-      
-      return true;
-    }
-    
-    // 20090315: This might not be being used.
-    if (StringParts[0] ~= "setPilotCameraLocationOffset") {
-      pilotCameraStrategy.relativePosition.x = float(stringParts[1]);
-      pilotCameraStrategy.relativePosition.y = float(stringParts[2]);
-      pilotCameraStrategy.relativePosition.z = float(stringParts[3]);
-      
-      return true;
-    }
-
-    if (StringParts[0] ~= "setPointOfInterest")
-    {
-      targetContacts = mediator.getContactsForDesignation(stringParts[1]);
-      if (targetContacts.length > 0)
-        pointOfInterestContact = targetContacts[0];
-      else
-        pointOfInterestContact = none;
-
-      return true;
-    }
-
-
-    if (StringParts[0] ~= "set_friendly_targets")
-    {
-      Set_friendlyTargetWorkers(mediator.getContactsForDesignation(StringParts[1]));
-      
-      return true;
-    }
-    
-    if (StringParts[0] ~= "toggle_friendly_targets")
-    {
-      Toggle_Friendly_Targets(mediator.getContactsForDesignation(StringParts[1]));
-
-      return true;
-    }
-    
-    if (stringParts[0] ~= "centerView")
-    {
-      setStrategicCameraDistance(10000);
-      setStrategicCameraFocusLocation(vect(0,0,0));
-    }
-
-    if (StringParts[0] ~= "focus")
-    {
-      targetContacts = mediator.getContactsForDesignation(StringParts[1]);
-      if (targetContacts.length > 0)
-        setStrategicCameraFocusContact(targetContacts[0]);
-      
-      strategicCameraStrategy.focusContact = strategicCameraFocusContact;
-      
-      // enforce max/min distance relative to new focus
-      setStrategicCameraDistance(strategicCameraStrategy.cameraDistance);
-
-      return true;
-    }
-
-    if (StringParts[0] ~= "randomize_player_ship")
-    {
-      targetContacts = mediator.filterContactsForDesignation("random", mediator.filterContactsForDesignation("owned", mediator.getContactsForDesignation("knownContactsInCameraSector")));
-      if (targetContacts.length > 0)
-        SetPlayerShip(mediator, targetContacts[0]);
-
-      return true;
-    }
-
-    if (StringParts[0] ~= "set_playership")
-    {
-      targetContacts = mediator.getContactsForDesignation(StringParts[1]);
-      if (targetContacts.length > 0)
-        setPlayerShip(mediator, targetContacts[0]);
-
-      return true;
-    }
-
-    // If not matched, ask mediator to issue the command to the user.
-    return mediator.issueUserCommand(command);
-  }
-
-  simulated function parseOrder(UserInterfaceMediator mediator, string WorkerID, string Order, string TargetID)
-  {
-    local array<SpaceWorker> workers;
-    local array<Contact> targets;
-    local Contact singleTarget;
-    
-    workers = mediator.getWorkersForDesignation(workerID);
-    if (workers.length == 0) {
-      mediator.userOrderFailed("no worker(s) in selection.");
-      return;
-    }
-    
-    // Orders that don't require a target can go here.
-
-    // Clear orders.
-    if (Order ~= "clr")
-    {
-      mediator.issueManualOrders(workers, None, None);
-      return;
-    }
-    
-    // Self-destruct ship.
-    if (Order ~= "scuttle")
-    {
-      mediator.scuttleWorkers(workers);
-      return;
-    }
-
-    targets = mediator.getContactsForDesignation(TargetID);
-    if (targets.length > 0)
-      singleTarget = targets[0];
-    if (singleTarget == None) {
-      mediator.userOrderFailed("invalid target.");
-      return;
-    }
-    
-    // Orders that require a target can go here.
-    
-    // Attack.
-    if (Order ~= "atk")
-    {
-      mediator.issueManualOrders(workers, class'Task_Attack', singleTarget);
-      mediator.userOrderIssued(class'Task_Attack');
-      return;
-    }
-    
-    // Defense.
-    if (Order ~= "def")
-    {
-      mediator.issueManualOrders(workers, class'Task_Defense', singleTarget);
-      mediator.userOrderIssued(class'Task_Defense');
-      return;
-    }
-
-    // Patrol.
-    if (Order ~= "pat")
-    {
-      mediator.issueManualOrders(workers, class'Task_Patrol', singleTarget);
-      mediator.userOrderIssued(class'Task_Patrol');
-      return;
-    }
-    
-    mediator.userOrderFailed("unrecognized order.");
-  }
-  
-  simulated function setStrategicCameraFocusLocation(vector newLocation) {
-    setStrategicCameraFocusContact(none);
-
-    if (strategicCameraStrategy != none)
-      strategicCameraStrategy.focusLocation = newLocation;
-  }
-
-  simulated function setStrategicCameraFocusContact(Contact newFocus) {
-    strategicCameraFocusContact = newFocus;
-    
-    if (strategicCameraStrategy != none)
-      strategicCameraStrategy.focusContact = newFocus;
-    if (chaseCameraStrategy != none)
-      chaseCameraStrategy.focusContact = newFocus;
-  }
-  
-  simulated function setStrategicCameraDistance(float newDistance) {
-    local float minimumDistance;
-    
-    if (strategicCameraFocusContact != none)
-      minimumDistance = strategicCameraFocusContact.estimateContactRadius();
-    
-    if (strategicCameraStrategy != none)
-      strategicCameraStrategy.cameraDistance = FMax(newDistance, minimumDistance);
-  }
-
-  simulated function setStrategicCameraRotationDelta(rotator rotationDelta) {
-    if (strategicCameraStrategy != none)
-      strategicCameraStrategy.cameraRotation = rotationDelta coordRot strategicCameraStrategy.cameraRotation;
-  }
-
-  simulated function setRenderWorld(UserInterfaceMediator mediator, bool bNewRenderWorld) {
-    if (bNewRenderWorld == bRenderWorld)
-      return;
-      
-    bRenderWorld = bNewRenderWorld;
-    if (bRenderWorld)
-      startRenderingSectorContacts(mediator);
+    if (bRelativeJoystickControls)
+      setFreeFlightRotation(rotMod coordRot playerShip.rotation);
     else
-      stopRenderingSectorContacts(mediator);
+      setFreeFlightRotation(rotMod coordRot getFreeFlightRotation());
   }
-  
-  simulated function cameraShake(vector shakeOrigin, float shakeMagnitude) {
-    local float shakeDistance;
-    local float magnitudeDelta;
-    local float magnitudeFactor;
-    
-    shakeDistance = VSize(cameraLocation - shakeOrigin);
+}
+
+simulated function bool receivedConsoleCommand(UserInterfaceMediator mediator, string command)
+{
+//    local int i;
+  local array<Contact> targetContacts;
+  local array<string> StringParts;
+
+  // Get command and arguments.
+  StringParts = splitString(command, " ");
+
+  if (StringParts[0] ~= "set_ai_control") {
+    SetAIControl(Int(StringParts[1]) == 1);     
+    return true;
+  }
+
+  if (StringParts[0] ~= "set_strategic_controls") {
+    bStrategicControls = (Int(StringParts[1]) == 1);
+    return true;
+  }
+
+  if (StringParts[0] ~= "renderHUD") {
+    bRenderHUD = (Int(stringParts[1]) == 1);
+    return true;
+  }
+
+  if (StringParts[0] ~= "renderProjectilesOnHUD") {
+    bRenderProjectilesOnHUD = (Int(stringParts[1]) == 1);
+    return true;
+  }
+
+  if (StringParts[0] ~= "renderWorld") {
+    setRenderWorld(mediator, Int(stringParts[1]) == 1);
+    return true;
+  }
+
+  if (StringParts[0] ~= "toggleRenderHUD") {
+    bRenderHUD = !bRenderHUD;
+    return true;
+  }
+
+  if (StringParts[0] ~= "toggleRenderProjectilesOnHUD") {
+    bRenderProjectilesOnHUD = !bRenderProjectilesOnHUD;
+    return true;
+  }
+
+  if (StringParts[0] ~= "toggleRenderWorld") {
+    setRenderWorld(mediator, !bRenderWorld);
+    return true;
+  }
+
+  if (StringParts[0] ~= "toggleShowAllHUDReadouts") {
+    bShowHUDReadoutsForAllContacts = !bShowHUDReadoutsForAllContacts;
+    return true;
+  }
+
+  if (StringParts[0] ~= "set_hud_readout_delta") {
+    ReceivedConsoleCommand(mediator, "set_hud_readout "$(HUDReadoutType + Int(StringParts[1])));
+    return true;
+  }
+
+  if (StringParts[0] ~= "set_hud_readout") {
+    HUDReadoutType = Int(StringParts[1]);
+    if (HUDReadoutType > HUD_Max)
+      HUDReadoutType = HUD_Min;
+    infoMessage("Now using HUD Scheme " $ HUDReadoutType);
+
+    return true;
+  }
+
+  if (stringParts[0] ~= "cameraShake")
+  {
+    cameraShake(cameraLocation, float(stringParts[1]));
+
+    return true;
+  }
+
+  if (stringParts[0] ~= "set_acceleration")
+  {
+    manualAcceleration = Float(stringParts[1]);
+
+    return true;
+  }
+
+  if (stringParts[0] ~= "set_acceleration_delta")
+  {
+    manualAcceleration = FClamp(manualAcceleration + Float(stringParts[1]), -1, 1);
+
+    return true;
+  }    
+
+  if (stringParts[0] ~= "set_inertial")
+  {
+    freeFlightInertialCompensationFactor = Float(stringParts[1]);
+
+    return true;
+  }
+
+  if (stringParts[0] ~= "set_relative_controls")
+  {
+    bRelativeJoystickControls = (Int(stringParts[1]) == 1);
+
+    return true;
+  }
+
+  if (StringParts[0] ~= "set_bFire")
+  {
+    bFire = (Int(StringParts[1]) == 1);
+
+    return true;
+  }
+
+  if (StringParts[0] ~=  "set_camera") {
+    setCameraStrategyByID(stringParts[1]);
+    return true;
+  }
+
+  if (stringParts[0] ~=  "strategic_camera_distance") {
+    setStrategicCameraDistance(Float(stringParts[1]));
+    return true;
+  }
+
+  if (stringParts[0] ~=  "strategic_camera_distance_delta") {
+    setStrategicCameraDistance(strategicCameraStrategy.cameraDistance + float(stringParts[1]));
+    return true;
+  }
+
+  if (stringParts[0] ~=  "multiplystrategicCameraDistance") {
+    setStrategicCameraDistance(strategicCameraStrategy.cameraDistance * float(stringParts[1]));
+    return true;
+  }
+
+  if (stringParts[0] ~= "strategicCameraPanX") {
+    setStrategicCameraFocusContact(none);
+    strategicCameraPanSpeed.x = float(stringParts[1]);
+    return true;
+  }
+
+  if (stringParts[0] ~= "strategicCameraPanY") {
+    setStrategicCameraFocusContact(none);
+    strategicCameraPanSpeed.y = float(stringParts[1]);
+    return true;
+  }
+
+  if (stringParts[0] ~= "strategicCameraPanZ") {
+    setStrategicCameraFocusContact(none);
+    strategicCameraPanSpeed.z = float(stringParts[1]);
+    return true;
+  }
+
+  if (StringParts[0] ~=  "strategic_camera_yaw_delta") {
+    setStrategicCameraRotationDelta(float(stringParts[1]) * rot(0,1,0));
+    return true;
+  }
+
+  if (StringParts[0] ~=  "strategic_camera_pitch_delta") {
+    setStrategicCameraRotationDelta(float(stringParts[1]) * rot(1,0,0));
+    return true;
+  }
+
+  if (StringParts[0] ~= "set_strategic_camera_sensitivity") {
+    strategicCameraSensitivity = Int(stringParts[1]);
+    infoMessage("Now using Strategic Camera Sensitivity: "$strategicCameraSensitivity);
+
+    return true;
+  }
+
+  if (StringParts[0] ~= "set_joystick_sensitivity")
+  {
+    JoyAimSensitivity = Int(StringParts[1]);
+    infoMessage("Now using Joystick Sensitivity: " $ JoyAimSensitivity);
+
+    return true;
+  }
+
+  if ((StringParts[0] ~= "o" || StringParts[0] ~= "order"))
+  {
+    if (StringParts.Length >= 4)
+      parseOrder(mediator, StringParts[1], StringParts[2], StringParts[3]);
+    else if (StringParts.Length >= 3)
+      parseOrder(mediator, StringParts[1], StringParts[2], "");
+    else infoMessage("Order failed: Too few arguments.");
+
+    return true;
+  }
+
+  if (stringParts[0] ~=  "setFleetDelta") {
+    if (UTSpaceBattleGameSimulation(getGameSimulation()) != none) {
+      UTSpaceBattleGameSimulation(getGameSimulation()).setFleetDelta(Int(stringParts[1]), BaseUser(mediator.getPlayerUser()));
+      infoMessage("Selected Fleet "$UTSpaceBattleGameSimulation(getGameSimulation()).getPlayerFleet().fleetName); 
+    }
+
+    return true;
+  }
+
+//    // 20090315: This might not be being used.
+//    if (StringParts[0] ~= "setPilotCameraLocationOffset") {
+//      pilotCameraStrategy.relativePosition.x = float(stringParts[1]);
+//      pilotCameraStrategy.relativePosition.y = float(stringParts[2]);
+//      pilotCameraStrategy.relativePosition.z = float(stringParts[3]);
+//      
+//      return true;
+//    }
+
+  if (StringParts[0] ~= "setPointOfInterest")
+  {
+    targetContacts = mediator.getContactsForDesignation(stringParts[1]);
+    if (targetContacts.length > 0)
+      pointOfInterestContact = targetContacts[0];
+    else
+      pointOfInterestContact = none;
+
+    return true;
+  }
+
+
+  if (StringParts[0] ~= "set_friendly_targets")
+  {
+    Set_friendlyTargetWorkers(mediator.getContactsForDesignation(StringParts[1]));
+
+    return true;
+  }
+
+  if (StringParts[0] ~= "toggle_friendly_targets")
+  {
+    Toggle_Friendly_Targets(mediator.getContactsForDesignation(StringParts[1]));
+
+    return true;
+  }
+
+  if (stringParts[0] ~= "centerView")
+  {
+    setStrategicCameraDistance(10000);
+    setStrategicCameraFocusLocation(vect(0,0,0));
+  }
+
+  if (StringParts[0] ~= "focus")
+  {
+    targetContacts = mediator.getContactsForDesignation(StringParts[1]);
+    if (targetContacts.length > 0)
+      setStrategicCameraFocusContact(targetContacts[0]);
+
+    strategicCameraStrategy.focusContact = strategicCameraFocusContact;
+
+    // enforce max/min distance relative to new focus
+    setStrategicCameraDistance(strategicCameraStrategy.cameraDistance);
+
+    return true;
+  }
+
+  if (StringParts[0] ~= "randomize_player_ship")
+  {
+    targetContacts = mediator.filterContactsForDesignation("random", mediator.filterContactsForDesignation("owned", mediator.getContactsForDesignation("knownContactsInCameraSector")));
+    if (targetContacts.length > 0)
+      SetPlayerShip(mediator, targetContacts[0]);
+
+    return true;
+  }
+
+  if (StringParts[0] ~= "set_playership")
+  {
+    targetContacts = mediator.getContactsForDesignation(StringParts[1]);
+    if (targetContacts.length > 0)
+      setPlayerShip(mediator, targetContacts[0]);
+
+    return true;
+  }
+
+  // If not matched, ask mediator to issue the command to the user.
+  return mediator.issueUserCommand(command);
+}
+
+simulated function parseOrder(UserInterfaceMediator mediator, string WorkerID, string Order, string TargetID)
+{
+  local array<SpaceWorker> workers;
+  local array<Contact> targets;
+  local Contact singleTarget;
+
+  workers = mediator.getWorkersForDesignation(workerID);
+  if (workers.length == 0) {
+    mediator.userOrderFailed("no worker(s) in selection.");
+    return;
+  }
+
+  // Orders that don't require a target can go here.
+
+  // Clear orders.
+  if (Order ~= "clr")
+  {
+    mediator.issueManualOrders(workers, None, None);
+    return;
+  }
+
+  // Self-destruct ship.
+  if (Order ~= "scuttle")
+  {
+    mediator.scuttleWorkers(workers);
+    return;
+  }
+
+  targets = mediator.getContactsForDesignation(TargetID);
+  if (targets.length > 0)
+    singleTarget = targets[0];
+  if (singleTarget == None) {
+    mediator.userOrderFailed("invalid target.");
+    return;
+  }
+
+  // Orders that require a target can go here.
+
+  // Attack.
+  if (Order ~= "atk")
+  {
+    mediator.issueManualOrders(workers, class'Task_Attack', singleTarget);
+    mediator.userOrderIssued(class'Task_Attack');
+    return;
+  }
+
+  // Defense.
+  if (Order ~= "def")
+  {
+    mediator.issueManualOrders(workers, class'Task_Defense', singleTarget);
+    mediator.userOrderIssued(class'Task_Defense');
+    return;
+  }
+
+  // Patrol.
+  if (Order ~= "pat")
+  {
+    mediator.issueManualOrders(workers, class'Task_Patrol', singleTarget);
+    mediator.userOrderIssued(class'Task_Patrol');
+    return;
+  }
+
+  mediator.userOrderFailed("unrecognized order.");
+}
+
+simulated function setStrategicCameraFocusLocation(vector newLocation) {
+  setStrategicCameraFocusContact(none);
+
+  if (strategicCameraStrategy != none)
+    strategicCameraStrategy.focusLocation = newLocation;
+}
+
+simulated function setStrategicCameraFocusContact(Contact newFocus) {
+  strategicCameraFocusContact = newFocus;
+
+  if (strategicCameraStrategy != none)
+    strategicCameraStrategy.focusContact = newFocus;
+  if (chaseCameraStrategy != none)
+    chaseCameraStrategy.focusContact = newFocus;
+}
+
+simulated function setStrategicCameraDistance(float newDistance) {
+  local float minimumDistance;
+
+  if (strategicCameraFocusContact != none)
+    minimumDistance = strategicCameraFocusContact.estimateContactRadius();
+
+  if (strategicCameraStrategy != none)
+    strategicCameraStrategy.cameraDistance = FMax(newDistance, minimumDistance);
+}
+
+simulated function setStrategicCameraRotationDelta(rotator rotationDelta) {
+  if (strategicCameraStrategy != none)
+    strategicCameraStrategy.cameraRotation = rotationDelta coordRot strategicCameraStrategy.cameraRotation;
+}
+
+simulated function setRenderWorld(UserInterfaceMediator mediator, bool bNewRenderWorld) {
+  if (bNewRenderWorld == bRenderWorld)
+    return;
+
+  bRenderWorld = bNewRenderWorld;
+  if (bRenderWorld)
+    startRenderingSectorContacts(mediator);
+  else
+    stopRenderingSectorContacts(mediator);
+}
+
+simulated function cameraShake(vector shakeOrigin, float shakeMagnitude) {
+  local float shakeDistance;
+  local float magnitudeDelta;
+  local float magnitudeFactor;
+
+  shakeDistance = VSize(cameraLocation - shakeOrigin);
 //    magnitudeFactor = FClamp(1 - (shakeDistance / 500), 0, 1);
-    magnitudeFactor = FClamp(250 / shakeDistance, 0, 1);
-    magnitudeDelta = shakeMagnitude * magnitudeFactor;
-    
-    cameraShakeMagnitude = sqrt((cameraShakeMagnitude ** 2) + (magnitudeDelta ** 2));
-    //cameraShakeMagnitude += magnitudeDelta;
-  }
-  
-  simulated function Toggle_Friendly_Targets(array<Contact> SelectedTargets)
-  {
-    local int i;
-    
-    for (i=0;i<SelectedTargets.Length;i++)
-      Toggle_Friendly_Target(SelectedTargets[i]);
-  }
-  
-  simulated function Toggle_Friendly_Target(Contact selectedTarget)
-  {
-    local int i;
-    local SpaceWorker_Ship Worker;
-    local Ship contactShip;
-    
-    if (selectedTarget == none) return;
-    
-    contactShip = selectedTarget.getOwnedShip();
-    worker = AIPilot(contactShip.pilot).worker;
-    
-    if (IsItemInArray(SelectedTarget, friendlyTargetContacts))
-    {
-      for (i=0;i<friendlyTargetContacts.Length;i++)
-        if (friendlyTargetContacts[i] == SelectedTarget)
-        {
-          friendlyTargetContacts.Remove(i,1);
-          break;
-        }
-    
-      for (i=0;i<friendlyTargetWorkers.Length;i++)
-        if (friendlyTargetWorkers[i] == Worker)
-        {
-          friendlyTargetWorkers.Remove(i,1);
-          break;
-        }
+  magnitudeFactor = FClamp(250 / shakeDistance, 0, 1);
+  magnitudeDelta = shakeMagnitude * magnitudeFactor;
 
-    } else {
-      friendlyTargetContacts[friendlyTargetContacts.Length] = SelectedTarget;
-      friendlyTargetWorkers[friendlyTargetWorkers.Length] = Worker;
-    }
-  } 
+  cameraShakeMagnitude = sqrt((cameraShakeMagnitude ** 2) + (magnitudeDelta ** 2));
+  //cameraShakeMagnitude += magnitudeDelta;
+}
 
-  simulated function Set_friendlyTargetWorkers(array<Contact> SelectedTargets)
-  {
-    local int i;
-    local array<SpaceWorker_Ship> result;
-    local Ship contactShip;
-    
-    friendlyTargetContacts = SelectedTargets;
-    for (i=0;i<friendlyTargetContacts.Length;i++) {
-      contactShip = friendlyTargetContacts[i].getOwnedShip();
-      result[i] = AIPilot(contactShip.pilot).worker;
-    }
-    
-    friendlyTargetWorkers = result;
-  }
+simulated function Toggle_Friendly_Targets(array<Contact> SelectedTargets)
+{
+  local int i;
 
-  simulated function setPlayerShip(UserInterfaceMediator mediator, contact newPlayerShipContact)
+  for (i=0;i<SelectedTargets.Length;i++)
+    Toggle_Friendly_Target(SelectedTargets[i]);
+}
+
+simulated function Toggle_Friendly_Target(Contact selectedTarget)
+{
+  local int i;
+  local SpaceWorker_Ship Worker;
+  local Ship contactShip;
+
+  if (selectedTarget == none) return;
+
+  contactShip = selectedTarget.getOwnedShip();
+  worker = contactShip.getShipWorker();
+
+  if (IsItemInArray(SelectedTarget, friendlyTargetContacts))
   {
-    if (playerShip != none) {
-      receivedConsoleCommand(none, "set_ai_control 1");
-      playerShip = none;
-      playerWorker = none;
-      if (playerShipObserver != none) {
-        playerShipObserver.cleanup();
-        playerShipObserver = none;
+    for (i=0;i<friendlyTargetContacts.Length;i++)
+      if (friendlyTargetContacts[i] == SelectedTarget)
+      {
+        friendlyTargetContacts.Remove(i,1);
+        break;
       }
-    }
 
+    for (i=0;i<friendlyTargetWorkers.Length;i++)
+      if (friendlyTargetWorkers[i] == Worker)
+      {
+        friendlyTargetWorkers.Remove(i,1);
+        break;
+      }
+
+  } else {
+    friendlyTargetContacts[friendlyTargetContacts.Length] = SelectedTarget;
+    friendlyTargetWorkers[friendlyTargetWorkers.Length] = Worker;
+  }
+} 
+
+simulated function Set_friendlyTargetWorkers(array<Contact> SelectedTargets)
+{
+  local int i;
+  local array<SpaceWorker_Ship> result;
+  local Ship contactShip;
+
+  friendlyTargetContacts = SelectedTargets;
+  for (i=0;i<friendlyTargetContacts.Length;i++) {
+    contactShip = friendlyTargetContacts[i].getOwnedShip();
+    result[i] = contactShip.getShipWorker();
+  }
+
+  friendlyTargetWorkers = result;
+}
+
+simulated function setPlayerShip(UserInterfaceMediator mediator, contact newPlayerShipContact)
+{
+  if (playerShip != none) {
+    setAIControl(true);
+    playerShip = none;
+    playerWorker = none;
     if (playerShipObserver != none) {
       playerShipObserver.cleanup();
       playerShipObserver = none;
     }
-      
-    playerShipContact = newPlayerShipContact;
-    if (newPlayerShipContact != none) {
-      playerShip = playerShipContact.getOwnedShip();
-
-      myAssert(playerShip != none, "SpaceGameplayInterfaceConcreteBase setPlayerShip newPlayerShipContact != none but playerShipContact.getOwnedShip() == none");
-
-      playerShipObserver = PlayerShipObserver(allocateObject(class'PlayerShipObserver'));
-      playerShipObserver.initialize(playerShip, self);
-
-      if (cameraSector != playerShip.sector)
-        changeCameraSector(mediator, playerShip.sector);
-
-      receivedConsoleCommand(mediator, "set_ai_control 1");
-    }
   }
+
+  if (playerShipObserver != none) {
+    playerShipObserver.cleanup();
+    playerShipObserver = none;
+  }
+
+  playerShipContact = newPlayerShipContact;
+  if (newPlayerShipContact != none) {
+    playerShip = playerShipContact.getOwnedShip();
+
+    myAssert(playerShip != none, "SpaceGameplayInterfaceConcreteBase setPlayerShip newPlayerShipContact != none but playerShipContact.getOwnedShip() == none");
+
+    playerShipObserver = PlayerShipObserver(allocateObject(class'PlayerShipObserver'));
+    playerShipObserver.initialize(playerShip, self);
+
+    if (cameraSector != playerShip.sector)
+      changeCameraSector(mediator, playerShip.sector);
+
+    setAIControl(true);
+  }
+}
   
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -1611,8 +1605,8 @@ var UnrealEngineAdapter engineAdapter;
     if (designation ~= "ps" && playerShipContact != none)
       result[result.length] = playerShipContact;
 
-    if (designation ~= "pswt" && playerShip != none)
-      result[result.length] = AIPilot(playerShip.pilot).weapons_Target;
+    if (designation ~= "pswt" && playerShip != none && playerShip.getShipWorker() != none && playerShip.getShipWorker().mainWeaponsTarget != none)
+      result[result.length] = playerShip.getShipWorker().mainWeaponsTarget;
 
     if (designation ~= "poi" && pointOfInterestContact != none)
       result[result.length] = pointOfInterestContact;

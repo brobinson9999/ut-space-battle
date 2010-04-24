@@ -5,11 +5,13 @@ class SpaceWorker_Ship extends DefaultSpaceWorker;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-  var Ship    Ship;
-  
-  var float   Attack_Preference;
-  
-  var SpaceTask    Current_Task;
+var Ship    Ship;
+
+var float   Attack_Preference;
+
+var SpaceTask    Current_Task;
+
+var Contact mainWeaponsTarget;
   
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -27,7 +29,7 @@ simulated function setTaskPreference(class<SpaceTask> Task_Class, object New_Tar
     return;
 
   if (Task_Class == class'Task_Attack')
-    AIPilot(Ship.Pilot).Weapons_Target = Contact(New_Target);
+    mainWeaponsTarget = Contact(New_Target);
 
   for (i=0;i<Ship.Weapons.Length;i++)
     Ship.Weapons[i].Worker.setTaskPreference(Task_Class, New_Target, BiasWeight);
@@ -358,14 +360,14 @@ simulated function float Rate_Effectiveness_Against_Patrol(Contact X)
       return;
     }
     
-    Pilot.Weapons_Target = None;
+    mainWeaponsTarget = None;
     Pilot.InterceptTarget_Contact = None;
     Pilot.InterceptTarget_Ship = None;
     
     if (Task_Attack(Current_Task) != None)
     {
       Pilot.InterceptTarget_Contact = Task_Attack(Current_Task).Target;
-      Pilot.Weapons_Target = Pilot.InterceptTarget_Contact;
+      mainWeaponsTarget = Pilot.InterceptTarget_Contact;
       Pilot.AutoSelectAttackMode();
       return;
     }
@@ -417,6 +419,7 @@ simulated function float Rate_Effectiveness_Against_Patrol(Contact X)
   {
     Ship = None;
     Current_Task = None;
+    mainWeaponsTarget = none;
     
     Super.Cleanup();
   }

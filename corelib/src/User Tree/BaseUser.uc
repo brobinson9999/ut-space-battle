@@ -40,8 +40,8 @@ simulated function array<SpaceWorker> workersFromContacts(array<Contact> workerC
   for (i=0;i<workerContacts.length;i++) {
     contactShip = workerContacts[i].getOwnedShip();
 
-    if (contactShip != none && AIPilot(contactShip.pilot) != none && AIPilot(contactShip.pilot).worker != none)
-      workers[workers.Length] = AIPilot(contactShip.pilot).worker;
+    if (contactShip != none && contactShip.getShipWorker() != none)
+      workers[workers.Length] = contactShip.getShipWorker();
   }
 
   return workers;

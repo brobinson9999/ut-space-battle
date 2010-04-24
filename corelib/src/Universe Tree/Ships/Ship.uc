@@ -60,6 +60,14 @@ var vector desiredAcceleration;
 var Contact DesiredVelocity_RelativeTo;
 var Contact DesiredLocation_RelativeTo;
 
+// temporary
+simulated function SpaceWorker_Ship getShipWorker() {
+  if (AIPilot(pilot) != none)
+    return AIPilot(pilot).getPilotShipWorker();
+  else
+    return none;
+}
+
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
