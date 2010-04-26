@@ -1,3 +1,5 @@
 This is the source code for the Unreal Engine mod, UT Space Battle. The mod builds in two packages - one is the core library, which has the same code for both UT2004 and UT3. (core-lib) The second is a compatibility package. (engine-adapter)
 
 All of the source code is included but to use the build scripts, you will need the python modules they depend on - these will be released soon. Without them, you can still build the mod by taking all of the *.uc files and compiling them via conventional means.
+
+These packages also have a dependency on the unreal-utility-lib package. The source for this will be available on SourceForge soon. It is currently available on GitHub.
