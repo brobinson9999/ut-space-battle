@@ -343,7 +343,7 @@ simulated function updateTimerElapsed()
 
   simulated function Cleanup()
   {
-    Weapon = None;
+    weapon = None;
     currentTask = None;
 
     if (selfUpdateAlarm != none) {

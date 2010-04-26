@@ -387,32 +387,6 @@ simulated function CommandingWorkerDecorator setupAndPrependWorkerDecorator(Comp
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-simulated function SpaceWorker_Ship getNewShipWorker(Ship Other)
-{
-  local SpaceWorker_Ship NewWorker;
-
-  NewWorker = SpaceWorker_Ship(allocateObject(class'SpaceWorker_Ship'));
-  NewWorker.Ship = Other;
-  AIPilot(Other.Pilot).setPilotShipWorker(newWorker);
-  NewWorker.Initialize();
-
-  return NewWorker;
-}
-
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-
-simulated function SpaceWorker_Weapon getNewWeaponWorker(ShipWeapon Other)
-{
-  local SpaceWorker_Weapon NewWorker;
-
-  NewWorker = SpaceWorker_Weapon(allocateObject(class'SpaceWorker_Weapon'));
-  NewWorker.Weapon = Other;
-  Other.Worker = NewWorker;
-  NewWorker.Initialize();
-
-  return NewWorker;
-}
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -435,7 +409,7 @@ simulated function userGainedShip(Ship other)
   // Clear any existing pilot and setup a new one.
   clearPilot(other);
   newPilot = Pilot(allocateObject(class'AIPilot'));
-  newPilot.set_Ship(other);
+  newPilot.setPilotShip(other);
 
   // Add to ships list.
   ships[ships.length] = other;
@@ -457,8 +431,7 @@ simulated function userLostShip(Ship other)
 
   // Remove Workers.
   parentWorker = sectorCommandAIFor(other.sector);
-  if (parentWorker != none)
-    removeWorkerForShip(parentWorker, other);
+  removeWorkerForShip(parentWorker, other);
 
   // Remove from ships list.
   for (i=0;i<ships.Length;i++)
@@ -483,40 +456,72 @@ simulated function clearPilot(Ship other) {
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-simulated function addWorkerForShip(CompositeSpaceWorker parentWorker, Ship other)
+simulated protected function SpaceWorker_Ship getNewShipWorker(Ship Other)
+{
+  local SpaceWorker_Ship NewWorker;
+
+  NewWorker = SpaceWorker_Ship(allocateObject(class'SpaceWorker_Ship'));
+  NewWorker.Ship = Other;
+  other.setShipWorker(newWorker);
+  NewWorker.Initialize();
+
+  return NewWorker;
+}
+
+simulated protected function SpaceWorker_Weapon getNewWeaponWorker(ShipWeapon Other)
+{
+  local SpaceWorker_Weapon NewWorker;
+
+  NewWorker = SpaceWorker_Weapon(allocateObject(class'SpaceWorker_Weapon'));
+  NewWorker.Weapon = Other;
+  Other.Worker = NewWorker;
+  NewWorker.Initialize();
+
+  return NewWorker;
+}
+
+simulated protected function addWorkerForShip(CompositeSpaceWorker parentWorker, Ship other)
 {
   local int i;
-  local SpaceWorker worker;
+  local SpaceWorker_Ship shipWorker;
+  local SpaceWorker_Weapon weaponWorker;
 
   // Add Ship Worker.
-  worker = getNewShipWorker(other);
-  if (worker != none)
-    parentWorker.addWorker(worker);
+  shipWorker = getNewShipWorker(other);
+  if (shipWorker != none)
+    parentWorker.addWorker(shipWorker);
 
   // Add Weapon Workers.
-  for (i=0;i<other.weapons.length;i++)
-  {
-    worker = getNewWeaponWorker(other.weapons[i]);
-    if (worker != none)
-      parentWorker.addWorker(worker);
+  for (i=0;i<other.weapons.length;i++) {
+    weaponWorker = getNewWeaponWorker(other.weapons[i]);
+    if (weaponWorker != none)
+      parentWorker.addWorker(weaponWorker);
   }
 }
 
-simulated function removeWorkerForShip(CompositeSpaceWorker parentWorker, Ship other)
+simulated protected function removeWorkerForShip(CompositeSpaceWorker parentWorker, Ship other)
 {
   local int i;
   local SpaceWorker worker;
 
   // Remove Ship Worker.
   worker = other.getShipWorker();
-  if (worker != none)
-    parentWorker.removeWorker(worker);
+  if (worker != none) {
+    if (parentWorker != none)
+      parentWorker.removeWorker(worker);
+    other.setShipWorker(none);
+    worker.cleanup();
+  }
 
   // Remove Weapon Workers.    
   for (i=0;i<other.weapons.length;i++) {
     worker = other.weapons[i].worker;
-    if (worker != none)
-      parentWorker.removeWorker(worker);
+    if (worker != none) {
+      if (parentWorker != none)
+        parentWorker.removeWorker(worker);
+      other.weapons[i].worker = none;
+      worker.cleanup();
+    }
   }
 }
 

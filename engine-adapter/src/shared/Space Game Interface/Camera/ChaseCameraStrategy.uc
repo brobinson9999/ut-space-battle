@@ -68,7 +68,7 @@ simulated function positionCamera(SpaceGameplayInterfaceConcreteBase interface) 
 simulated function AIPilot getCameraShipPilot() {
   if (chaseCameraShipPilot == none) {
     chaseCameraShipPilot = AIPilot(allocateObject(class'AIPilot'));
-    chaseCameraShipPilot.set_Ship(getCameraShip());
+    chaseCameraShipPilot.setPilotShip(getCameraShip());
   }
 
   return chaseCameraShipPilot;

@@ -30,12 +30,12 @@ simulated function setRotation(rotator newValue) {
   storedReference.rotation = newValue;
 }
 
-simulated function float getRotationVelocity() {
-  return storedReference.lastRotationSpeed;
+simulated function vector getRotationVelocity() {
+  return storedReference.rotationalVelocity;
 }
 
-simulated function setRotationVelocity(float newValue) {
-  storedReference.lastRotationSpeed = newValue;
+simulated function setRotationVelocity(vector newValue) {
+  storedReference.rotationalVelocity = newValue;
 }
 
 simulated function cleanup() {

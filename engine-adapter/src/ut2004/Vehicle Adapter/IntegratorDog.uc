@@ -2,6 +2,8 @@ class IntegratorDog extends FlyingDog placeable;
 
 var PhysicsIntegrator physicsIntegrator;
 var PhysicsStateInterface physicsState;
+var float rotationalDrag;
+var float linearDrag;
 
 simulated function PhysicsStateInterface getPhysicsState() {
   if (physicsState == none) {
@@ -34,47 +36,79 @@ simulated function destroyed() {
   super.destroyed();
 }
 
-final static operator(23) rotator coordRot(rotator A, rotator B)
-{
-  local vector X, Y, Z;
-
-  if (A == Rot(0,0,0))
-    return B;
-
-  if (B == Rot(0,0,0))
-    return A;
-
-  GetAxes(A, X, Y, Z);
-
-  X = X >> B;
-  Y = Y >> B;
-  Z = Z >> B;
-
-  return OrthoRotation(X, Y, Z);
+simulated function hitWall( vector HitNormal, actor HitWall ) {
+  log("hitWall "$hitWall);
+  super.hitWall(hitNormal, hitWall);
 }
 
+simulated function Landed( vector HitNormal ) {
+  log("Landed "$HitNormal);
+  super.Landed(hitNormal);
+}
+
+simulated function Touch( Actor Other ) {
+  log("Touch "$Other);
+  super.Touch(Other);
+}
+
+simulated function Bump( Actor Other ) {
+  log("Bump "$Other);
+  super.Bump(Other);
+}
+
+simulated function  bool EncroachingOn( actor Other ) {
+  log("EncroachingOn "$Other);
+  return super.EncroachingOn(Other);
+}
+simulated function  EncroachedBy( actor Other ) {
+  log("EncroachedBy "$Other);
+  super.EncroachedBy(Other);
+}
+simulated function  RanInto( Actor Other ) {
+  log("RanInto "$Other);
+  super.RanInto(Other);
+}
+
+
 simulated function updateRocketAcceleration(float delta, float yawChange, float pitchChange) {
+  local PhysicsIntegrator integrator;
+  local PhysicsStateInterface physState;
+  
   super.updateRocketAcceleration(delta, yawChange, pitchChange);
 
-  getPhysicsIntegrator().linearPhysicsUpdate(getPhysicsState(), delta, shipThrust * maximumThrust, false, vect(0,0,0));
-  getPhysicsIntegrator().angularPhysicsUpdate(getPhysicsState(), delta, shipSteering coordRot getControlRotation(), 10000);
+  integrator = getPhysicsIntegrator();
+  physState = getPhysicsState();
+  integrator.linearPhysicsUpdate(physState, delta, shipThrust * maximumThrust);
+  integrator.angularPhysicsUpdate(physState, delta, physState.copyRotToVect(shipSteering));
 
+  if (rotationalDrag > 0)
+    physState.setRotationVelocity(physState.getRotationVelocity() * fmax(0, (rotationalDrag-delta)/rotationalDrag));
+  if (linearDrag > 0)
+    physState.setVelocity(physState.getVelocity() * fmax(0, (linearDrag-delta)/linearDrag));
+  
   // PlayerController will tamper with velocity, based on acceleration - it will call:
   //   Pawn.Velocity = Pawn.Acceleration * Pawn.AirSpeed * 0.001;
   // So I will compensate by setting acceleration.
   acceleration = velocity / (airspeed * 0.001);
   
-  // Take complete control on Rotation
-  bRotateToDesired  = true;
-  bRollToDesired    = true;
-  DesiredRotation   = getPhysicsState().getRotation();
-  SetRotation( getPhysicsState().getRotation() );
+  // Take complete control on rotation.
+  bRotateToDesired = true;
+  bRollToDesired = true;
+  desiredRotation = physState.getRotation();
+  setRotation(physState.getRotation());
 }
 
 defaultproperties
 {
-  Physics=PHYS_Projectile
-  // This can be anything, as long as it is non-zero
+  rotationalDrag=1
+  linearDrag=2
+
+  turnSensitivity=0.05
+  maximumTurnRate=100
+
+//  Physics=PHYS_Projectile
+  Physics=PHYS_Flying
+  // AirSpeed can be anything, as long as it is non-zero
   AirSpeed=10000
 
   bCollideActors=True

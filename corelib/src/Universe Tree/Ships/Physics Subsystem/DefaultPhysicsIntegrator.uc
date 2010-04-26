@@ -1,36 +1,10 @@
 class DefaultPhysicsIntegrator extends PhysicsIntegrator;
 
-simulated function linearPhysicsUpdate(PhysicsStateInterface physicsState, float delta, vector acceleration, optional bool bUseDesiredVelocity, optional vector desiredVelocity) {
-  staticLinearPhysicsUpdate(physicsState, delta, acceleration, bUseDesiredVelocity, desiredVelocity);
+simulated function linearPhysicsUpdate(PhysicsStateInterface physicsState, float delta, vector acceleration) {
+  staticLinearPhysicsUpdate(physicsState, delta, acceleration);
 }
 
-simulated static function staticLinearPhysicsUpdate(PhysicsStateInterface physicsState, float delta, vector acceleration, optional bool bUseDesiredVelocity, optional vector desiredVelocity) {
-  local vector desiredVelocityChange;
-  local float desiredVelocityChangeSize;
-  local float timeSegmentLength;
-  
-  bUseDesiredVelocity = false;
-  
-  // If a desiredVelocity is specified, set desiredAcceleration and subdivide the update as appropriate.
-  if (bUseDesiredVelocity) {
-    desiredVelocityChange = desiredVelocity - physicsState.getVelocity();
-    desiredVelocityChangeSize = vSize(desiredVelocityChange);
-    if (desiredVelocityChangeSize == 0) {
-      staticLinearPhysicsUpdate_2(physicsState, delta, vect(0,0,0));
-    } else if (desiredVelocityChangeSize <= (vsize(acceleration) * delta)) {
-      timeSegmentLength = vsize(acceleration) / desiredVelocityChangeSize;
-      staticLinearPhysicsUpdate_2(physicsState, timeSegmentLength, desiredVelocityChangeSize * normal(desiredVelocityChange));
-      physicsState.setVelocity(desiredVelocity); // just to make sure it is exactly right
-      staticLinearPhysicsUpdate_2(physicsState, delta - timeSegmentLength, vect(0,0,0));
-    } else {
-      staticLinearPhysicsUpdate_2(physicsState, delta, vsize(acceleration) * normal(desiredVelocityChange));
-    }
-  } else {
-    staticLinearPhysicsUpdate_2(physicsState, delta, acceleration);
-  }
-}
-
-simulated static function staticLinearPhysicsUpdate_2(PhysicsStateInterface physicsState, float delta, vector acceleration) {
+simulated static function staticLinearPhysicsUpdate(PhysicsStateInterface physicsState, float delta, vector acceleration) {
   local vector currentVelocity, newVelocity;
 
   currentVelocity = physicsState.getVelocity();
@@ -39,10 +13,66 @@ simulated static function staticLinearPhysicsUpdate_2(PhysicsStateInterface phys
   physicsState.setVelocity(newVelocity);
 }
 
-simulated function angularPhysicsUpdate(PhysicsStateInterface physicsState, float delta, rotator desiredRotation, float rotationRate) {
-  staticAngularPhysicsUpdate(physicsState, delta, desiredRotation, rotationRate);
+simulated function angularPhysicsUpdate(PhysicsStateInterface physicsState, float delta, vector rotationalAcceleration) {
+  staticAngularPhysicsUpdate(physicsState, delta, rotationalAcceleration);
 }
 
+simulated static function staticAngularPhysicsUpdate(PhysicsStateInterface physicsState, float delta, vector rotationalAcceleration) {
+  local vector lastRotationVelocity, newRotationVelocity, averageRotationVelocity;
+
+//  local float tickRotationSize;
+//  local vector tickRotationVector;
+
+  local rotator oldRotation, newRotation;
+  
+//  local vector rotationalAccelerationVector;
+  
+//  rotation = physicsState.getRotation();
+  lastRotationVelocity = physicsState.getRotationVelocity();
+  newRotationVelocity = lastRotationVelocity + rotationalAcceleration;
+  averageRotationVelocity = (lastRotationVelocity + newRotationVelocity) / 2;
+  physicsState.setRotationVelocity(newRotationVelocity);
+  
+  if (averageRotationVelocity != vect(0,0,0)) {
+    // more hacks
+//    oldRotation = physicsState.getRotation();
+    
+//    newRotation = (averageRotationVelocity * delta) coordRot oldRotation;
+//smallestRotatorMagnitude(desiredRotation unCoordRot rotation);
+//    // hack
+////    averageRotationVelocity = copyVectToRot(normal(copyRotToVect(newRotationVelocity)) * vsize(copyRotToVect(averageRotationVelocity)));
+    oldRotation = physicsState.getRotation();
+    newRotation = copyVectToRot(averageRotationVelocity * delta) coordRot oldRotation;
+////    newRotationVelocity = (newRotation uncoordRot oldRotation);
+////    physicsState.setRotationVelocity(newRotationVelocity);
+
+    physicsState.setRotation(newRotation);
+  }
+}
+
+simulated static function rotator getNewRotationalVelocity(rotator oldRotationalVelocity, rotator oldRotation, rotator newRotation) {
+  local rotator result;
+  local rotator oldRoll, newRoll;
+
+  oldRoll = oldRotation;
+  oldRoll.yaw = 0; oldRoll.pitch = 0;
+
+  newRoll = newRotation;
+  newRoll.yaw = 0; newRoll.pitch = 0;
+
+//  result = oldRotationalVelocity;
+//  result = copyVectToRot(copyRotToVect(oldRotationalVelocity) coordRot (newRotation uncoordRot oldRotation));
+  result = oldRotationalVelocity coordRot (newRotation uncoordRot oldRotation);
+  
+//  log("getNewRotationalVelocity("$oldRotationalVelocity$" "$oldRotation$" "$newRotation$") = "$result);
+//  log("(newRotation uncoordRot oldRotation) = "$(newRotation uncoordRot oldRotation));
+  return result;
+  
+  // pitch causes yaw to become roll
+  // roll causes yaw/pitch to change
+}
+
+/*
 simulated static function staticAngularPhysicsUpdate(PhysicsStateInterface physicsState, float delta, rotator desiredRotation, float rotationRate) {
   // Rotation "Speed".
   local float AverageRotationSpeed;
@@ -129,6 +159,7 @@ simulated static function staticAngularPhysicsUpdate(PhysicsStateInterface physi
     }
   }
 }
+*/
 
 defaultproperties
 {

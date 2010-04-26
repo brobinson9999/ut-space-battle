@@ -358,12 +358,12 @@ simulated static function vector getBestFireDirection(vector desiredFireDirectio
 
   simulated function Cleanup()
   {
-    if (Worker != None) Worker.Cleanup();
+//    if (Worker != None) Worker.Cleanup();
     
-    localTechnology = None;
-    Worker = None;
+    localTechnology = none;
+    worker = none;
     
-    Super.Cleanup();
+    super.cleanup();
   }
   
 // ********************************************************************************************************************************************

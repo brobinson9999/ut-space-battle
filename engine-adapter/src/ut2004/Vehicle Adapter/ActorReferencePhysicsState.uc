@@ -1,7 +1,7 @@
 class ActorReferencePhysicsState extends PhysicsStateInterface;
 
 var private Actor storedReference;
-var private float rotationVelocity;
+var private vector rotationVelocity;
 
 simulated function setReference(Actor newReference) {
   storedReference = newReference;
@@ -12,8 +12,8 @@ simulated function vector getLocation() {
 }
 
 simulated function setLocation(vector newValue) {
-  if (newValue != getLocation())
-    storedReference.setLocation(newValue);
+//  if (newValue != getLocation())
+//    storedReference.setLocation(newValue);
 }
 
 simulated function vector getVelocity() {
@@ -33,11 +33,11 @@ simulated function setRotation(rotator newValue) {
     storedReference.setRotation(newValue);
 }
 
-simulated function float getRotationVelocity() {
+simulated function vector getRotationVelocity() {
   return rotationVelocity;
 }
 
-simulated function setRotationVelocity(float newValue) {
+simulated function setRotationVelocity(vector newValue) {
   rotationVelocity = newValue;
 }
 

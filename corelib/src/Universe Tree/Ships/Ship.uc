@@ -21,6 +21,7 @@ var array<ShipLaunchBay>        launchBays;
 // ********************************************************************************************************************************************
 
 var Pilot pilot;
+var protected SpaceWorker_Ship shipWorker;
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -32,10 +33,10 @@ var float                       radius;
 var float                       acceleration;
 
 var rotator                     rotation;
-var rotator                     desiredRotation;
 
 var float                       rotationRate;       // Rotational Acceleration.
-var float                       lastRotationSpeed;  // Rotational "Speed".
+
+var vector                      rotationalVelocity;
 
 var vector                      shipLocation;
 var vector                      velocity;
@@ -53,19 +54,25 @@ var QueuedEvent destroyEvent;
 
 var bool bUseDesiredVelocity;
 
-var vector DesiredVelocity;
-var vector DesiredLocation;
+var vector desiredVelocity;
+//var vector DesiredLocation;
 var vector desiredAcceleration;
+var rotator desiredRotation;
 
-var Contact DesiredVelocity_RelativeTo;
-var Contact DesiredLocation_RelativeTo;
+var Contact desiredVelocity_RelativeTo;
+//var Contact DesiredLocation_RelativeTo;
 
-// temporary
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+
 simulated function SpaceWorker_Ship getShipWorker() {
-  if (AIPilot(pilot) != none)
-    return AIPilot(pilot).getPilotShipWorker();
-  else
-    return none;
+  return shipWorker;
+}
+
+simulated function setShipWorker(SpaceWorker_Ship newWorker) {
+  shipWorker = newWorker;
 }
 
 // ********************************************************************************************************************************************
@@ -198,6 +205,9 @@ simulated function updateShip()
 {
   local int i;
   local float delta;
+  local vector linearAcceleration;
+  local vector rotationalAcceleration;
+  local float maxRotationalAccelerationRate;
 
   // Find Elapsed time. Abort if no change.
   if (lastUpdatedTime == getCurrentTime()) return;
@@ -211,13 +221,38 @@ simulated function updateShip()
 
   // Update Linear movement.
   if (Pilot != None) Pilot.UpdateLinear();
-  getPhysicsIntegrator().linearPhysicsUpdate(getPhysicsState(), delta, normal(desiredAcceleration) * fmin(acceleration, vsize(desiredAcceleration)), bUseDesiredVelocity, desiredVelocity);
+  pilot.bUseDesiredVelocity = bUseDesiredVelocity;
+  pilot.desiredVelocity = desiredVelocity;
+  pilot.desiredAcceleration = desiredAcceleration;
+  linearAcceleration = capVector(pilot.getDesiredAcceleration(self, delta), acceleration * delta);
+  getPhysicsIntegrator().linearPhysicsUpdate(getPhysicsState(), delta, linearAcceleration);
 
   // Update Angular movement.
   // The pilot is updated for it's angular movement AFTER the linear physics has been updated, so it can set it's desired rotation based on it's new position rather than the position from
   // before the linear update. Hopefully this allows for a little better tracking of targets at high speed.
   if (Pilot != None) Pilot.UpdateAngular();
-  getPhysicsIntegrator().angularPhysicsUpdate(getPhysicsState(), delta, desiredRotation, rotationRate);
+  pilot.bUseDesiredRotation = true;
+  pilot.desiredRotation = desiredRotation;
+  maxRotationalAccelerationRate = rotationRate * delta;
+  // hack
+  // having trouble getting this to work the way I want - grr.
+  rotationalVelocity = normal(copyRotToVect(desiredRotation unCoordRot rotation)) * vsize(rotationalVelocity);
+//  rotationalVelocity = normal(copyRotToVect(desiredRotation unCoordRot rotation)) * fmin(vsize(rotationalVelocity), vsize(copyRotToVect(desiredRotation unCoordRot rotation)));
+  rotationalAcceleration = capVector(pilot.getDesiredRotationalAcceleration(self, delta), maxRotationalAccelerationRate);
+  
+  
+  // If the difference in desiredRotation and rotation is less than some quantity, I can just stop the ship at the exact rotation I want.
+  // I need enough rotational acceleration to both stop my rotational velocity, and to move by the desired amount.
+  // This is not perfect since it doesn't take into account current rotational velocity that could be leveraged to get there faster.
+  if (2 * vsize(copyRotToVect(smallestRotatorMagnitude(desiredRotation uncoordRot rotation))) + vsize(rotationalVelocity) < maxRotationalAccelerationRate) {
+    getPhysicsState().setRotation(desiredRotation);
+    getPhysicsState().setRotationVelocity(vect(0,0,0));
+  } else {
+    getPhysicsIntegrator().angularPhysicsUpdate(getPhysicsState(), delta, rotationalAcceleration);
+  }
+
+  if (partShip(Self) != none)
+    debugMSG("desiredRotationRate: "$pilot.desiredRotationRate$" rotation remaining: "$vsize(copyRotToVect(smallestRotatorMagnitude(desiredRotation uncoordRot rotation)))$" maxRotationalAccelerationRate "$maxRotationalAccelerationRate);
 }
 
 // ********************************************************************************************************************************************
@@ -289,7 +324,9 @@ simulated function cleanup()
     Sector = None;
   }
 
-  setShipOwner(None);
+  setShipWorker(none);
+  setShipOwner(none);
+  
   DesiredVelocity_RelativeTo = None;
 
   if (dockingSubsystem != none) {

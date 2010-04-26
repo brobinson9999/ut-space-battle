@@ -3,7 +3,7 @@ class StoredPhysicsState extends PhysicsStateInterface;
 var private vector storedLocation;
 var private vector storedVelocity;
 var private rotator storedRotation;
-var private float storedRotationVelocity;
+var private vector storedRotationVelocity;
 
 simulated function vector getLocation() {
   return storedLocation;
@@ -29,11 +29,11 @@ simulated function setRotation(rotator newValue) {
   storedRotation = newValue;
 }
 
-simulated function float getRotationVelocity() {
+simulated function vector getRotationVelocity() {
   return storedRotationVelocity;
 }
 
-simulated function setRotationVelocity(float newValue) {
+simulated function setRotationVelocity(vector newValue) {
   storedRotationVelocity = newValue;
 }
 
