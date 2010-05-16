@@ -5,7 +5,7 @@ class ProjectileRenderable extends BaseRenderable;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-var Projectile projectile;
+var WeaponProjectile projectile;
 var private ProjectileRenderableProjectileObserver projectileObserver;
 var vector worldLocation;
 
@@ -105,7 +105,7 @@ simulated function tearOffGameSim() {
   setProjectile(none);
 }
 
-simulated function setProjectile(Projectile newProjectile) {
+simulated function setProjectile(WeaponProjectile newProjectile) {
   if (projectileObserver != none)
     projectileObserver.cleanup();
   projectile = newProjectile;

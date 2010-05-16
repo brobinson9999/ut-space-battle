@@ -22,11 +22,11 @@ simulated function cleanup()
   super.cleanup();
 }
 
-simulated function notifyShipCritical()                                     { observingFor.notifyShipCritical();                    }
-simulated function notifyShipDestroyed()                                    { observingFor.notifyShipDestroyed();                   }
-simulated function notifyPartDamaged(Part part)                             { observingFor.notifyPartDamaged(part);                 }
-simulated function notifyPartRepaired(Part part)                            { observingFor.notifyPartRepaired(part);                }
-simulated function notifyPartFiredWeapon(Part part, Projectile projectile)  { observingFor.notifyPartFiredWeapon(part, projectile); }
+simulated function notifyShipCritical()                                           { observingFor.notifyShipCritical();                    }
+simulated function notifyShipDestroyed()                                          { observingFor.notifyShipDestroyed();                   }
+simulated function notifyPartDamaged(Part part)                                   { observingFor.notifyPartDamaged(part);                 }
+simulated function notifyPartRepaired(Part part)                                  { observingFor.notifyPartRepaired(part);                }
+simulated function notifyPartFiredWeapon(Part part, WeaponProjectile projectile)  { observingFor.notifyPartFiredWeapon(part, projectile); }
 
 defaultproperties
 {

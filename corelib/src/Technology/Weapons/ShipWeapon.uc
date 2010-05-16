@@ -82,7 +82,7 @@ class ShipWeapon extends Part;
     local float Range;
     local float oldRangeGuess, newRangeGuess;
     local int iterations;
-    local Projectile newProjectile;
+    local WeaponProjectile newProjectile;
     local float ShotVelocity;
     local Vector guessedLocation, guessedVelocity;
     local vector desiredFireDirection;
@@ -91,7 +91,7 @@ class ShipWeapon extends Part;
     myAssert(ship != none, "ShipWeapon.fire but ship == none");
     myAssert(ship.sector != none, "ShipWeapon.fire but ship.sector == none");
       
-    newProjectile = Projectile(allocateObject(class'Projectile'));
+    newProjectile = WeaponProjectile(allocateObject(class'WeaponProjectile'));
     newProjectile.Damage = localTechnology.Intensity;
     newProjectile.StartTime = getCurrentTime(); // Used to be the ships last update time - that causes problems and is not correct. If we use the ships last update time impact events can be scheduled prior to the current game time.
     newProjectile.StartLocation = Ship.getShipLocation() + (RelativeLocation CoordRot Ship.Rotation);

@@ -13,13 +13,13 @@ var PartRenderable observed;
 // ********************************************************************************************************************************************
 
 simulated function setObserved(PartRenderable newObserved) {
-	observed = newObserved;
+  observed = newObserved;
 }
 
 simulated function cleanup() {
-	setObserved(none);
-	
-	super.cleanup();
+  setObserved(none);
+  
+  super.cleanup();
 }
 
 // ********************************************************************************************************************************************
@@ -29,7 +29,7 @@ simulated function cleanup() {
 
 simulated function observedCleanup();
 
-simulated function partFiredWeapon(Projectile projectile);
+simulated function partFiredWeapon(WeaponProjectile projectile);
 simulated function partDamaged();
 simulated function partRepaired();
 simulated function shipCritical();
@@ -42,5 +42,5 @@ simulated function shipDestroyed();
 
 defaultproperties
 {
-	bHidden=true
+  bHidden=true
 }

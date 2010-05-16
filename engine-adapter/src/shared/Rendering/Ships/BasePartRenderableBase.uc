@@ -105,7 +105,7 @@ simulated function class<ProjectileRenderable> getProjectileRenderableClass(Weap
 }
 
 
-simulated function notifyPartFiredWeapon(Projectile projectile) {
+simulated function notifyPartFiredWeapon(WeaponProjectile projectile) {
   local int i;
   local object newRenderData;
   local ProjectileRenderable projectileRenderData;

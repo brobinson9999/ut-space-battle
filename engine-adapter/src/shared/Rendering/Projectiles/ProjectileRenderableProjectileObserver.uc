@@ -1,9 +1,9 @@
 class ProjectileRenderableProjectileObserver extends ProjectileObserver;
 
-var Projectile observed;
+var WeaponProjectile observed;
 var ProjectileRenderable observingFor;
 
-simulated function initialize(Projectile newObserved, ProjectileRenderable observeFor)
+simulated function initialize(WeaponProjectile newObserved, ProjectileRenderable observeFor)
 {
   observed = newObserved;
   observingFor = observeFor;

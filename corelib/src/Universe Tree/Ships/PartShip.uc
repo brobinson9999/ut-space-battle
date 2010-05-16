@@ -93,7 +93,7 @@ simulated function notifyPartDamaged(Part part) {
       PartShipObserver(shipObservers[i]).notifyPartDamaged(part);
 }
 
-simulated function notifyPartFiredWeapon(Part part, Projectile projectile) {
+simulated function notifyPartFiredWeapon(Part part, WeaponProjectile projectile) {
   local int i;
 
   for (i=shipObservers.length-1;i>=0;i--)

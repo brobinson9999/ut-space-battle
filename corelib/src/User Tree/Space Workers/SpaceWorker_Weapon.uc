@@ -25,33 +25,16 @@ var bool          bSkipNextAutoFire;
 
 simulated function initialize()
 {
-//  setupNextUpdateEvent();
   getSelfUpdateAlarm().setPeriod(0.25);
   super.initialize();
 }
-
-//simulated function setupNextUpdateEvent()
-//{
-//  local float timeToReload;
-//
-//  if (!weapon.readyToFire()) {
-//    timeToReload = weapon.nextFireTime() - getCurrentTime();
-//
-//    if (timeToReload > 0) {
-//      setTimer(timeToReload);
-//      return;
-//    }
-//  }
-//
-//  setTimer(getPerformanceThrottleFactor() * performanceFactor);
-//}
 
 simulated function ThrottledPeriodicAlarm getSelfUpdateAlarm() {
   if (selfUpdateAlarm == none) {
     selfUpdateAlarm = ThrottledPeriodicAlarm(allocateObject(class'ThrottledPeriodicAlarm'));
     selfUpdateAlarm.throttleMultiplier = performanceFactor;
 //    selfUpdateAlarm.minimumPeriod = performanceFactorMinUpdateTime;
-    selfUpdateAlarm.callBack = updateWorker;
+    selfUpdateAlarm.callBack = updateTimerElapsed;
   }
   
   return selfUpdateAlarm;
@@ -60,8 +43,6 @@ simulated function ThrottledPeriodicAlarm getSelfUpdateAlarm() {
 simulated function updateTimerElapsed()
 {
   local float timeToReload;
-
-//  timerEvent = None;
 
   updateWorker();
 

@@ -157,7 +157,7 @@ simulated function notifyPartRepaired(Part part) {
     partRenderable.notifyPartRepaired();
 }
 
-simulated function notifyPartFiredWeapon(Part part, Projectile projectile) {
+simulated function notifyPartFiredWeapon(Part part, WeaponProjectile projectile) {
   local PartRenderable partRenderable;
   
   partRenderable = getPartRenderableForPart(part);

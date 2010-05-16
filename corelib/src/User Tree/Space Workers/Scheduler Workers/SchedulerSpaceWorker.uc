@@ -12,7 +12,6 @@ simulated function setSchedulerStrategy(SpaceSchedulerStrategy newAlgorithm) {
 
 simulated function initialize()
 {
-//  setupNextUpdateEvent();
   getSelfUpdateAlarm().setPeriod(0.5);
   super.initialize();
 }
@@ -28,25 +27,6 @@ simulated function ThrottledPeriodicAlarm getSelfUpdateAlarm() {
   return selfUpdateAlarm;
 }
 
-//simulated function setupNextUpdateEvent()
-//{
-//  local float updateTime;
-//
-//  updateTime = FMax(performanceFactorMinUpdateTime, getPerformanceThrottleFactor() * performanceFactor);
-//
-//  setTimer(updateTime);
-//}
-
-//simulated function timerElapsed()
-//{
-//  // TODO: Is this right? I have some feeling that it is supposed to be this way, but there should be a comment here explaining why. Try searching for similar code elsewhere.
-//  timerEvent = none;
-//
-//  updateSelf();
-//
-//  setupNextUpdateEvent();
-//}
-  
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************

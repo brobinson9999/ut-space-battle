@@ -6,7 +6,7 @@ class Sector extends BaseObject;
 // ********************************************************************************************************************************************
 
 var array<Ship>             ships;
-var array<Projectile>       projectiles;
+var array<WeaponProjectile> projectiles;
 var array<SectorPresence>   sectorPresences;
 
 var int                     hackCounter; // just used as a counter to provide unique ints
@@ -51,13 +51,13 @@ simulated function shipLeftSector(Ship X)
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-simulated function ProjectileEnteredSector(Projectile X)
+simulated function ProjectileEnteredSector(WeaponProjectile X)
 {
   Projectiles[Projectiles.Length] = X;
   X.Sector = Self;
 }
 
-simulated function ProjectileLeftSector(Projectile Proj)
+simulated function ProjectileLeftSector(WeaponProjectile Proj)
 {
   local int i;
 

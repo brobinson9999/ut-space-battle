@@ -215,7 +215,11 @@ simulated function bool SpecialCalcView(out actor ViewActor, out vector CameraLo
     return false;
 
   ViewActor = self;
-  CamLookAt = Location + (vect(-100, 0, 100) >> Rotation);
+
+  if (PC.bBehindView)
+    CamLookAt = Location + (vect(-100, 0, 100) >> Rotation);
+  else
+    CamLookAt = Location;
 
   //////////////////////////////////////////////////////
   // Smooth lookat position over a few frames.
@@ -240,13 +244,17 @@ simulated function bool SpecialCalcView(out actor ViewActor, out vector CameraLo
   }
   //////////////////////////////////////////////////////
 
-  CameraLocation = CamLookAt + (vect(-600, 0, 0) >> CameraRotation);
+  if (PC.bBehindView) {
+    CameraLocation = CamLookAt + (vect(-600, 0, 0) >> CameraRotation);
 
-  if( Trace( HitLocation, HitNormal, CameraLocation, CamLookAt, false, vect(10, 10, 10) ) != None )
-  {
-    CameraLocation = HitLocation;
+    if( Trace( HitLocation, HitNormal, CameraLocation, CamLookAt, false, vect(10, 10, 10) ) != None )
+    {
+      CameraLocation = HitLocation;
+    }
+  } else {
+    CameraLocation = CamLookAt;
   }
-
+  
   return true;
 }
 

@@ -60,20 +60,7 @@ simulated function initialize()
     getSensorSimulationStrategy();
 
   getSelfUpdateAlarm().setPeriod(0.5);
-//  setupNextUpdateEvent();
 }
-
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-
-//simulated function setupNextUpdateEvent()
-//{
-//  local float updateTime;
-//
-//  updateTime = FMax(performanceFactorMinUpdateTime, getPerformanceThrottleFactor() * performanceFactor);
-//
-//  setTimer(updateTime);
-//}
 
 simulated function ThrottledPeriodicAlarm getSelfUpdateAlarm() {
   if (selfUpdateAlarm == none) {
@@ -86,19 +73,6 @@ simulated function ThrottledPeriodicAlarm getSelfUpdateAlarm() {
   return selfUpdateAlarm;
 }
   
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-
-//simulated function timerElapsed()
-//{
-////    freeAndCleanupObject(timerEvent);
-//  timerEvent = none;
-//
-//  updateSectorPresence();
-//
-//  setupNextUpdateEvent();
-//}
-
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************

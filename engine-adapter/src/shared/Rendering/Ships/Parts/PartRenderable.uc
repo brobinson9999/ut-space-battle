@@ -65,7 +65,7 @@ class PartRenderable extends BaseRenderable;
   simulated function notifyPartRepaired();
   simulated function notifyShipCritical();
   simulated function notifyShipDestroyed();
-  simulated function notifyPartFiredWeapon(Projectile projectile);
+  simulated function notifyPartFiredWeapon(WeaponProjectile projectile);
   
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************

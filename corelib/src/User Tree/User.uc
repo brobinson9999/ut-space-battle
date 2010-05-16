@@ -34,12 +34,7 @@ simulated function initializeUser() {
   // Random performance factor - spaces out updates for multiple users created at the same time.
   performanceFactor *= (0.95 + (FRand() * 0.05));
   getSelfUpdateAlarm().setPeriod(0.5);
-//  setupNextUpdateEvent();
 }
-
-//simulated function setupNextUpdateEvent() {
-//  setTimer(getPerformanceThrottleFactor() * performanceFactor);
-//}
 
 simulated function ThrottledPeriodicAlarm getSelfUpdateAlarm() {
   if (selfUpdateAlarm == none) {
@@ -50,13 +45,6 @@ simulated function ThrottledPeriodicAlarm getSelfUpdateAlarm() {
   
   return selfUpdateAlarm;
 }
-
-//simulated function timerElapsed()
-//{
-//  updateUser();
-//
-//  setupNextUpdateEvent();
-//}
 
 simulated function updateUser();
 

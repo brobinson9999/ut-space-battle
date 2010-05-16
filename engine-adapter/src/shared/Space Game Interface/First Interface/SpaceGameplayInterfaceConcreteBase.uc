@@ -265,7 +265,7 @@ var UnrealEngineAdapter engineAdapter;
     }
   }
   
-  simulated function drawProjectile(CanvasObject canvas, Projectile projectile)
+  simulated function drawProjectile(CanvasObject canvas, WeaponProjectile projectile)
   {
     local vector worldLocation;
     
@@ -1725,7 +1725,7 @@ simulated function stopRenderingSectorContacts(UserInterfaceMediator mediator) {
   }
 }
 
-simulated function stopRenderingSectorProjectile(Projectile projectile) {
+simulated function stopRenderingSectorProjectile(WeaponProjectile projectile) {
   local int i;
 
   for (i=projectile.observers.length-1;i>=0;i--)
