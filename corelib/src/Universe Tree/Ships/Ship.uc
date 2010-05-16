@@ -251,8 +251,8 @@ simulated function updateShip()
     getPhysicsIntegrator().angularPhysicsUpdate(getPhysicsState(), delta, rotationalAcceleration);
   }
 
-  if (partShip(Self) != none)
-    debugMSG("desiredRotationRate: "$pilot.desiredRotationRate$" rotation remaining: "$vsize(copyRotToVect(smallestRotatorMagnitude(desiredRotation uncoordRot rotation)))$" maxRotationalAccelerationRate "$maxRotationalAccelerationRate);
+//  if (partShip(Self) != none)
+//    debugMSG("desiredRotationRate: "$pilot.desiredRotationRate$" rotation remaining: "$vsize(copyRotToVect(smallestRotatorMagnitude(desiredRotation uncoordRot rotation)))$" maxRotationalAccelerationRate "$maxRotationalAccelerationRate);
 }
 
 // ********************************************************************************************************************************************

@@ -57,7 +57,7 @@ simulated function ThrottledPeriodicAlarm getSelfUpdateAlarm() {
 // ********************************************************************************************************************************************
 
   simulated function allocateWorkers() {
-    schedulerStrategy.allocateWorkers(self, workers);
+    getSchedulerStrategy().allocateWorkers(self, workers);
   }
 
 // ********************************************************************************************************************************************
