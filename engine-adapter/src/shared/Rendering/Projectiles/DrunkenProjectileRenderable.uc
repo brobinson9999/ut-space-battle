@@ -47,11 +47,11 @@ class DrunkenProjectileRenderable extends MovingProjectileRenderable;
 // ********************************************************************************************************************************************
 
   // Set drawtype and other rendering parameters.
-  simulated function initialize()
+  simulated function initializeProjectileRenderable()
   {
     local float distance;
     
-    super.initialize();
+    super.initializeProjectileRenderable();
     
     if (drunkenRateMin > 0 && drunkenRateMax > 0)
     {

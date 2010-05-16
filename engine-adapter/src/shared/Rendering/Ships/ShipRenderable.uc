@@ -18,7 +18,7 @@ simulated function setShip(Ship newShip) {
 
 simulated function ShipObserver getShipObserver();
 
-simulated function initialize();
+simulated function initializeShipRenderable();
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************

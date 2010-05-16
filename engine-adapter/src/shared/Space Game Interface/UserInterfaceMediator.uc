@@ -48,7 +48,7 @@ class UserInterfaceMediator extends BaseObject;
     
     if (newPlayerUser != none) {
       playerInterfaceSensorObserver = UserInterfaceMediatorSensorObserver(allocateObject(class'UserInterfaceMediatorSensorObserver'));
-      playerInterfaceSensorObserver.initialize(newPlayerUser, self);
+      playerInterfaceSensorObserver.initializeSensorObserver(newPlayerUser, self);
     }
     
     userInterface.notifySetPlayerUser(self);

@@ -3,7 +3,7 @@ class SensingCommandingWorkerDecoratorSensorObserver extends UserSensorObserver;
 var User observedUser;
 var SensingCommandingWorkerDecorator observingFor;
 
-simulated function initialize(User observeUser, SensingCommandingWorkerDecorator observeFor)
+simulated function initializeSensorObserver(User observeUser, SensingCommandingWorkerDecorator observeFor)
 {
   observedUser = observeUser;
   observingFor = observeFor;

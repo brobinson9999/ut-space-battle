@@ -10,10 +10,10 @@ simulated function setSchedulerStrategy(SpaceSchedulerStrategy newAlgorithm) {
   schedulerStrategy = newAlgorithm;
 }
 
-simulated function initialize()
+simulated function initializeWorker()
 {
   getSelfUpdateAlarm().setPeriod(0.5);
-  super.initialize();
+  super.initializeWorker();
 }
 
 simulated function ThrottledPeriodicAlarm getSelfUpdateAlarm() {

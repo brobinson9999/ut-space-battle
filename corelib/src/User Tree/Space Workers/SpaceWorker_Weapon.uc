@@ -23,10 +23,10 @@ var bool          bSkipNextAutoFire;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-simulated function initialize()
+simulated function initializeWorker()
 {
   getSelfUpdateAlarm().setPeriod(0.25);
-  super.initialize();
+  super.initializeWorker();
 }
 
 simulated function ThrottledPeriodicAlarm getSelfUpdateAlarm() {

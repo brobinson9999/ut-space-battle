@@ -13,8 +13,8 @@ var Actor Trailer2;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-  simulated function initialize() {
-    super.initialize();
+  simulated function initializeProjectileRenderable() {
+    super.initializeProjectileRenderable();
     
     setDrawscale(sqrt(projectile.damage) * 0.8);
 

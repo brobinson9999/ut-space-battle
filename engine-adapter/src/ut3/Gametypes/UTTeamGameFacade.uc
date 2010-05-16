@@ -25,7 +25,7 @@ simulated function initAdapter()
   gameEngineAdapter = new class'UTTeamGameAdapter';
   gameEngineAdapter.setGameInfoFacade(self);
   gameEngineAdapter.setGameSimulation(new gameSimulationClass);
-  gameEngineAdapter.initialize();
+  gameEngineAdapter.initializeEngineAdapter();
 }
 
 // ********************************************************************************************************************************************

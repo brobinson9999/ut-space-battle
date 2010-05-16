@@ -219,7 +219,7 @@ simulated function SectorPresence createSectorPresenceFor(User presenceUser, Sec
 
   presenceSector.sectorPresences[presenceSector.sectorPresences.Length] = newSectorPresence;
 
-  newSectorPresence.Initialize();
+  newSectorPresence.initializeSectorPresence();
 
   // Notify the new sector presence of any existing ships.
   for (i=0;i<presenceSector.ships.length;i++)
@@ -287,7 +287,7 @@ simulated function Gained_Sector_Presence(SectorPresence other)
   newSectorCommandAI.SectorPresence = other;
   SectorCommandAIs[SectorCommandAIs.Length] = newSectorCommandAI;
 
-  newSectorCommandAI.initialize();
+  newSectorCommandAI.initializeWorker();
 }
 
 // ********************************************************************************************************************************************
@@ -451,7 +451,7 @@ simulated protected function SpaceWorker_Ship getNewShipWorker(Ship Other)
   NewWorker = SpaceWorker_Ship(allocateObject(class'SpaceWorker_Ship'));
   NewWorker.Ship = Other;
   other.setShipWorker(newWorker);
-  NewWorker.Initialize();
+  NewWorker.initializeWorker();
 
   return NewWorker;
 }
@@ -463,7 +463,7 @@ simulated protected function SpaceWorker_Weapon getNewWeaponWorker(ShipWeapon Ot
   NewWorker = SpaceWorker_Weapon(allocateObject(class'SpaceWorker_Weapon'));
   NewWorker.Weapon = Other;
   Other.Worker = NewWorker;
-  NewWorker.Initialize();
+  NewWorker.initializeWorker();
 
   return NewWorker;
 }

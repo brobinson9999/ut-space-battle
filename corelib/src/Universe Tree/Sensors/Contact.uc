@@ -35,7 +35,7 @@ var User                        contactOwner;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-simulated function Initialize(Ship newContactShip, Sector NewSector, vector DetectionPosition)
+simulated function initializeContact(Ship newContactShip, Sector NewSector, vector DetectionPosition)
 {
   ContactID = "C"$newSector.hackCounter;
   newSector.hackCounter++;

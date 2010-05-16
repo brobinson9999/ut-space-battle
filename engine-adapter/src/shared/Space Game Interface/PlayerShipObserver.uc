@@ -3,7 +3,7 @@ class PlayerShipObserver extends ShipObserver;
 var Ship observed;
 var SpaceGameplayInterfaceConcreteBase observingFor;
 
-simulated function initialize(Ship newObserved, SpaceGameplayInterfaceConcreteBase observeFor)
+simulated function initializeShipObserver(Ship newObserved, SpaceGameplayInterfaceConcreteBase observeFor)
 {
   observed = newObserved;
   observingFor = observeFor;

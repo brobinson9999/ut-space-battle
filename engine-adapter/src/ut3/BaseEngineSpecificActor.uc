@@ -37,7 +37,7 @@ simulated function TransientParticleSystemRenderable spawnTransientEffect(Partic
 
   result.setTemplate(effectTemplate);
 
-  result.initialize();
+  result.initializeTransientParticleSystemRenderable();
 
   return result;
 }

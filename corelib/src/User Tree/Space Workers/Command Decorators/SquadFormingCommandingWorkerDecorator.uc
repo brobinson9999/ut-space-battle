@@ -120,7 +120,7 @@ class SquadFormingCommandingWorkerDecorator extends CommandingWorkerDecorator;
 
     // Create and initialize the new squad.
     newSquad = SpaceWorker_Squad(allocateObject(class'SpaceWorker_Squad'));
-    newSquad.initialize();
+    newSquad.initializeWorker();
 
     // Seed it with the current tasks.
     copyTasks(newSquad);

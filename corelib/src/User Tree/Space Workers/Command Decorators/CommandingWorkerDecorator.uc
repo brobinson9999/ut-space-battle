@@ -18,10 +18,10 @@ var ThrottledPeriodicAlarm      selfUpdateAlarm;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-simulated function initialize()
+simulated function initializeWorker()
 {
   getSelfUpdateAlarm().setPeriod(1);
-  super.initialize();
+  super.initializeWorker();
 }
 
 simulated function ThrottledPeriodicAlarm getSelfUpdateAlarm() {

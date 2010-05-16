@@ -21,7 +21,7 @@ var class<HUDAdapter>                   defaultHUDAdapterClass;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-simulated function initialize()
+simulated function initializeEngineAdapter()
 {
   setPawnClass(class'PawnAdapter');
   setPlayerControllerClass(class'PlayerControllerAdapter');

@@ -16,11 +16,11 @@ class DragProjectileRenderable extends DrunkenProjectileRenderable;
   simulated function createDragees();
   
   // Set drawtype and other rendering parameters.
-  simulated function initialize()
+  simulated function initializeProjectileRenderable()
   {
-  	local rotator newRotation;
-  	
-    super.initialize();
+    local rotator newRotation;
+    
+    super.initializeProjectileRenderable();
     
     newRotation = rotator(projectile.endLocation - projectile.startLocation);
     newRotation.roll = rotation.roll;
@@ -29,11 +29,11 @@ class DragProjectileRenderable extends DrunkenProjectileRenderable;
     createDragees();
   }
   
-	simulated function updateLocation() {
+  simulated function updateLocation() {
     local int i;
     
-		super.updateLocation();
-		
+    super.updateLocation();
+    
     for (i=dragees.length-1;i>=0;i--)
     {
       if (dragees[i] == none) {

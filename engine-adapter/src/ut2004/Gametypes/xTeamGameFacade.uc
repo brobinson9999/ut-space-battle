@@ -24,9 +24,8 @@ simulated function initAdapter()
 {
   gameEngineAdapter = new class'xTeamGameAdapter';
   gameEngineAdapter.setGameInfoFacade(self);
-  gameEngineAdapter.getObjectAllocator();
   gameEngineAdapter.setGameSimulation(new gameSimulationClass);
-  gameEngineAdapter.initialize();
+  gameEngineAdapter.initializeEngineAdapter();
 }
 
 // ********************************************************************************************************************************************

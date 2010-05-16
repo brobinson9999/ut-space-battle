@@ -1498,7 +1498,7 @@ simulated function setPlayerShip(UserInterfaceMediator mediator, contact newPlay
     myAssert(playerShip != none, "SpaceGameplayInterfaceConcreteBase setPlayerShip newPlayerShipContact != none but playerShipContact.getOwnedShip() == none");
 
     playerShipObserver = PlayerShipObserver(allocateObject(class'PlayerShipObserver'));
-    playerShipObserver.initialize(playerShip, self);
+    playerShipObserver.initializeShipObserver(playerShip, self);
 
     if (cameraSector != playerShip.sector)
       changeCameraSector(mediator, playerShip.sector);
@@ -1761,7 +1761,7 @@ simulated function stopRenderingSectorProjectile(WeaponProjectile projectile) {
       newRenderable = ShipRenderable(engineAdapter.spawnEngineObject(renderableClass,,,contact.getContactLocation(), contact.getContactSourceRotation()));
       class'UnrealEngineAdapter'.static.propogateGlobalsActor(self, newRenderable);
       newRenderable.setShip(contact.contactShip);
-      newRenderable.initialize();
+      newRenderable.initializeShipRenderable();
       
       contact.addContactObserver(newRenderable.getShipObserver());
     }

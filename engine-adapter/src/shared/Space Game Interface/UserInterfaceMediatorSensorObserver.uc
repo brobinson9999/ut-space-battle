@@ -13,7 +13,7 @@ class UserInterfaceMediatorSensorObserver extends UserSensorObserver;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-  simulated function initialize(User observeUser, UserInterfaceMediator observeFor)
+  simulated function initializeSensorObserver(User observeUser, UserInterfaceMediator observeFor)
   {
     observedUser = observeUser;
     observingFor = observeFor;

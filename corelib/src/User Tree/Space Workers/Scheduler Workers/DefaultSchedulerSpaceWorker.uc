@@ -12,13 +12,13 @@ class DefaultSchedulerSpaceWorker extends SchedulerSpaceWorker;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-  simulated function initialize()
+  simulated function initializeWorker()
   {
     if (SchedulerStrategy == none)  {
       setSchedulerStrategy(SpaceSchedulerStrategy(allocateObject(SchedulerStrategyClass)));
     }
     
-    super.initialize();
+    super.initializeWorker();
   }
 
 // ********************************************************************************************************************************************

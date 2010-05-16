@@ -13,13 +13,13 @@ var array<PartRenderable> partRenderables;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-simulated function initialize() {
+simulated function initializeShipRenderable() {
   local int i;
 
-  super.initialize();
+  super.initializeShipRenderable();
     
   shipObserver = new class'RenderablePartShipObserver';
-  shipObserver.initialize(ship, self);
+  shipObserver.initializeShipObserver(ship, self);
   
   setScale(getGlobalDrawscaleFactor());
 
@@ -49,7 +49,7 @@ simulated function initializePartRenderable(Part part) {
   propogateGlobals(newPartRenderable);
   newPartRenderable.setPart(part);
   positionPart(newPartRenderable, part);
-  newPartRenderable.initialize();
+  newPartRenderable.initializePartRenderable();
 
   partRenderables[partRenderables.length] = newPartRenderable;
 }

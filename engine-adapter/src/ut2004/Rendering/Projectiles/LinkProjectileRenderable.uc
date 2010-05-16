@@ -6,10 +6,10 @@ class LinkProjectileRenderable extends MovingProjectileRenderable;
 // ********************************************************************************************************************************************
 
   // Set drawtype and other rendering parameters.
-  simulated function initialize() {
+  simulated function initializeProjectileRenderable() {
     local vector streakSize;
     
-    super.initialize();
+    super.initializeProjectileRenderable();
     
     streakSize.Y = projectile.damage * 1;
     streakSize.Z = StreakSize.Y;

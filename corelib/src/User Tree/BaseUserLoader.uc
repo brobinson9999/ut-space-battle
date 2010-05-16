@@ -111,7 +111,7 @@ simulated function newShipPart(BaseUser other, string shipIdentifier, string par
   shipPart = Part(allocateObject(partClass));
   shipPart.partID = partIdentifier;
   PartShip(prototype).addPart(shipPart);
-  shipPart.initialize();
+  shipPart.initializePart();
 
   shipPart.relativeLocation = relativeLocation;
   shipPart.relativeRotation = relativeRotation;

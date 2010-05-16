@@ -54,7 +54,7 @@ class SectorPresence extends BaseObject;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-simulated function initialize()
+simulated function initializeSectorPresence()
 {
   if (SensorSimulationStrategy == none)
     getSensorSimulationStrategy();
@@ -166,7 +166,7 @@ simulated function updateContacts()
 
     newContact = Contact(allocateObject(class'Contact'));
     newContact.setContactOwner(user);
-    newContact.initialize(newContactShip, sector, newContactShip.getShipLocation());
+    newContact.initializeContact(newContactShip, sector, newContactShip.getShipLocation());
     
     allContacts[allContacts.length] = newContact;
     

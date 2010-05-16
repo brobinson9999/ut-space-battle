@@ -123,7 +123,7 @@ simulated function notifyPartFiredWeapon(WeaponProjectile projectile) {
   if (projectileRenderData != none) {
     propogateGlobals(projectileRenderData);
     projectileRenderData.setProjectile(projectile);
-    projectileRenderData.initialize();
+    projectileRenderData.initializeProjectileRenderable();
 
     projectileRenderData.notifyProjectileFired(self);
   }

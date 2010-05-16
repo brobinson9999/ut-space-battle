@@ -23,7 +23,7 @@ var float         impactShakeMagnitude;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-simulated function initialize();
+simulated function initializeProjectileRenderable();
 
 simulated function ProjectileRenderableProjectileObserver getProjectileObserver() {
   if (projectileObserver == none) {
@@ -110,7 +110,7 @@ simulated function setProjectile(WeaponProjectile newProjectile) {
     projectileObserver.cleanup();
   projectile = newProjectile;
   if (newProjectile != none)
-    getProjectileObserver().initialize(newProjectile, self);
+    getProjectileObserver().initializeProjectileObserver(newProjectile, self);
 }
 
 simulated function notifyCameraLeftSector() {

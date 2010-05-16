@@ -3,7 +3,7 @@ class RenderablePartShipObserver extends PartShipObserver;
 var Ship observed;
 var PartShipRenderable observingFor;
 
-simulated function initialize(Ship newObserved, PartShipRenderable observeFor)
+simulated function initializeShipObserver(Ship newObserved, PartShipRenderable observeFor)
 {
   observed = newObserved;
   observingFor = observeFor;

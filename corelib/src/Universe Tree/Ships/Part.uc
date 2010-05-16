@@ -58,7 +58,7 @@ class Part extends PartBase;
     
     initializeClonedPart(clone);
 
-    clone.initialize();
+    clone.initializePart();
     
     return clone;
   }

@@ -6,7 +6,7 @@ class TransientParticleSystemRenderable extends ScalableEmitter;
 // ********************************************************************************************************************************************
 
 var ParticleSystem effectTemplate;
-var ParticleSystemComponent	effectInstance;
+var ParticleSystemComponent effectInstance;
 
 var float maxLifetime;
 var float remainingLifetime;
@@ -18,7 +18,7 @@ var float remainingLifetime;
 // ********************************************************************************************************************************************
 
 simulated function setTemplate(ParticleSystem newEffectTemplate) {
-	effectTemplate = newEffectTemplate;
+  effectTemplate = newEffectTemplate;
 }
 
 // ********************************************************************************************************************************************
@@ -26,36 +26,36 @@ simulated function setTemplate(ParticleSystem newEffectTemplate) {
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-simulated function initialize()
+simulated function initializeTransientParticleSystemRenderable()
 {
-	if (WorldInfo.NetMode != NM_DedicatedServer && effectTemplate != none) {
-		effectInstance = spawnParticleSystem(effectTemplate, location, rotation);
-		effectInstance.onSystemFinished = myOnParticleSystemFinished;
-		effectInstance.bUpdateComponentInTick = true;
-		attachComponent(effectInstance);
-	}
-	
-	remainingLifetime = maxLifetime;
+  if (WorldInfo.NetMode != NM_DedicatedServer && effectTemplate != none) {
+    effectInstance = spawnParticleSystem(effectTemplate, location, rotation);
+    effectInstance.onSystemFinished = myOnParticleSystemFinished;
+    effectInstance.bUpdateComponentInTick = true;
+    attachComponent(effectInstance);
+  }
+  
+  remainingLifetime = maxLifetime;
 }
 
 simulated function ParticleSystemComponent getInstance() {
-	return effectInstance;
+  return effectInstance;
 }
 
 simulated function tick(float delta) {
-	super.tick(delta);
-	
-	if (effectInstance != none) {
-		// translation will be scaled by drawScale internally, so counter-balance that here
-		effectInstance.setTranslation(location / drawScale);
-		effectInstance.setRotation(rotation);
-	}
-	
-	if (remainingLifetime > 0) {
-		remainingLifetime -= delta;
-		if (remainingLifetime <= 0)
-			clearAndDestroy();
-	}
+  super.tick(delta);
+  
+  if (effectInstance != none) {
+    // translation will be scaled by drawScale internally, so counter-balance that here
+    effectInstance.setTranslation(location / drawScale);
+    effectInstance.setRotation(rotation);
+  }
+  
+  if (remainingLifetime > 0) {
+    remainingLifetime -= delta;
+    if (remainingLifetime <= 0)
+      clearAndDestroy();
+  }
 }
 
 // ********************************************************************************************************************************************
@@ -65,13 +65,13 @@ simulated function tick(float delta) {
 
 simulated function MyOnParticleSystemFinished(ParticleSystemComponent PSC)
 {
-	if (PSC == effectInstance)
-		clearAndDestroy();
+  if (PSC == effectInstance)
+    clearAndDestroy();
 }
 
 simulated function clearAndDestroy() {
-	clearEffectInstance();
-	destroy();
+  clearEffectInstance();
+  destroy();
 }
 
 // ********************************************************************************************************************************************
@@ -79,26 +79,26 @@ simulated function clearAndDestroy() {
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-	simulated function clearEffectInstance() {
-		if (effectInstance != none) {
-			effectInstance.deactivateSystem();
-			detachComponent(effectInstance);
-			worldInfo.myEmitterPool.onParticleSystemFinished(effectInstance);
-			effectInstance = none;
-		}
-	}
-	
+  simulated function clearEffectInstance() {
+    if (effectInstance != none) {
+      effectInstance.deactivateSystem();
+      detachComponent(effectInstance);
+      worldInfo.myEmitterPool.onParticleSystemFinished(effectInstance);
+      effectInstance = none;
+    }
+  }
+  
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-	simulated function cleanup() {
-		clearEffectInstance();
+  simulated function cleanup() {
+    clearEffectInstance();
 
-		super.cleanup();
-	}
-	
+    super.cleanup();
+  }
+  
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -106,11 +106,11 @@ simulated function clearAndDestroy() {
 
   simulated function ParticleSystemComponent spawnParticleSystem(ParticleSystem template, vector spawnLocation, rotator spawnRotation)
   {
-  	local ParticleSystemComponent instance;
-  	
-		instance = worldInfo.myEmitterPool.spawnEmitter(template, spawnLocation, spawnRotation);
-		
-		return instance;
+    local ParticleSystemComponent instance;
+    
+    instance = worldInfo.myEmitterPool.spawnEmitter(template, spawnLocation, spawnRotation);
+    
+    return instance;
   }
   
 // ********************************************************************************************************************************************
@@ -134,5 +134,5 @@ defaultproperties
   bCollideWorld = false
   bProjTarget = false
 
-	bHidden=false
+  bHidden=false
 }

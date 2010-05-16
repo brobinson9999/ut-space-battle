@@ -22,11 +22,12 @@ class SpaceWorker_CommandDecorator extends CompositeSpaceWorker;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-  simulated function initialize()
+  simulated function initializeWorker()
   {
-    if (decorated != none) decorated.initialize();
+    if (decorated != none)
+      decorated.initializeWorker();
 
-    super.initialize();
+    super.initializeWorker();
   }
 
 // ********************************************************************************************************************************************
