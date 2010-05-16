@@ -1,6 +1,6 @@
 class SchedulerSpaceWorker extends CompositeSpaceWorker;
 
-var SpaceSchedulerStrategy schedulerStrategy;
+var private SpaceSchedulerStrategy schedulerStrategy;
 
 var float performanceFactor;
 var private float performanceFactorMinUpdateTime;
@@ -8,6 +8,10 @@ var private ThrottledPeriodicAlarm selfUpdateAlarm;
 
 simulated function setSchedulerStrategy(SpaceSchedulerStrategy newAlgorithm) {
   schedulerStrategy = newAlgorithm;
+}
+
+simulated function SpaceSchedulerStrategy getSchedulerStrategy() {
+  return schedulerStrategy;
 }
 
 simulated function initializeWorker()
@@ -52,8 +56,7 @@ simulated function ThrottledPeriodicAlarm getSelfUpdateAlarm() {
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-  simulated function allocateWorkers()
-  {
+  simulated function allocateWorkers() {
     schedulerStrategy.allocateWorkers(self, workers);
   }
 
@@ -62,8 +65,7 @@ simulated function ThrottledPeriodicAlarm getSelfUpdateAlarm() {
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-  simulated function notifyAllocation(PotentialTaskWorkerAssignment assignment)
-  {
+  simulated function notifyAllocation(PotentialTaskWorkerAssignment assignment) {
     local int i;
     
     for (i=0;i<workers.length;i++)
@@ -75,8 +77,7 @@ simulated function ThrottledPeriodicAlarm getSelfUpdateAlarm() {
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-  simulated function addWorker(SpaceWorker other)
-  {
+  simulated function addWorker(SpaceWorker other) {
     super.addWorker(other);
     
     // Make sure the worker's tasks are in sync with the composite's tasks.

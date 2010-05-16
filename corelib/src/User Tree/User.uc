@@ -321,7 +321,6 @@ simulated function CommandingWorkerDecorator getNewSectorCommandAI()
 {
   local CompositeSpaceWorker result;
   local DefaultSchedulerSpaceWorker schedulerWorker;
-//    local IndependantSchedulerStrategy independantAlgorithm;
   local IndependantSpreadSchedulerStrategy independantAlgorithm;
 
   // Leaf: Scheduler Worker.
@@ -335,7 +334,7 @@ simulated function CommandingWorkerDecorator getNewSectorCommandAI()
   } else {
     // The independant algorithm seems to have better performance than the default. I am not sure why yet. I believe it is because
     // the default may be spreading it's forces too thinly.
-    schedulerWorker.SchedulerStrategyClass = class'IndependantSpreadSchedulerStrategy';
+    schedulerWorker.schedulerStrategyClass = class'IndependantSpreadSchedulerStrategy';
   }
 
   schedulerWorker.performanceFactor *= (1.5 - AISkillLevel);
