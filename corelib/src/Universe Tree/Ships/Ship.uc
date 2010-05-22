@@ -220,26 +220,36 @@ simulated function updateShip()
     systems[i].updateShipSystem();
 
   // Update Linear movement.
-  if (Pilot != None) Pilot.UpdateLinear();
-  pilot.bUseDesiredVelocity = bUseDesiredVelocity;
-  pilot.desiredVelocity = desiredVelocity;
-  pilot.desiredAcceleration = desiredAcceleration;
-  linearAcceleration = capVector(pilot.getDesiredAcceleration(self, delta), acceleration * delta);
+  if (pilot != none) {
+    pilot.UpdateLinear();
+    pilot.bUseDesiredVelocity = bUseDesiredVelocity;
+    pilot.desiredVelocity = desiredVelocity;
+    pilot.desiredAcceleration = desiredAcceleration;
+    linearAcceleration = capVector(pilot.getDesiredAcceleration(self, delta), acceleration);
+  } else {
+    linearAcceleration = vect(0,0,0);
+  }
+  
   getPhysicsIntegrator().linearPhysicsUpdate(getPhysicsState(), delta, linearAcceleration);
+//  debugMSG(self$" "$linearAcceleration$" :: "$pilot.getDesiredAcceleration(self, delta));
 
   // Update Angular movement.
   // The pilot is updated for it's angular movement AFTER the linear physics has been updated, so it can set it's desired rotation based on it's new position rather than the position from
   // before the linear update. Hopefully this allows for a little better tracking of targets at high speed.
-  if (Pilot != None) Pilot.UpdateAngular();
-  pilot.bUseDesiredRotation = true;
-  pilot.desiredRotation = desiredRotation;
-  maxRotationalAccelerationRate = rotationRate * delta;
-  // hack
-  // having trouble getting this to work the way I want - grr.
-  rotationalVelocity = normal(copyRotToVect(desiredRotation unCoordRot rotation)) * vsize(rotationalVelocity);
-//  rotationalVelocity = normal(copyRotToVect(desiredRotation unCoordRot rotation)) * fmin(vsize(rotationalVelocity), vsize(copyRotToVect(desiredRotation unCoordRot rotation)));
-  rotationalAcceleration = capVector(pilot.getDesiredRotationalAcceleration(self, delta), maxRotationalAccelerationRate);
-  
+  if (pilot != none) {
+    pilot.UpdateAngular();
+    pilot.bUseDesiredRotation = true;
+    pilot.desiredRotation = desiredRotation;
+    maxRotationalAccelerationRate = rotationRate * delta;
+
+    // hack
+    // having trouble getting this to work the way I want - grr.
+    rotationalVelocity = normal(copyRotToVect(desiredRotation unCoordRot rotation)) * vsize(rotationalVelocity);
+    // rotationalVelocity = normal(copyRotToVect(desiredRotation unCoordRot rotation)) * fmin(vsize(rotationalVelocity), vsize(copyRotToVect(desiredRotation unCoordRot rotation)));
+    rotationalAcceleration = capVector(pilot.getDesiredRotationalAcceleration(self, delta), maxRotationalAccelerationRate);
+  } else {
+    rotationalAcceleration = vect(0,0,0);
+  }
   
   // If the difference in desiredRotation and rotation is less than some quantity, I can just stop the ship at the exact rotation I want.
   // I need enough rotational acceleration to both stop my rotational velocity, and to move by the desired amount.

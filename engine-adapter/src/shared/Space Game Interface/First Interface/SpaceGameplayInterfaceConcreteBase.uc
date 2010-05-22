@@ -120,6 +120,8 @@ var UnrealEngineAdapter engineAdapter;
     
     local vector leadInPosition;
     local vector leadInDelta;
+
+    local SpaceWorker_Ship playerShipWorker;
     
     myAssert(playerShip == none || !playerShip.bCleanedUp, "SpaceGameplayInterfaceConcreteBase playerShip != none but playerShip.bCleanedUp");
 
@@ -171,18 +173,19 @@ var UnrealEngineAdapter engineAdapter;
       canvas.setDrawColor(bracketColor);
       drawBracketString(canvas, playerShip.getShipLocation(), vector(playerShip.rotation), 10, playerShip.radius * 0.25, 1, playerShip.radius * 5, playerShip.radius * 5);
 
-      // Show lead in.
-      if (playerShip.getShipWorker().mainWeaponsTarget != none && AIPilot(playerShip.pilot).hasFixedWeapons(playerShip)) {
-        leadInPosition = AIPilot(playerShip.pilot).AM_Intercept_Calculate_Lead_In(playerShip.getShipWorker().mainWeaponsTarget.getContactLocation(), playerShip.getShipWorker().mainWeaponsTarget.getContactVelocity(), AIPilot(playerShip.pilot).projectileSpeed());
-        leadInDelta = leadInPosition - playerShip.getShipWorker().mainWeaponsTarget.getContactLocation();
-        
-        canvas.setDrawColor(reticleColorHostile);
-        drawBracketString(canvas, playerShip.getShipWorker().mainWeaponsTarget.getContactLocation(), normal(leadInDelta), 9, 5, 1, vsize(leadInDelta) * 0.5, vsize(leadInDelta) * 0.1);
-      }
+      playerShipWorker = playerShip.getShipWorker();
+      if (playerShipWorker != none) {
+        // Show lead in.
+        if (playerShipWorker.mainWeaponsTarget != none && AIPilot(playerShip.pilot).hasFixedWeapons(playerShip)) {
+          leadInPosition = AIPilot(playerShip.pilot).AM_Intercept_Calculate_Lead_In(playerShipWorker.mainWeaponsTarget.getContactLocation(), playerShipWorker.mainWeaponsTarget.getContactVelocity(), AIPilot(playerShip.pilot).projectileSpeed());
+          leadInDelta = leadInPosition - playerShipWorker.mainWeaponsTarget.getContactLocation();
 
-      // Render Hostile Health Bar.
-      if (playerShip.getShipWorker() != none) {
-        target = playerShip.getShipWorker().mainWeaponsTarget;
+          canvas.setDrawColor(reticleColorHostile);
+          drawBracketString(canvas, playerShipWorker.mainWeaponsTarget.getContactLocation(), normal(leadInDelta), 9, 5, 1, vsize(leadInDelta) * 0.5, vsize(leadInDelta) * 0.1);
+        }
+
+        // Render Hostile Health Bar.
+        target = playerShipWorker.mainWeaponsTarget;
         if (target != none) {
           target.estimateTargetCondition(targetCurrentCondition, targetOptimalCondition);
           draw_Segmented_Bar(canvas, targetCurrentCondition, targetOptimalCondition, barColorEnemyParts);
@@ -590,7 +593,7 @@ var UnrealEngineAdapter engineAdapter;
 
       if (HUDReadoutType == HUD_Physics) {
 
-        ReadoutText[ReadoutText.Length] = "Range: "$VSize(deltaPosition)$" u";
+        ReadoutText[ReadoutText.Length] = "Range: "$VSize(playerShip.shipLocation - target.getContactLocation())$" u";
         if (playerShip != none) {
           Dv = playerShip.velocity - target.getContactVelocity();
           rotDv = Dv UnCoordRot Rotator(deltaPosition);
