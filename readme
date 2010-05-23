@@ -2,6 +2,8 @@ ut-space-battle
 ---------------
 
   This work is licensed under the GNU GPLv3 or any later version.
+  The latest code from this project should be available at:
+  http://github.com/brobinson9999/ut-space-battle
 
 Dependencies
   These packages have a dependency on the unreal-utility-lib package. The source for that package is available on GitHub at:
