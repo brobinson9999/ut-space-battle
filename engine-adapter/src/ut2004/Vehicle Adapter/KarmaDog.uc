@@ -1,4 +1,4 @@
-class KarmaDog extends FlyingDog placeable;
+class KarmaDog extends AttachingFlyingDog placeable;
 
 simulated function PostNetBeginPlay()
 {
@@ -12,6 +12,12 @@ simulated function PostNetBeginPlay()
 
 defaultproperties
 {
+  DrawType=DT_StaticMesh
+  StaticMesh=StaticMesh'BulldogMeshes.Simple.S_Chassis'
+
+  DrawScale=0.4
+  drawScale3D=(x=-1,y=1,z=1)
+
   Physics=PHYS_Karma
   Begin Object Class=KarmaParamsRBFull Name=KParams0
     KActorGravScale=0

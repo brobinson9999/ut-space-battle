@@ -26,10 +26,10 @@ simulated static function staticAngularPhysicsUpdate(PhysicsStateInterface physi
   local rotator oldRotation, newRotation;
   
 //  local vector rotationalAccelerationVector;
-  
+   
 //  rotation = physicsState.getRotation();
   lastRotationVelocity = physicsState.getRotationVelocity();
-  newRotationVelocity = lastRotationVelocity + rotationalAcceleration;
+  newRotationVelocity = lastRotationVelocity + (delta * rotationalAcceleration);
   averageRotationVelocity = (lastRotationVelocity + newRotationVelocity) / 2;
   physicsState.setRotationVelocity(newRotationVelocity);
   

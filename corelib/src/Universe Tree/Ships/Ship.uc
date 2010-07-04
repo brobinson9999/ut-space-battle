@@ -225,7 +225,7 @@ simulated function updateShip()
     pilot.bUseDesiredVelocity = bUseDesiredVelocity;
     pilot.desiredVelocity = desiredVelocity;
     pilot.desiredAcceleration = desiredAcceleration;
-    linearAcceleration = capVector(pilot.getDesiredAcceleration(self, delta), acceleration);
+    linearAcceleration = capVector(pilot.getDesiredAcceleration(getPhysicsState(), delta), acceleration);
   } else {
     linearAcceleration = vect(0,0,0);
   }
@@ -246,7 +246,8 @@ simulated function updateShip()
     // having trouble getting this to work the way I want - grr.
     rotationalVelocity = normal(copyRotToVect(desiredRotation unCoordRot rotation)) * vsize(rotationalVelocity);
     // rotationalVelocity = normal(copyRotToVect(desiredRotation unCoordRot rotation)) * fmin(vsize(rotationalVelocity), vsize(copyRotToVect(desiredRotation unCoordRot rotation)));
-    rotationalAcceleration = capVector(pilot.getDesiredRotationalAcceleration(self, delta), maxRotationalAccelerationRate);
+//    rotationalAcceleration = capVector(pilot.getDesiredRotationalAcceleration(getPhysicsState(), rotationRate, delta), maxRotationalAccelerationRate);
+    rotationalAcceleration = capVector(pilot.getDesiredRotationalAcceleration(getPhysicsState(), rotationRate, delta), rotationRate);
   } else {
     rotationalAcceleration = vect(0,0,0);
   }

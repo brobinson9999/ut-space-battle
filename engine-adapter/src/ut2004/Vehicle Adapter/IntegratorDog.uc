@@ -1,4 +1,4 @@
-class IntegratorDog extends FlyingDog placeable;
+class IntegratorDog extends SmoothedFlyingDog abstract;
 
 var PhysicsIntegrator physicsIntegrator;
 var PhysicsStateInterface physicsState;
@@ -36,6 +36,8 @@ simulated function destroyed() {
   super.destroyed();
 }
 
+
+// seems to get this call when I'm NOT in the vehicle, but doesn't get the call when I am.
 simulated function hitWall( vector HitNormal, actor HitWall ) {
   log("hitWall "$hitWall);
   super.hitWall(hitNormal, hitWall);
@@ -69,7 +71,6 @@ simulated function  RanInto( Actor Other ) {
   super.RanInto(Other);
 }
 
-
 simulated function updateRocketAcceleration(float delta, float yawChange, float pitchChange) {
   local PhysicsIntegrator integrator;
   local PhysicsStateInterface physState;
@@ -78,13 +79,10 @@ simulated function updateRocketAcceleration(float delta, float yawChange, float 
 
   integrator = getPhysicsIntegrator();
   physState = getPhysicsState();
+  applyDrag(physState, delta);
   integrator.linearPhysicsUpdate(physState, delta, shipThrust * maximumThrust);
-  integrator.angularPhysicsUpdate(physState, delta, physState.copyRotToVect(shipSteering));
+  integrator.angularPhysicsUpdate(physState, delta, class'BaseObject'.static.capVector(shipSteering, 1) * maximumRotationalAcceleration);
 
-  if (rotationalDrag > 0)
-    physState.setRotationVelocity(physState.getRotationVelocity() * fmax(0, (rotationalDrag-delta)/rotationalDrag));
-  if (linearDrag > 0)
-    physState.setVelocity(physState.getVelocity() * fmax(0, (linearDrag-delta)/linearDrag));
   
   // PlayerController will tamper with velocity, based on acceleration - it will call:
   //   Pawn.Velocity = Pawn.Acceleration * Pawn.AirSpeed * 0.001;
@@ -98,18 +96,41 @@ simulated function updateRocketAcceleration(float delta, float yawChange, float 
   setRotation(physState.getRotation());
 }
 
+simulated function vector addVectorsWithoutCrossingZero(vector a, vector b) {
+  local vector result;
+  
+  result.x = addFloatsWithoutCrossingZero(a.x, b.x);
+  result.y = addFloatsWithoutCrossingZero(a.y, b.y);
+  result.z = addFloatsWithoutCrossingZero(a.z, b.z);
+  
+  return result;
+}
+
+simulated function float addFloatsWithoutCrossingZero(float a, float b) {
+  if (a > 0)
+    return FMax(0, a + b);
+  else
+    return FMin(0, a + b);
+}
+
+simulated function applyDrag(PhysicsStateInterface physState, float delta) {
+  if (rotationalDrag > 0)
+    physState.setRotationVelocity(addVectorsWithoutCrossingZero(physState.getRotationVelocity(), rotationalDrag * delta * -physState.getRotationVelocity()));
+  if (linearDrag > 0)
+    physState.setVelocity(addVectorsWithoutCrossingZero(physState.getVelocity(), linearDrag * delta * -physState.getVelocity()));
+}
+
 defaultproperties
 {
-  rotationalDrag=1
-  linearDrag=2
+  DrawType=DT_Mesh
+  Mesh=SkeletalMesh'AS_VehiclesFull_M.SpaceFighter_Skaarj'
+  DrawScale=1
 
-  turnSensitivity=0.05
-  maximumTurnRate=100
-
-//  Physics=PHYS_Projectile
-  Physics=PHYS_Flying
   // AirSpeed can be anything, as long as it is non-zero
-  AirSpeed=10000
+  airSpeed=10000
+  physics=PHYS_Flying
+  rotationalDrag=0.5
+  linearDrag=0.75
 
   bCollideActors=True
   bCollideWorld=True

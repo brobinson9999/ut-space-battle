@@ -1,10 +1,7 @@
 class VehicleAdapter extends Vehicle;
 
-// Effect spawned when vehicle is destroyed
-var (KVehicle) class<Actor> DestroyEffectClass;
-
 // Simple 'driving-in-rings' logic.
-var (KVehicle) bool   bAutoDrive;
+//var (KVehicle) bool   bAutoDrive;
 
 // The factory that created this vehicle.
 //var        KVehicleFactory  ParentFactory;
@@ -16,6 +13,12 @@ const         FilterFrames = 5;
 var       vector  CameraHistory[FilterFrames];
 var       int   NextHistorySlot;
 var       bool  bHistoryWarmup;
+
+// Crosshair
+var config Color CrosshairColor;
+var config float CrosshairX, CrosshairY;
+var config Texture CrosshairTexture;
+
 
 function TakeDamage(int Damage, Pawn instigatedBy, Vector hitlocation,
             Vector momentum, class<DamageType> damageType)
@@ -217,7 +220,7 @@ simulated function bool SpecialCalcView(out actor ViewActor, out vector CameraLo
   ViewActor = self;
 
   if (PC.bBehindView)
-    CamLookAt = Location + (vect(-100, 0, 100) >> Rotation);
+    CamLookAt = Location + (vect(-100, 0, 200) >> Rotation);
   else
     CamLookAt = Location;
 
@@ -258,15 +261,48 @@ simulated function bool SpecialCalcView(out actor ViewActor, out vector CameraLo
   return true;
 }
 
+simulated function drawCrosshair(Canvas canvas) {
+  //if (IsLocallyControlled() && ActiveWeapon < Weapons.length && Weapons[ActiveWeapon] != None && Weapons[ActiveWeapon].bShowAimCrosshair && Weapons[ActiveWeapon].bCorrectAim)
+  //{
+    Canvas.DrawColor = CrosshairColor;
+    Canvas.DrawColor.A = 255;
+    Canvas.Style = ERenderStyle.STY_Alpha;
+
+    Canvas.SetPos(Canvas.SizeX*0.5-CrosshairX, Canvas.SizeY*0.5-CrosshairY);
+    Canvas.DrawTile(CrosshairTexture, CrosshairX*2.0+1, CrosshairY*2.0+1, 0.0, 0.0, CrosshairTexture.USize, CrosshairTexture.VSize);
+  //}
+}
+
+simulated function DrawHUD(Canvas Canvas)
+{
+    local PlayerController PC;
+    local vector CameraLocation;
+    local rotator CameraRotation;
+    local Actor ViewActor;
+    
+    drawCrosshair(canvas);
+
+    PC = PlayerController(Controller);
+  if (PC != None && !PC.bBehindView && HUDOverlay != None)
+  {
+        if (!Level.IsSoftwareRendering())
+        {
+        CameraRotation = PC.Rotation;
+        SpecialCalcFirstPersonView(PC, ViewActor, CameraLocation, CameraRotation);
+        HUDOverlay.SetLocation(CameraLocation + (HUDOverlayOffset >> CameraRotation));
+        HUDOverlay.SetRotation(CameraRotation);
+        Canvas.DrawActor(HUDOverlay, false, false, FClamp(HUDOverlayFOV * (PC.DesiredFOV / PC.DefaultFOV), 1, 170));
+      }
+  }
+  else
+        ActivateOverlay(False);
+}
+
 simulated function Destroyed()
 {
   // If there was a driver in the vehicle, destroy him too
   if ( Driver != None )
     Driver.Destroy();
-
-  // Trigger any effects for destruction
-  if(DestroyEffectClass != None)
-    spawn(DestroyEffectClass, , , Location, Rotation);
 
   Super.Destroyed();
 }
@@ -310,5 +346,10 @@ defaultproperties
   bNetInitialRotation=True
 
   bSpecialCalcView=True
-  //bSpecialHUD=true
+  bSpecialHUD=true
+
+  CrosshairColor=(R=0,G=255,B=0,A=255)
+  CrosshairX=32
+  CrosshairY=32
+  CrosshairTexture=Texture'ONSInterface-TX.tankBarrelAligned'
 }

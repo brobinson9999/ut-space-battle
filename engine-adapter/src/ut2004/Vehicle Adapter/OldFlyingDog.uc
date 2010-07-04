@@ -1,4 +1,4 @@
-class FlyingDog extends KShip placeable CacheExempt;
+class OldFlyingDog extends KShip placeable CacheExempt;
 
 // This class holds the behaviour for the vehicle, aside from anything to do with it's physics or controls.
 
@@ -17,18 +17,8 @@ var (FlyingDog) sound         DestroyedSound;
 // Weapon
 var       float FireCountdown;
 
-var float   fireInterval, altFireInterval;
-var vector  weaponFireOffset;
-
-var class<Emitter>              BeamEffectClass;
-var Emitter                     Beam;
-var float beamDuration;
-
-var float lockAim;
-
-var array<DogWeapon> weapons;
-
-simulated function createWeapons();
+var (FlyingDog) float   FireInterval;
+var (FlyingDog) vector  weaponFireOffset;
 
 simulated function PostNetBeginPlay()
 {
@@ -36,8 +26,6 @@ simulated function PostNetBeginPlay()
 
   Super.PostNetBeginPlay();
 
-  createWeapons();
-  
   GetAxes(Rotation,RotX,RotY,RotZ);
 
   // Only have triggers on server
@@ -64,15 +52,7 @@ simulated function PostNetBeginPlay()
 
 simulated event Destroyed()
 {
-  if (beamDuration > 0)
-    setBeamDuration(0);
- 
-  while (weapons.length > 0) {
-    weapons[0].cleanup();
-    weapons.remove(0,1);
-  }
-  
- // Clean up random stuff attached to the car
+  // Clean up random stuff attached to the car
   if(Level.NetMode != NM_Client)
   {
     FLTrigger.Destroy();
@@ -114,7 +94,9 @@ function bool KDriverLeave(bool bForceLeave)
     return false;
 }
 
-function rotator getWeaponFireRotation();
+function rotator getWeaponFireRotation() {
+  return rotator(vector(class'BaseObject'.static.copyVectToRot(shipSteering * 10)) >> rotation);
+}
 
 simulated function drawCrosshair(Canvas canvas) {
   local vector startTrace, endTrace;
@@ -143,90 +125,61 @@ simulated function vector getFireLocation() {
   return location + (weaponFireOffset >> rotation);
 }
 
-function setBeamDuration(float newDuration) {
-  local Vector X, Start, End, HitLocation, HitNormal;
-  local Actor Other;
-  local float damage;
 
-  if (newDuration <= 0) {
-    if (beam != none)
-      beam.destroy();
-    beamDuration = 0;
-    return;
-  }
+function fireWeapons(bool bWasAltFire)
+{
+  local vector FireLocation;
+  local PlayerController PC;
+  local rotator fireRotation;
   
-  X = Vector(getWeaponFireRotation());
-  start = getFireLocation();
-  End = Start + (60000 * X);
+  // Client can't do firing
+  if(Role != ROLE_Authority)
+    return;
 
-  Other = Trace(HitLocation, HitNormal, End, Start, True);
+  FireLocation = getFireLocation();
 
-  if (Other == None)
-    HitLocation = End;
-  else {
-    damage = fmax(0, (beamDuration - newDuration) * 600);
-    if (damage > 0)
-      other.TakeDamage(damage, Instigator, HitLocation, vect(0,0,0), class'DamTypeMASCannon');
-    spawn(class'RocketExplosion',,, hitLocation, rotrand());
+  while(FireCountdown <= 0)
+  {
+    fireRotation = getWeaponFireRotation();
+    if(!bWasAltFire)
+    {
+      spawn(class'PROJ_TurretSkaarjPlasma', self, , FireLocation, fireRotation);
+
+      // Play firing noise
+      PlaySound(Sound'ONSVehicleSounds-S.Laser02', SLOT_None,,,,, false);
+      PC = PlayerController(Controller);
+      if (PC != None && PC.bEnableWeaponForceFeedback)
+        PC.ClientPlayForceFeedback("RocketLauncherFire");
+    }
+    else
+    {
+      spawn(class'PROJ_SpaceFighter_Rocket', self, , FireLocation, rotator(vector(fireRotation) + Vrand() * 0.05));
+
+      // Play firing noise
+      PlaySound(Sound'AssaultSounds.HnShipFire01', SLOT_None,,,,, false);
+      PC = PlayerController(Controller);
+      if (PC != None && PC.bEnableWeaponForceFeedback)
+        PC.ClientPlayForceFeedback("RocketLauncherFire");
+    }
+
+    FireCountdown += FireInterval;
   }
-
-  if (beam == none)
-    beam = Spawn(BeamEffectClass,,, start, rotator(start - HitLocation));
-  else {
-    beam.setRotation(rotator(start - HitLocation));
-    beam.setLocation(start);
-  }
-  BeamEmitter(Beam.Emitters[1]).BeamDistanceRange.Min = VSize(start - HitLocation);
-  BeamEmitter(Beam.Emitters[1]).BeamDistanceRange.Max = VSize(start - HitLocation);
-
-  beamDuration = newDuration;  
 }
 
 // Fire a rocket (if we've had time to reload!)
-function vehicleFire(bool bWasAltFire) {
-  super.vehicleFire(bWasAltFire);
+function VehicleFire(bool bWasAltFire)
+{
+  Super.VehicleFire(bWasAltFire);
 
-  // Client can't do firing
-  if(Role != ROLE_Authority)
-    return;
-
-  if (!bWasAltFire) {
-    if (weapons.length > 0 && weapons[0] != none) {
-      weapons[0].bFiring = true;
-      weapons[0].tick(0, self);
-    }
-  } else {
-    if (weapons.length > 1 && weapons[1] != none) {
-      weapons[1].bFiring = true;
-      weapons[1].tick(0, self);
-    }
+  if(FireCountdown < 0)
+  {
+    FireCountdown = 0;
+    fireWeapons(bWasAltFire);
   }
 }
-
-function vehicleCeaseFire(bool bWasAltFire) {
-  super.vehicleCeaseFire(bWasAltFire);
-
-  // Client can't do firing
-  if(Role != ROLE_Authority)
-    return;
-
-  if (!bWasAltFire) {
-    if (weapons.length > 0 && weapons[0] != none) {
-      weapons[0].bFiring = false;
-      weapons[0].tick(0, self);
-    }
-  } else {
-    if (weapons.length > 1 && weapons[1] != none) {
-      weapons[1].bFiring = false;
-      weapons[1].tick(0, self);
-    }
-  }
-}
-
 
 simulated function Tick(float Delta)
 {
-  local int i;
   Local float VMag;
 
   Super.Tick(Delta);
@@ -234,25 +187,15 @@ simulated function Tick(float Delta)
   // Weapons (run on server and replicated to client)
   if(Role == ROLE_Authority)
   {
-    if ((controller != none && controller.bFire > 0) != bWeaponIsFiring) {
-      if (bWeaponIsFiring)
-        clientVehicleCeaseFire(false);
-      else
-        fire();
-    }
-    
-    if ((controller != none && controller.bAltFire > 0) != bWeaponIsAltFiring) {
-      if (bWeaponIsAltFiring)
-        clientVehicleCeaseFire(true);
-      else
-        altFire();
-    }
+    // Countdown to next shot
+    FireCountdown -= Delta;
 
-    for (i=0;i<weapons.length;i++)
-      weapons[i].tick(delta, self);
-
-    if (beamDuration > 0)
-      setBeamDuration(beamDuration - delta);
+    // This is for sustained barrages.
+    // Primary fire takes priority
+    if(bVehicleIsFiring)
+      fireWeapons(false);
+    else if(bVehicleIsAltFiring)
+      fireWeapons(true);
   }
 
   // Dont have triggers on network clients.
@@ -276,7 +219,7 @@ simulated function Tick(float Delta)
   }
 }
 
-function takeDamage(int Damage, Pawn instigatedBy, Vector hitlocation,
+function TakeDamage(int Damage, Pawn instigatedBy, Vector hitlocation,
             Vector momentum, class<DamageType> damageType)
 {
   // Avoid damage healing the car!
@@ -318,7 +261,32 @@ function Actor GetBestEntry(Pawn P)
 
 defaultproperties
 {
-  BeamEffectClass=class'mONSMASCannonBeamEffect'
+  DrawType=DT_StaticMesh
+  StaticMesh=StaticMesh'BulldogMeshes.Simple.S_Chassis'
+
+  Begin Object Class=KarmaParamsRBFull Name=KParams0
+    KActorGravScale=0
+    KInertiaTensor(0)=20
+    KInertiaTensor(1)=0
+    KInertiaTensor(2)=0
+    KInertiaTensor(3)=30
+    KInertiaTensor(4)=0
+    KInertiaTensor(5)=48
+    KCOMOffset=(X=0.8,Y=0.0,Z=-0.7)
+    KStartEnabled=True
+    KFriction=1.6
+    KLinearDamping=1
+    KAngularDamping=10
+    bKNonSphericalInertia=False
+    bHighDetailOnly=False
+    bClientOnly=False
+    bKDoubleTickRate=True
+    Name="KParams0"
+  End Object
+  KParams=KarmaParams'KParams0'
+
+  DrawScale=0.4
+  drawScale3D=(x=-1,y=1,z=1)
 
   DestroyedEffect=class'XEffects.RocketExplosion'
   DestroyedSound=sound'WeaponSounds.P1RocketLauncherAltFire'
@@ -328,12 +296,9 @@ defaultproperties
   TriggerSpeedThresh=40
 
   // Weaponry
-  fireInterval=2
-  altFireInterval=1
-//  weaponFireOffset=(X=0,Y=0,Z=80)
-  weaponFireOffset=(X=15,Y=40,Z=-10)
-  lockAim=0.975
-  
+  FireInterval=0.1
+  weaponFireOffset=(X=0,Y=0,Z=80)
+
   // Driver positions
   ExitPositions(0)=(X=0,Y=200,Z=100)
   ExitPositions(1)=(X=0,Y=-200,Z=100)
@@ -342,8 +307,8 @@ defaultproperties
 
   DrivePos=(X=-165,Y=0,Z=-100)
 
-  Health=300
-  HealthMax=300
+  Health=800
+  HealthMax=800
 
   SoundRadius=255
 }
