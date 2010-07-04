@@ -4,7 +4,9 @@ var float reloadTime, reloadTimeRemaining;
 var vector weaponFireOffset;
 var bool bFiring;
 
-function fireWeapon(FlyingDog firer);
+function setFiring(bool bNewFiring, FlyingDog firer) {
+  bFiring = bNewFiring;
+}
 
 function tick(float delta, FlyingDog firer) {
   reloadTimeRemaining = FMax(reloadTimeRemaining - delta, 0);
@@ -15,6 +17,10 @@ function tick(float delta, FlyingDog firer) {
     reloadTimeRemaining += reloadTime;
   }
 }
+
+function fireWeapon(FlyingDog firer);
+
+function vector getWeaponFireOffset();
 
 defaultproperties
 {

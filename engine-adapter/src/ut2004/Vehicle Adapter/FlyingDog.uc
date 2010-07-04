@@ -14,17 +14,8 @@ var bool      TriggerState; // true for on, false for off.
 var (FlyingDog) class<Actor>  DestroyedEffect;
 var (FlyingDog) sound         DestroyedSound;
 
-// Weapon
-var       float FireCountdown;
-
 var float   fireInterval, altFireInterval;
 var vector  weaponFireOffset;
-
-var class<Emitter>              BeamEffectClass;
-var Emitter                     Beam;
-var float beamDuration;
-
-var float lockAim;
 
 var array<DogWeapon> weapons;
 
@@ -62,12 +53,11 @@ simulated function PostNetBeginPlay()
   }
 }
 
-simulated event Destroyed()
+simulated event destroyed()
 {
-  if (beamDuration > 0)
-    setBeamDuration(0);
- 
   while (weapons.length > 0) {
+    if (weapons[0].bFiring)
+      weapons[0].setFiring(false, self);
     weapons[0].cleanup();
     weapons.remove(0,1);
   }
@@ -79,7 +69,7 @@ simulated event Destroyed()
     FRTrigger.Destroy();
   }
 
-  Super.Destroyed();
+  super.destroyed();
 
   // Trigger destroyed sound and effect
   if(Level.NetMode != NM_DedicatedServer)
@@ -117,72 +107,35 @@ function bool KDriverLeave(bool bForceLeave)
 function rotator getWeaponFireRotation();
 
 simulated function drawCrosshair(Canvas canvas) {
+  drawPredictedHitLocationCrosshair(canvas, getFireLocation(), vector(getWeaponFireRotation()), crosshairTexture);
+}
+
+simulated function drawPredictedHitLocationCrosshair(Canvas canvas, vector fireLocation, vector fireDirection, Material localCrosshairTexture) {
   local vector startTrace, endTrace;
   local vector hitLocation, hitNormal;
   local vector drawPosition;
   
-  startTrace = getFireLocation();
-  endTrace = startTrace + (vector(getWeaponFireRotation()) * 100000);
+  startTrace = fireLocation;
+  endTrace = startTrace + (fireDirection * 100000);
   
   trace(hitLocation, hitNormal, endTrace, startTrace, true);
   
   drawPosition = canvas.worldToScreen(hitLocation);
   
-  //if (IsLocallyControlled() && ActiveWeapon < Weapons.length && Weapons[ActiveWeapon] != None && Weapons[ActiveWeapon].bShowAimCrosshair && Weapons[ActiveWeapon].bCorrectAim)
-  //{
-    Canvas.DrawColor = CrosshairColor;
-    Canvas.DrawColor.A = 255;
-    Canvas.Style = ERenderStyle.STY_Alpha;
+  Canvas.DrawColor = CrosshairColor;
+  Canvas.DrawColor.A = 255;
+  Canvas.Style = ERenderStyle.STY_Alpha;
 
-    Canvas.SetPos(drawPosition.x-CrosshairX, drawPosition.y-CrosshairY);
-    Canvas.DrawTile(CrosshairTexture, CrosshairX*2.0+1, CrosshairY*2.0+1, 0.0, 0.0, CrosshairTexture.USize, CrosshairTexture.VSize);
-  //}
+  Canvas.SetPos(drawPosition.x-CrosshairX, drawPosition.y-CrosshairY);
+  Canvas.DrawTile(localCrosshairTexture, CrosshairX*2.0+1, CrosshairY*2.0+1, 0.0, 0.0, CrosshairTexture.USize, CrosshairTexture.VSize);
 }
+
 
 simulated function vector getFireLocation() {
   return location + (weaponFireOffset >> rotation);
 }
 
-function setBeamDuration(float newDuration) {
-  local Vector X, Start, End, HitLocation, HitNormal;
-  local Actor Other;
-  local float damage;
 
-  if (newDuration <= 0) {
-    if (beam != none)
-      beam.destroy();
-    beamDuration = 0;
-    return;
-  }
-  
-  X = Vector(getWeaponFireRotation());
-  start = getFireLocation();
-  End = Start + (60000 * X);
-
-  Other = Trace(HitLocation, HitNormal, End, Start, True);
-
-  if (Other == None)
-    HitLocation = End;
-  else {
-    damage = fmax(0, (beamDuration - newDuration) * 600);
-    if (damage > 0)
-      other.TakeDamage(damage, Instigator, HitLocation, vect(0,0,0), class'DamTypeMASCannon');
-    spawn(class'RocketExplosion',,, hitLocation, rotrand());
-  }
-
-  if (beam == none)
-    beam = Spawn(BeamEffectClass,,, start, rotator(start - HitLocation));
-  else {
-    beam.setRotation(rotator(start - HitLocation));
-    beam.setLocation(start);
-  }
-  BeamEmitter(Beam.Emitters[1]).BeamDistanceRange.Min = VSize(start - HitLocation);
-  BeamEmitter(Beam.Emitters[1]).BeamDistanceRange.Max = VSize(start - HitLocation);
-
-  beamDuration = newDuration;  
-}
-
-// Fire a rocket (if we've had time to reload!)
 function vehicleFire(bool bWasAltFire) {
   super.vehicleFire(bWasAltFire);
 
@@ -192,12 +145,12 @@ function vehicleFire(bool bWasAltFire) {
 
   if (!bWasAltFire) {
     if (weapons.length > 0 && weapons[0] != none) {
-      weapons[0].bFiring = true;
+      weapons[0].setFiring(true, self);
       weapons[0].tick(0, self);
     }
   } else {
     if (weapons.length > 1 && weapons[1] != none) {
-      weapons[1].bFiring = true;
+      weapons[1].setFiring(true, self);
       weapons[1].tick(0, self);
     }
   }
@@ -212,12 +165,12 @@ function vehicleCeaseFire(bool bWasAltFire) {
 
   if (!bWasAltFire) {
     if (weapons.length > 0 && weapons[0] != none) {
-      weapons[0].bFiring = false;
+      weapons[0].setFiring(false, self);
       weapons[0].tick(0, self);
     }
   } else {
     if (weapons.length > 1 && weapons[1] != none) {
-      weapons[1].bFiring = false;
+      weapons[1].setFiring(false, self);
       weapons[1].tick(0, self);
     }
   }
@@ -250,9 +203,6 @@ simulated function Tick(float Delta)
 
     for (i=0;i<weapons.length;i++)
       weapons[i].tick(delta, self);
-
-    if (beamDuration > 0)
-      setBeamDuration(beamDuration - delta);
   }
 
   // Dont have triggers on network clients.
@@ -318,7 +268,7 @@ function Actor GetBestEntry(Pawn P)
 
 defaultproperties
 {
-  BeamEffectClass=class'mONSMASCannonBeamEffect'
+//  BeamEffectClass=class'mONSMASCannonBeamEffect'
 
   DestroyedEffect=class'XEffects.RocketExplosion'
   DestroyedSound=sound'WeaponSounds.P1RocketLauncherAltFire'
@@ -332,7 +282,6 @@ defaultproperties
   altFireInterval=1
 //  weaponFireOffset=(X=0,Y=0,Z=80)
   weaponFireOffset=(X=15,Y=40,Z=-10)
-  lockAim=0.975
   
   // Driver positions
   ExitPositions(0)=(X=0,Y=200,Z=100)

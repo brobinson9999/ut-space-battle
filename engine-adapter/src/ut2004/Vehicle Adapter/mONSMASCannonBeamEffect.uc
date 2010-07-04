@@ -34,7 +34,7 @@ DefaultProperties
     Begin Object Class=SpriteEmitter Name=SpriteEmitter3
         CoordinateSystem=PTCS_Relative
 
-        RespawnDeadParticles=False
+        RespawnDeadParticles=True
         SpinParticles=True
         UniformSize=True
         AutomaticInitialSpawning=False
@@ -56,7 +56,7 @@ DefaultProperties
         AutomaticInitialSpawning=False
         InitialParticlesPerSecond=50.000000
         ParticlesPerSecond=50.000000
-        RespawnDeadParticles=False
+        RespawnDeadParticles=True
         MaxParticles=2
 
         BeamDistanceRange=(Min=10000.000000,Max=10000.000000)
@@ -71,7 +71,7 @@ DefaultProperties
         SizeScale(0)=(RelativeTime=1.000000,RelativeSize=1.000000)
         StartSizeRange=(X=(Min=15.000000,Max=15.000000))
         Texture=Texture'VMParticleTextures.LeviathanParticleEffects.LEVmainPartBeam'
-        LifetimeRange=(Min=1.000000,Max=1.000000)
+        LifetimeRange=(Min=10.000000,Max=10.000000)
 //        StartLocationOffset=(X=100.000000)
         StartVelocityRange=(X=(Min=-100.000000,Max=-100.000000))
         Name="BeamEmitter2"
@@ -82,7 +82,7 @@ DefaultProperties
 
         FadeOut=True
         FadeIn=True
-        RespawnDeadParticles=False
+        RespawnDeadParticles=True
         UseSizeScale=True
         UseRegularSizeScale=False
         UniformSize=True
@@ -96,7 +96,7 @@ DefaultProperties
         Name="SpriteEmitter4"
     End Object
     Emitters(2)=SpriteEmitter'SpriteEmitter4'
-    AutoDestroy=True
+    AutoDestroy=False
     bNoDelete=False
     LightHue=180
     LightSaturation=255

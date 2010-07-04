@@ -1,5 +1,7 @@
 class DogMissilePods extends DogWeapon;
 
+var float lockAim;
+
 function fireWeapon(FlyingDog firer) {
   local vector fireLocation;
   local rotator fireRotation;
@@ -17,7 +19,7 @@ function fireWeapon(FlyingDog firer) {
       rocket.HomingTarget = Vehicle(firer.controller.enemy);
     else
     {
-      bestAim = firer.lockAim;
+      bestAim = lockAim;
       rocket.homingTarget = Vehicle(firer.controller.pickTarget(bestAim, bestDist, vector(fireRotation), fireLocation, 100000));
     }
   }
@@ -26,9 +28,15 @@ function fireWeapon(FlyingDog firer) {
   firer.playSound(Sound'AssaultSounds.HnShipFire01', SLOT_None,,,,, false);
   PC = PlayerController(firer.Controller);
   if (PC != None && PC.bEnableWeaponForceFeedback)
-    PC.ClientPlayForceFeedback("RocketLauncherFire");}
+    PC.ClientPlayForceFeedback("RocketLauncherFire");
+}
+
+function vector getWeaponFireOffset() {
+  return vect(0,0,0);
+}
 
 defaultproperties
 {
   reloadTime=1
+  lockAim=0.975
 }
