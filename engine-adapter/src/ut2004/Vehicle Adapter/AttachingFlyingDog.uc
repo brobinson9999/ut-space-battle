@@ -3,7 +3,7 @@ class AttachingFlyingDog extends FlyingDog placeable;
 var array<actor> attachedActors;
 var array<vector> attachedOffsets;
 
-simulated function addTurret(string turretName, vector offset) {
+simulated function actor addTurret(string turretName, vector offset) {
   local Actor turret;
   local class<Actor> turretClass;
 
@@ -15,6 +15,8 @@ simulated function addTurret(string turretName, vector offset) {
   
   turret.setCollision(true, false, false);
   attachActor(turret, offset);
+  
+  return turret;
 }
 
 simulated function attachActor(actor newActor, vector newOffset) {

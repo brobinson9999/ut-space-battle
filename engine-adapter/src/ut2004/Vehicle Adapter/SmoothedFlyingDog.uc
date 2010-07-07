@@ -1,4 +1,4 @@
-class SmoothedFlyingDog extends AttachingFlyingDog placeable;
+class SmoothedFlyingDog extends AttachingFlyingDog;
 
 var DefaultFloatSmoother yawSmoother;
 var DefaultFloatSmoother pitchSmoother;
@@ -25,6 +25,8 @@ simulated function destroyed() {
     pitchSmoother.cleanup();
     pitchSmoother = none;
   }
+  
+  super.destroyed();
 }
 
 

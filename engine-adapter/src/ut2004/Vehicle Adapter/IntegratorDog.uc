@@ -1,4 +1,4 @@
-class IntegratorDog extends SmoothedFlyingDog abstract;
+class IntegratorDog extends SmoothedFlyingDog;
 
 var PhysicsIntegrator physicsIntegrator;
 var PhysicsStateInterface physicsState;
@@ -80,8 +80,8 @@ simulated function updateRocketAcceleration(float delta, float yawChange, float 
   integrator = getPhysicsIntegrator();
   physState = getPhysicsState();
   applyDrag(physState, delta);
-  integrator.linearPhysicsUpdate(physState, delta, shipThrust * maximumThrust);
-  integrator.angularPhysicsUpdate(physState, delta, class'BaseObject'.static.capVector(shipSteering, 1) * maximumRotationalAcceleration);
+  integrator.linearPhysicsUpdate(physState, delta, multiplyRangeVector(shipThrust * maximumThrust, maximumThrust3d));
+  integrator.angularPhysicsUpdate(physState, delta, multiplyRangeVector(class'BaseObject'.static.capVector(shipSteering, 1) * maximumRotationalAcceleration, maximumRotationalAcceleration3d));
 
   
   // PlayerController will tamper with velocity, based on acceleration - it will call:
@@ -94,6 +94,40 @@ simulated function updateRocketAcceleration(float delta, float yawChange, float 
   bRollToDesired = true;
   desiredRotation = physState.getRotation();
   setRotation(physState.getRotation());
+}
+
+simulated function vector multiplyRangeVector(vector base, rangevector multiplier) {
+  local vector result;
+  
+  result.x = multiplyRange(base.x, multiplier.x);
+  result.y = multiplyRange(base.y, multiplier.y);
+  result.z = multiplyRange(base.z, multiplier.z);
+  
+  return result;
+}
+
+simulated function float multiplyRange(float base, range multiplier) {
+  if (base > 0)
+    return base * multiplier.max;
+  else
+    return base * multiplier.min;
+}
+
+simulated function vector applyRangeToVector(vector base, float multiplierScalar, rangevector multiplierRange, rotator relativeRotation) {
+  local vector fwdBase;
+
+  if (relativeRotation == rot(0,0,0))
+    fwdBase = base;
+  else
+    fwdBase = base << relativeRotation;
+    
+  fwdBase = addVectorsWithoutCrossingZero(fwdBase, -multiplyRangeVector(fwdBase * multiplierScalar, multiplierRange));
+  
+  if (relativeRotation == rot(0,0,0))
+    return fwdBase;
+  else
+    return fwdBase >> relativeRotation;
+
 }
 
 simulated function vector addVectorsWithoutCrossingZero(vector a, vector b) {
@@ -122,10 +156,6 @@ simulated function applyDrag(PhysicsStateInterface physState, float delta) {
 
 defaultproperties
 {
-  DrawType=DT_Mesh
-  Mesh=SkeletalMesh'AS_VehiclesFull_M.SpaceFighter_Skaarj'
-  DrawScale=1
-
   // AirSpeed can be anything, as long as it is non-zero
   airSpeed=10000
   physics=PHYS_Flying

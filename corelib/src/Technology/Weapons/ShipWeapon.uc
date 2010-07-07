@@ -335,7 +335,8 @@ class ShipWeapon extends Part;
 // getBestFireDirection: vector vector float -> vector
 // Consumes a desired direction to fire in, the facing of the weapon, and the maximum fire arc of the weapon. Returns the
 // direction closest to the desired direction that is also within the arc. If the desired direction is within the fire arc
-// of the weapon it is returned unchanged.
+// of the weapon it is returned unchanged. The fire arc is measured in Unreal Rotation Units and is independant on each of
+// yaw and pitch.
 simulated static function vector getBestFireDirection(vector desiredFireDirection, vector centerOfFireArc, float fireArcSize) {
   local rotator relativeFireRotation;
   

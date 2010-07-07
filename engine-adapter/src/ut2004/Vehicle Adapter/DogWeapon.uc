@@ -4,11 +4,11 @@ var float reloadTime, reloadTimeRemaining;
 var vector weaponFireOffset;
 var bool bFiring;
 
-function setFiring(bool bNewFiring, FlyingDog firer) {
+simulated function setFiring(bool bNewFiring, FlyingDog firer) {
   bFiring = bNewFiring;
 }
 
-function tick(float delta, FlyingDog firer) {
+simulated function tick(float delta, FlyingDog firer) {
   reloadTimeRemaining = FMax(reloadTimeRemaining - delta, 0);
   
   while (bFiring && reloadTimeRemaining <= 0) {
@@ -18,9 +18,25 @@ function tick(float delta, FlyingDog firer) {
   }
 }
 
-function fireWeapon(FlyingDog firer);
+simulated function fireWeapon(FlyingDog firer);
 
-function vector getWeaponFireOffset();
+simulated function vector getWeaponFireLocation(FlyingDog firer) {
+  return firer.location;
+}
+
+simulated function vector getWeaponFireDirection(FlyingDog firer) {
+  return vector(firer.getWeaponFireRotation());
+}
+
+simulated function drawCrosshair(Canvas canvas, FlyingDog firer) {
+//  firer.drawPredictedHitLocationCrosshair(canvas, getWeaponFireLocation(firer), getWeaponFireDirection(firer), firer.crosshairTexture);
+}
+
+simulated function cleanup() {
+  setFiring(false, none);
+  
+  super.cleanup();
+}
 
 defaultproperties
 {

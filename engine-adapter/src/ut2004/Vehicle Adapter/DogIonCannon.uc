@@ -7,6 +7,8 @@ var Emitter                     Beam;
 var float beamFireDuration;
 var float damagePerSecond;
 
+var material reticleOnTarget, reticleOffTarget;
+
 simulated function fireWeapon(FlyingDog firer) {
   local PlayerController PC;
 
@@ -23,38 +25,70 @@ simulated function setFiring(bool bNewFiring, FlyingDog firer) {
   super.setFiring(bNewFiring, firer);
   
   if (!bFiring && beamDuration > 0)
-    setBeamDuration(0, firer);
+    setBeamDuration(0, none);
+}
+
+simulated function vector getWeaponFireDirection(FlyingDog firer) {
+  local vector fireDirection, start, end, hitLocation, hitNormal;
+  
+  // determine the ideal fire angle to hit the spot that the ship's "aim" is pointing at.
+  fireDirection = vector(firer.getWeaponFireRotation());
+  start = firer.location;
+  end = start + (60000 * fireDirection);
+  firer.trace(hitLocation, hitNormal, end, start, true);
+  
+  // adjust for fire arc
+  return class'ShipWeapon'.static.getBestFireDirection(normal(hitLocation - getWeaponFireLocation(firer)), vector(firer.rotation), firer.fireArc);
+}
+
+simulated function drawCrosshair(Canvas canvas, FlyingDog firer) {
+  local vector fireDirection, start, end, hitLocation, hitNormal;
+  local actor other;
+  local Material crosshairTexture;
+
+  fireDirection = getWeaponFireDirection(firer);
+  start = getWeaponFireLocation(firer);
+  end = start + (60000 * fireDirection);
+  
+  other = firer.trace(hitLocation, hitNormal, end, start, true);
+  if (Pawn(other) != none)
+    crosshairTexture = reticleOnTarget;
+  else
+    crosshairTexture = reticleOffTarget;
+  
+  firer.drawLocationCrosshair(canvas, hitLocation, crosshairTexture);
 }
 
 simulated function setBeamDuration(float newDuration, FlyingDog firer) {
-  local Vector X, Start, End, HitLocation, HitNormal;
+  local Vector Start, End, HitLocation, HitNormal;
   local Actor Other;
   local float damage;
 
   if (newDuration <= 0) {
-    if (beam != none)
+    if (beam != none) {
       beam.destroy();
+      beam = none;
+    }
     beamDuration = 0;
     return;
   }
   
-  X = Vector(firer.getWeaponFireRotation());
-  start = firer.getFireLocation();
-  End = Start + (60000 * X);
+  start = getWeaponFireLocation(firer);
+  end = start + (60000 * getWeaponFireDirection(firer));
 
-  Other = firer.Trace(HitLocation, HitNormal, End, Start, True);
+  other = firer.trace(hitLocation, hitNormal, end, start, true);
 
-  if (Other == None)
-    HitLocation = End;
+  if (other == none)
+    hitLocation = end;
   else {
     damage = fmax(0, (beamDuration - newDuration) * damagePerSecond);
     if (damage > 0)
-      other.TakeDamage(damage, firer.Instigator, HitLocation, vect(0,0,0), class'DamTypeMASCannon');
+      other.takeDamage(damage, firer.instigator, hitLocation, vect(0,0,0), class'DamTypeMASCannon');
     firer.spawn(class'RocketExplosion',,, hitLocation, rotrand());
   }
 
   if (beam == none) {
-//    beam = firer.Spawn(beamEffectClass,,, start, rotator(start - hitLocation));
+    beam = firer.Spawn(beamEffectClass,,, start, rotator(start - hitLocation));
   } else {
     beam.setRotation(rotator(start - HitLocation));
     beam.setLocation(start);
@@ -85,8 +119,8 @@ simulated function cleanup() {
   super.cleanup();
 }
 
-function vector getWeaponFireOffset() {
-  return vect(15, 40, -10);
+function vector getWeaponFireLocation(FlyingDog firer) {
+  return firer.location + (vect(15, 40, -10) coordRot firer.rotation);
 }
 
 defaultproperties
@@ -96,4 +130,7 @@ defaultproperties
   reloadTime=2
 
   BeamEffectClass=class'mONSMASCannonBeamEffect'
+  
+  reticleOnTarget=texture'ONSInterface-TX.avrilReticle'
+  reticleOffTarget=texture'ONSInterface-TX.avrilReticleTrack'
 }

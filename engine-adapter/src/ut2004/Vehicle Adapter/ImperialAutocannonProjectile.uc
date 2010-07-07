@@ -18,7 +18,7 @@ simulated function PostBeginPlay()
 {
   if ( Level.NetMode != NM_DedicatedServer)
   {
-        SmokeTrailEffect = Spawn(class'ONSTankFireTrailEffect',self);
+    SmokeTrailEffect = Spawn(class'ONSTankFireTrailEffect',self);
     Corona = Spawn(class'RocketCorona',self);
   }
 
@@ -34,6 +34,7 @@ simulated function PostBeginPlay()
     bDynamicLight = false;
     LightType = LT_None;
   }
+
   Super.PostBeginPlay();
 }
 
@@ -57,12 +58,12 @@ function BlowUp(vector HitLocation)
 simulated function Explode(vector HitLocation, vector HitNormal)
 {
   PlaySound(sound'WeaponSounds.BExplosion3',,5.5*TransientSoundVolume);
-    if ( EffectIsRelevant(Location,false) )
-    {
-      Spawn(class'ONSTankHitRockEffect',,,HitLocation + HitNormal*16, rotator(HitNormal) + rot(-16384,0,0));
+  if ( EffectIsRelevant(Location,false) )
+  {
+    Spawn(class'ONSTankHitRockEffect',,,HitLocation + HitNormal*16, rotator(HitNormal) + rot(-16384,0,0));
     if ( (ExplosionDecal != None) && (Level.NetMode != NM_DedicatedServer) )
       Spawn(ExplosionDecal,self,,Location, rotator(-HitNormal));
-    }
+  }
 
   BlowUp(HitLocation);
   Destroy();

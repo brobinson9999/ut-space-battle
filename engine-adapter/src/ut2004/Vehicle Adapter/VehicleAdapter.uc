@@ -1,11 +1,5 @@
 class VehicleAdapter extends Vehicle;
 
-// Simple 'driving-in-rings' logic.
-//var (KVehicle) bool   bAutoDrive;
-
-// The factory that created this vehicle.
-//var        KVehicleFactory  ParentFactory;
-
 // Weapon system
 var       bool  bVehicleIsFiring, bVehicleIsAltFiring;
 
@@ -20,10 +14,155 @@ var config float CrosshairX, CrosshairY;
 var config Texture CrosshairTexture;
 
 
-function TakeDamage(int Damage, Pawn instigatedBy, Vector hitlocation,
+// Function copied from superclass, and checks for Karma removed - I don't want to treat Karma specially vs. Non-karma for the purposes of damage.
+simulated event StopDriving(Vehicle V)
+{
+  if ( (Role == ROLE_Authority) && (PlayerController(Controller) != None) )
+    V.PlayerStartTime = Level.TimeSeconds + 12;
+  CullDistance = Default.CullDistance;
+  NetUpdateTime = Level.TimeSeconds - 1;
+
+  if (V != None && V.Weapon != None )
+      V.Weapon.ImmediateStopFire();
+}
+
+// Function copied from superclass, and checks for Karma removed - I don't want to treat Karma specially vs. Non-karma for the purposes of damage.
+function Died(Controller Killer, class<DamageType> damageType, vector HitLocation)
+{
+  local PlayerController PC;
+  local Controller C;
+
+  if ( bDeleteMe || Level.bLevelChange )
+    return; // already destroyed, or level is being cleaned up
+
+  if ( Level.Game.PreventDeath(self, Killer, damageType, HitLocation) )
+  {
+    Health = max(Health, 1); //mutator should set this higher
+    return;
+  }
+  Health = Min(0, Health);
+
+  if ( Controller != None )
+  {
+    C = Controller;
+    C.WasKilledBy(Killer);
+    Level.Game.Killed(Killer, C, self, damageType);
+    if( C.bIsPlayer )
+    {
+      PC = PlayerController(C);
+      if ( PC != None )
+        ClientKDriverLeave(PC); // Just to reset HUD etc.
+      else
+                ClientClearController();
+      if ( (bRemoteControlled || bEjectDriver) && (Driver != None) && (Driver.Health > 0) )
+      {
+        C.Unpossess();
+        C.Possess(Driver);
+
+        if ( bEjectDriver )
+          EjectDriver();
+
+        Driver = None;
+      }
+      else
+        C.PawnDied(self);
+    }
+
+    if ( !C.bIsPlayer && !C.bDeleteMe )
+      C.Destroy();
+  }
+  else
+    Level.Game.Killed(Killer, Controller(Owner), self, damageType);
+
+  if ( Killer != None )
+    TriggerEvent(Event, self, Killer.Pawn);
+  else
+    TriggerEvent(Event, self, None);
+
+  if ( IsHumanControlled() )
+    PlayerController(Controller).ForceDeathUpdate();
+
+  if ( !bDeleteMe )
+    Destroy(); // Destroy the vehicle itself (see Destroyed)
+}
+
+// Function copied from superclass, and checks for Karma removed - I don't want to treat Karma specially vs. Non-karma for the purposes of damage.
+function TakeDamage( int Damage, Pawn instigatedBy, Vector hitlocation,
             Vector momentum, class<DamageType> damageType)
 {
-  Super.TakeDamage(Damage,instigatedBy,HitLocation,Momentum,DamageType);
+  local int ActualDamage;
+  local Controller Killer;
+
+  // Spawn Protection: Cannot be destroyed by a player until possessed
+  if ( bSpawnProtected && instigatedBy != None && instigatedBy != Self )
+    return;
+
+  NetUpdateTime = Level.TimeSeconds - 1; // force quick net update
+
+  if (DamageType != None)
+  {
+    if ((instigatedBy == None || instigatedBy.Controller == None) && DamageType.default.bDelayedDamage && DelayedDamageInstigatorController != None)
+      instigatedBy = DelayedDamageInstigatorController.Pawn;
+
+    Damage *= DamageType.default.VehicleDamageScaling;
+    momentum *= DamageType.default.VehicleMomentumScaling * MomentumMult;
+
+          if (bShowDamageOverlay && DamageType.default.DamageOverlayMaterial != None && Damage > 0 )
+              SetOverlayMaterial( DamageType.default.DamageOverlayMaterial, DamageType.default.DamageOverlayTime, false );
+  }
+
+  if (bRemoteControlled && Driver!=None)
+  {
+      ActualDamage = Damage;
+      if (Weapon != None)
+          Weapon.AdjustPlayerDamage(ActualDamage, InstigatedBy, HitLocation, Momentum, DamageType );
+      if (InstigatedBy != None && InstigatedBy.HasUDamage())
+          ActualDamage *= 2;
+
+      ActualDamage = Level.Game.ReduceDamage(ActualDamage, self, instigatedBy, HitLocation, Momentum, DamageType);
+
+      if (Health - ActualDamage <= 0)
+          KDriverLeave(false);
+  }
+
+  if (Weapon != None)
+          Weapon.AdjustPlayerDamage(Damage, InstigatedBy, HitLocation, Momentum, DamageType );
+  if (InstigatedBy != None && InstigatedBy.HasUDamage())
+    Damage *= 2;
+  ActualDamage = Level.Game.ReduceDamage(Damage, self, instigatedBy, HitLocation, Momentum, DamageType);
+  Health -= ActualDamage;
+
+  PlayHit(actualDamage, InstigatedBy, hitLocation, damageType, Momentum);
+  // The vehicle is dead!
+  if ( Health <= 0 )
+  {
+
+    if ( Driver!=None && (bEjectDriver || bRemoteControlled) )
+    {
+      if ( bEjectDriver )
+        EjectDriver();
+      else
+            KDriverLeave( false );
+    }
+
+    // pawn died
+    if ( instigatedBy != None )
+      Killer = instigatedBy.GetKillerController();
+    if ( Killer == None && (DamageType != None) && DamageType.Default.bDelayedDamage )
+      Killer = DelayedDamageInstigatorController;
+    Died(Killer, damageType, HitLocation);
+  }
+  else if ( Controller != None )
+    Controller.NotifyTakeHit(instigatedBy, HitLocation, actualDamage, DamageType, Momentum);
+
+  MakeNoise(1.0);
+
+  if ( !bDeleteMe )
+  {
+    if ( Location.Z > Level.StallZ )
+      Momentum.Z = FMin(Momentum.Z, 0);
+//    KAddImpulse(Momentum, hitlocation);
+  }
 }
 
 // You got some new info from the server (ie. VehicleState has some new info).
@@ -128,40 +267,39 @@ function bool KDriverLeave(bool bForceLeave)
   // Before we can exit, we need to find a place to put the driver.
   // Iterate over array of possible exit locations.
 
-  if (!bRemoteControlled)
+  if (driver != none && !bRemoteControlled)
+  {
+    Driver.bCollideWorld = true;
+    Driver.SetCollision(true, true);
+
+    havePlaced = false;
+    for(i=0; i < ExitPositions.Length && havePlaced == false; i++)
     {
+        //Log("Trying Exit:"$i);
 
-      Driver.bCollideWorld = true;
-      Driver.SetCollision(true, true);
+        tryPlace = Location + (ExitPositions[i] >> Rotation);
 
-      havePlaced = false;
-      for(i=0; i < ExitPositions.Length && havePlaced == false; i++)
-      {
-          //Log("Trying Exit:"$i);
+        // First, do a line check (stops us passing through things on exit).
+        if( Trace(HitLocation, HitNormal, tryPlace, Location, false) != None )
+            continue;
 
-          tryPlace = Location + (ExitPositions[i] >> Rotation);
+        // Then see if we can place the player there.
+        if( !Driver.SetLocation(tryPlace) )
+            continue;
 
-          // First, do a line check (stops us passing through things on exit).
-          if( Trace(HitLocation, HitNormal, tryPlace, Location, false) != None )
-              continue;
+        havePlaced = true;
+    }
 
-          // Then see if we can place the player there.
-          if( !Driver.SetLocation(tryPlace) )
-              continue;
+    // If we could not find a place to put the driver, leave driver inside as before.
+    if(!havePlaced && !bForceLeave)
+    {
+        Log("Could not place driver.");
 
-          havePlaced = true;
-      }
+        Driver.bCollideWorld = false;
+        Driver.SetCollision(false, false);
 
-      // If we could not find a place to put the driver, leave driver inside as before.
-      if(!havePlaced && !bForceLeave)
-      {
-          Log("Could not place driver.");
-
-          Driver.bCollideWorld = false;
-          Driver.SetCollision(false, false);
-
-          return false;
-      }
+        return false;
+    }
   }
 
   pc = PlayerController(Controller);
@@ -169,23 +307,21 @@ function bool KDriverLeave(bool bForceLeave)
 
   // Reconnect PlayerController to Driver.
   pc.Unpossess();
-  pc.Possess(Driver);
-
-  pc.ClientSetViewTarget(Driver); // Set playercontroller to view the persone that got out
-
+  if(driver != none) {
+    pc.Possess(Driver);
+    pc.ClientSetViewTarget(Driver); // Set playercontroller to view the persone that got out
+  }
+  
   Controller = None;
 
-  Driver.PlayWaiting();
-  Driver.bPhysicsAnimUpdate = Driver.Default.bPhysicsAnimUpdate;
-
-  // Do stuff on client
-  //pc.ClientSetBehindView(false);
-  //pc.ClientSetFixedCamera(true);
-
-  if (!bRemoteControlled)
-    {
-
-      Driver.Acceleration = vect(0, 0, 24000);
+  if(driver != none) {
+    Driver.PlayWaiting();
+    Driver.bPhysicsAnimUpdate = Driver.Default.bPhysicsAnimUpdate;
+  }
+  
+  if (driver != none && !bRemoteControlled)
+  {
+    Driver.Acceleration = vect(0, 0, 24000);
     Driver.SetPhysics(PHYS_Falling);
     Driver.SetBase(None);
   }

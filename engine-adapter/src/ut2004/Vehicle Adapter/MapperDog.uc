@@ -1,4 +1,4 @@
-class MapperDog extends ImprovedDragIntegratorDog abstract;
+class MapperDog extends ImprovedDragIntegratorDog;
 
 var class<ShipControlMapper> controlMapperClass;
 var ShipControlMapper controlMapper;

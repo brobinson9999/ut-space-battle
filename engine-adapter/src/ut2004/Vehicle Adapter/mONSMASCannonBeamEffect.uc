@@ -34,7 +34,7 @@ DefaultProperties
     Begin Object Class=SpriteEmitter Name=SpriteEmitter3
         CoordinateSystem=PTCS_Relative
 
-        RespawnDeadParticles=True
+//        RespawnDeadParticles=True
         SpinParticles=True
         UniformSize=True
         AutomaticInitialSpawning=False
@@ -56,7 +56,7 @@ DefaultProperties
         AutomaticInitialSpawning=False
         InitialParticlesPerSecond=50.000000
         ParticlesPerSecond=50.000000
-        RespawnDeadParticles=True
+//        RespawnDeadParticles=True
         MaxParticles=2
 
         BeamDistanceRange=(Min=10000.000000,Max=10000.000000)
@@ -71,7 +71,7 @@ DefaultProperties
         SizeScale(0)=(RelativeTime=1.000000,RelativeSize=1.000000)
         StartSizeRange=(X=(Min=15.000000,Max=15.000000))
         Texture=Texture'VMParticleTextures.LeviathanParticleEffects.LEVmainPartBeam'
-        LifetimeRange=(Min=10.000000,Max=10.000000)
+        LifetimeRange=(Min=1.000000,Max=1.000000)
 //        StartLocationOffset=(X=100.000000)
         StartVelocityRange=(X=(Min=-100.000000,Max=-100.000000))
         Name="BeamEmitter2"
@@ -92,7 +92,7 @@ DefaultProperties
         SizeScale(0)=(RelativeTime=3.000000,RelativeSize=4.000000)
         InitialParticlesPerSecond=200.000000
         Texture=Texture'VMParticleTextures.LeviathanParticleEffects.LeviathanMGUNFlare'
-        LifetimeRange=(Min=1.00000,Max=1.00000)
+        LifetimeRange=(Min=0.100000,Max=0.100000)
         Name="SpriteEmitter4"
     End Object
     Emitters(2)=SpriteEmitter'SpriteEmitter4'

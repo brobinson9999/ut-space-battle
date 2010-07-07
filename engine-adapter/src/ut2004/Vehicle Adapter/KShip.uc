@@ -14,6 +14,9 @@ var float rollUnit;
 var float maximumRotationalAcceleration;
 var float maximumThrust;
 
+var rangevector maximumThrust3d;
+var rangevector maximumRotationalAcceleration3d;
+
 // Desired torque on the ship - relative to it's current rotation.
 var vector shipSteering;
 
@@ -123,7 +126,9 @@ DefaultProperties
   maximumRotationalAcceleration=10000
   maximumThrust=2500
 
-  Physics=PHYS_Karma
+  maximumThrust3d=(X=(Min=1,Max=1),Y=(Min=1,Max=1),Z=(Min=1,Max=1))
+  maximumRotationalAcceleration3d=(X=(Min=1,Max=1),Y=(Min=1,Max=1),Z=(Min=1,Max=1))
+
   bEdShouldSnap=True
   bStatic=False
   bShadowCast=False
