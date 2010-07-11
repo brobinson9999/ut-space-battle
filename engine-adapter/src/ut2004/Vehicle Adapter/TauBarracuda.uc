@@ -46,16 +46,19 @@ simulated function drawCrosshair(Canvas canvas) {
 
 defaultproperties
 {
+  VehiclePositionString="flying a Barracuda"
+  VehicleNameString="Tau Barracuda"
+
   maximumThrust=2500
 //  maximumThrust3d=(X=(Min=1,Max=1),Y=(Min=1,Max=1),Z=(Min=1,Max=1))
-  maximumThrust3d=(X=(Min=2,Max=0.75),Y=(Min=2,Max=2),Z=(Min=1.5,Max=1.5))
+//  maximumThrust3d=(X=(Min=2,Max=0.75),Y=(Min=2,Max=2),Z=(Min=1.5,Max=1.5))
 
   linearDrag=0.75
 //  linearDrag3D=(X=(Min=2,Max=0.75),Y=(Min=2,Max=2),Z=(Min=1.5,Max=1.5))
 
   maximumRotationalAcceleration=10000
 //  maximumRotationalAcceleration3d=(X=(Min=1,Max=1),Y=(Min=1,Max=1),Z=(Min=1,Max=1))
-  maximumRotationalAcceleration3d=(X=(Min=1.25,Max=1.25),Y=(Min=0.75,Max=0.75),Z=(Min=1,Max=1))
+//  maximumRotationalAcceleration3d=(X=(Min=1.25,Max=1.25),Y=(Min=0.75,Max=0.75),Z=(Min=1,Max=1))
 
   rotationalDrag=0.5
 //  rotationalDrag3D=(X=(Min=1.25,Max=1.25),Y=(Min=0.75,Max=0.75),Z=(Min=1,Max=1))

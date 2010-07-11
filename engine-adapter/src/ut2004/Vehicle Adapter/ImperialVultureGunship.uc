@@ -1,4 +1,4 @@
-class ImperialThunderboltFighter extends ManualFlightDog;
+class ImperialVultureGunship extends ManualFlightDog;
 
 simulated function createWeapons() {
   weapons[0] = new class'DogAutoCannon';
@@ -13,10 +13,10 @@ simulated function drawCrosshair(Canvas canvas) {
 
 defaultproperties
 {
-  VehiclePositionString="flying a Thunderbolt"
-  VehicleNameString="Imperial Thunderbolt Fighter"
+  VehiclePositionString="flying a Vulture"
+  VehicleNameString="Imperial Vulture Gunship"
 
-  maximumThrust=2500
+  maximumThrust=1500
 //  maximumThrust3d=(X=(Min=1,Max=1),Y=(Min=1,Max=1),Z=(Min=1,Max=1))
 //  maximumThrust3d=(X=(Min=3,Max=0.5),Y=(Min=3,Max=3),Z=(Min=1.5,Max=1.5))
 
@@ -27,6 +27,6 @@ defaultproperties
 //  maximumRotationalAcceleration3d=(X=(Min=1,Max=1),Y=(Min=1,Max=1),Z=(Min=1,Max=1))
 //  maximumRotationalAcceleration3d=(X=(Min=3,Max=3),Y=(Min=1,Max=1),Z=(Min=1,Max=1))
 
-  rotationalDrag=0.5
+  rotationalDrag=0.75
 //  rotationalDrag3D=(X=(Min=3,Max=3),Y=(Min=1,Max=1),Z=(Min=1,Max=1))
 }
