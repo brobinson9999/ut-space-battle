@@ -1,91 +1,69 @@
-class InputView extends BaseObject;
+class InputView extends InputObserver;
 
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
+// This class is an input observer which does some processing of input before passing it off to it's own observers.
 
-  var array<vector> Joysticks;
-  var array<InputObserver> Observers;
-
-  var bool bDebugUnboundKeys;
+var bool bDebugUnboundKeys;
+var array<vector> joysticks;
   
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
+var array<InputObserver> observers;
 
-  simulated function addObserver(InputObserver other) {
-    observers[observers.length] = other;
-  }
+simulated function addObserver(InputObserver other) {
+  observers[observers.length] = other;
+}
 
-  simulated function bool removeObserver(InputObserver other) {
-    local int i;
-    
-    for (i=0;i<observers.length;i++) {
-      if (observers[i] == other) {
-        observers.remove(i,1);
-        return true;
-      }
+simulated function bool removeObserver(InputObserver other) {
+  local int i;
+
+  for (i=0;i<observers.length;i++) {
+    if (observers[i] == other) {
+      observers.remove(i,1);
+      return true;
     }
-    
-    return false;
   }
 
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
+  return false;
+}
 
-  simulated function bool KeyEvent(string Key, string Action, float Delta)
-  {
-    local int i;
-    
-    if (Action == "IST_Hold") return false;
-    
-    if (Action == "IST_Press") Delta = 1;
-    if (Action == "IST_Release") Delta = 0;
+simulated function cleanup()
+{
+  while (observers.length > 0)
+    removeObserver(observers[0]);
 
-    // X/Y reversal.
-    if (Key == "IK_JoyX")
-      Joysticks[0].Y = Delta;
+  super.cleanup();
+}
 
-    if (Key == "IK_JoyY")
-      Joysticks[0].X = -Delta;
 
-    if (Key == "IK_JoyV")
-      Joysticks[1].X = Delta;
 
-    if (Key == "IK_JoyZ")
-      Joysticks[1].Y = -Delta;
+simulated function bool keyEvent(string key, string action, float delta)
+{
+  local int i;
 
-    for (i=0;i<Observers.Length;i++)
-      if (Observers[i].KeyEvent(Key, Action, Delta))
-        return true;
-        
-    if (bDebugUnboundKeys)
-      errorMessage("InputView.KeyEvent("$Key$", "$Action$", "$Delta$")");
-    
-    return false;
-  }
+  if (action == "IST_Hold") return false;
+  if (action == "IST_Press") delta = 1;
+  if (action == "IST_Release") delta = 0;
 
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
+  // X/Y reversal.
+  if (key == "IK_JoyX")
+    joysticks[0].y = delta;
 
-  simulated function Cleanup()
-  {
-    while (Observers.Length > 0)
-      RemoveObserver(Observers[0]);
-    
-    Super.Cleanup();
-  }
+  if (key == "IK_JoyY")
+    joysticks[0].x = -delta;
 
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
+  if (key == "IK_JoyV")
+    joysticks[1].x = delta;
+
+  if (key == "IK_JoyZ")
+    joysticks[1].y = -delta;
+
+  for (i=0;i<observers.length;i++)
+    if (observers[i].keyEvent(key, action, delta))
+      return true;
+
+  if (bDebugUnboundKeys)
+    errorMessage("InputView.KeyEvent("$key$", "$action$", "$delta$")");
+
+  return false;
+}
 
 defaultproperties
 {

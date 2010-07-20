@@ -156,15 +156,19 @@ simulated function installHUDDriver() {
 
 simulated function installInputDriver()
 {
-  // Create Input Interaction.
-  inputDriver = new class'InputDriver';
-  inputDriver.initializeInputDriver();
-
-  // Put in Interaction List.
-  // Insert after the console and UIController but before the player interaction.
-  // A better way might be to scan the list instead of hardcoding a position.
-  if (LocalPlayer(PC.player).viewportClient.insertInteraction(inputDriver, 2) == -1)
+  inputDriver = class'InputDriver'.static.installNewInputDriver(pc);
+  if (inputDriver == none)
     errorMessage("An error occurred while installing the input driver.");
+  
+//  // Create Input Interaction.
+//  inputDriver = new class'InputDriver';
+//  inputDriver.initializeInputDriver();
+
+//  // Put in Interaction List.
+//  // Insert after the console and UIController but before the player interaction.
+//  // A better way might be to scan the list instead of hardcoding a position.
+//  if (LocalPlayer(PC.player).viewportClient.insertInteraction(inputDriver, 2) == -1)
+//    errorMessage("An error occurred while installing the input driver.");
 }
 
 // ********************************************************************************************************************************************
@@ -174,7 +178,7 @@ simulated function installInputDriver()
 
 simulated function addInputView(InputView newView)
 {
-  inputDriver.view = newView;
+  inputDriver.addObserver(newView);
   PC.inputView = newView;
 }
 

@@ -150,7 +150,7 @@ simulated function installInputDriver()
 
 simulated function addInputView(InputView newView)
 {
-  inputDriver.view = newView;
+  inputDriver.addObserver(newView);
   PC.inputView = newView;
 }
 
