@@ -1,5 +1,7 @@
 class Ship extends BaseObject;
 
+var private ShipCommon shipCommon;
+
 // lastUpdatedTime is the time that the ship's updateShip() method was called.
 var private float lastUpdatedTime;
 
@@ -66,6 +68,17 @@ var Contact desiredVelocity_RelativeTo;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
+
+simulated function ShipCommon getShipCommon() {
+  if (shipCommon == none)
+    setShipCommon(ShipCommon(allocateObject(class'ShipCommon')));
+
+  return shipCommon;
+}
+
+simulated function setShipCommon(ShipCommon newShipCommon) {
+  shipCommon = newShipCommon;
+}
 
 simulated function SpaceWorker_Ship getShipWorker() {
   return shipWorker;
