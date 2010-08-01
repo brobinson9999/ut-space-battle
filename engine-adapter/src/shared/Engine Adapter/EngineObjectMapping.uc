@@ -1,98 +1,23 @@
-class EngineObjectMapping extends BaseActor;
+class EngineObjectMapping extends AssociationListActor;
 
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
+// This class is used to map users to controllers. It provides a thin layer over AssociationListActor.
+// I use the Actor version of AssociationList because the engine object will be an actor, and I want
+// it to be properly set to none if that actor gets destroyed.
+// The engine objects are the "keys" and the game objects are the "values".
 
-// ** Used to map Users to Controllers.
-// ** This should be in a subclass of actor since the engine object will be an actor, and we can end up with references that don't get cleaned
-// ** up if the engine object gets destroyed.
+simulated function object getEngineObjectForGameObject(object other) {
+  return getKey(other);
+}
 
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
+simulated function object getGameObjectForEngineObject(object other) {
+  return getValue(other);
+}
 
-	var array<object> mappedGameObjects;
-	var array<object> mappedEngineObjects;
-
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-
-	simulated function int getGameObjectIndex(object other) {
-		local int i;
-
-		for (i=0;i<mappedGameObjects.length;i++)
-			if (mappedGameObjects[i] == other)
-				return i;
-
-		return -1;
-	}
-	
-	simulated function int getEngineObjectIndex(object other) {
-		local int i;
-
-		for (i=0;i<mappedEngineObjects.length;i++)
-			if (mappedEngineObjects[i] == other)
-				return i;
-
-		return -1;
-	}
-
-	simulated function object getEngineObjectForGameObject(object other) {
-		local int i;
-		
-		i = getGameObjectIndex(other);
-		if (i >= 0)
-			return mappedEngineObjects[i];
-
-		return none;
-	}
-	
-	simulated function object getGameObjectForEngineObject(object other) {
-		local int i;
-		
-		i = getEngineObjectIndex(other);
-		if (i >= 0)
-			return mappedGameObjects[i];
-
-		return none;
-	}
-	
-	simulated function setGameObjectForEngineObject(object gameObject, object engineObject) {
-		local int i;
-		
-		i = getEngineObjectIndex(engineObject);
-		if (i >= 0) {
-			mappedGameObjects[i] = gameObject;
-		} else {
-			mappedGameObjects[mappedGameObjects.length] = gameObject;
-			mappedEngineObjects[mappedEngineObjects.length] = engineObject;
-		}
-	}
-
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-
-	simulated function cleanup() {
-		if (mappedGameObjects.length > 0) mappedGameObjects.remove(0,	mappedGameObjects.length);
-		if (mappedEngineObjects.length > 0) mappedEngineObjects.remove(0,	mappedEngineObjects.length);
-
-		super.cleanup();
-	}
-	
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
+simulated function setGameObjectForEngineObject(object gameObject, object engineObject) {
+  removeKey(engineObject);
+  addValue(engineObject, gameObject);
+}
 
 defaultproperties
 {
-	// Avoid destruction at the hands of mutators in PreBeginPlay.
-  bGameRelevant=true
 }
