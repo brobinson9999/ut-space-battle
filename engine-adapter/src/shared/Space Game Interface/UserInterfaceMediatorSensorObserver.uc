@@ -1,4 +1,4 @@
-class UserInterfaceMediatorSensorObserver extends UserSensorObserver;
+class UserInterfaceMediatorSensorObserver extends UserObserver;
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -18,7 +18,7 @@ class UserInterfaceMediatorSensorObserver extends UserSensorObserver;
     observedUser = observeUser;
     observingFor = observeFor;
     
-    observedUser.addSensorObserver(self);
+    observedUser.addUserObserver(self);
   }
   
 // ********************************************************************************************************************************************
@@ -37,7 +37,7 @@ class UserInterfaceMediatorSensorObserver extends UserSensorObserver;
   simulated function cleanup()
   {
     if (observedUser != none)
-      observedUser.removeSensorObserver(self);
+      observedUser.removeUserObserver(self);
       
     observedUser = none;
     observingFor = none;

@@ -21,7 +21,7 @@ var ThrottledPeriodicAlarm      selfUpdateAlarm;
 
 var float                       AISkillLevel;
 
-var array<UserSensorObserver>   sensorObservers;
+var protected array<UserObserver> userObservers;
 
 var private Task_Idle idleTask;
 
@@ -75,9 +75,19 @@ simulated function cleanupTechnologiesBlueprints() {
 }
 
 simulated function cleanup() {
+  local UserObserver oldObserver;
+  
   displayName = "";
 
   cleanupShips();
+  
+  // Does not clean up old observers, but lets them know that the user is cleaning up so they can clean themselves up if appropriate.
+  // Either way, they get removed from the observer list.
+  while (userObservers.length > 0) {
+    oldObserver = userObservers[0];
+    oldObserver.userCleaningUp();
+    removeUserObserver(oldObserver);
+  }
   
   while (sectorCommandAIs.length > 0) {
     sectorCommandAIs[0].cleanup();
@@ -163,6 +173,11 @@ simulated function changedDiplomaticStatusWith(User otherUser) {
     sectorPresences[i].changedDiplomaticStatusWith(otherUser);
 }
   
+simulated function otherUserCleanedUp(User other) {
+  if (ExplicitUserForeignPolicy(getForeignPolicy()) != none)
+    ExplicitUserForeignPolicy(getForeignPolicy()).clearDiplomaticStatus(self, other);
+}
+
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -521,8 +536,8 @@ simulated function gainedContact(Contact other)
 {
   local int i;
 
-  for (i=0;i<sensorObservers.length;i++)
-    sensorObservers[i].gainedContact(other);
+  for (i=0;i<userObservers.length;i++)
+    userObservers[i].gainedContact(other);
 }
 
 // ********************************************************************************************************************************************
@@ -532,8 +547,8 @@ simulated function lostContact(Contact Other)
 {
   local int i;
 
-  for (i=0;i<sensorObservers.Length;i++)
-    sensorObservers[i].lostContact(Other);
+  for (i=0;i<userObservers.Length;i++)
+    userObservers[i].lostContact(Other);
 }
 
 // ********************************************************************************************************************************************
@@ -558,19 +573,18 @@ simulated function SpawnShipsRandomly(vector ApproximateLocation, float Deviatio
 // ********************************************************************************************************************************************
 // ** Add/Remove Sensor Observers.
 
-simulated function addSensorObserver(UserSensorObserver newObserver)
+simulated function addUserObserver(UserObserver newObserver)
 {
-  sensorObservers[sensorObservers.length] = newObserver;
+  userObservers[userObservers.length] = newObserver;
 }
 
-simulated function removeSensorObserver(UserSensorObserver oldObserver)
+simulated function removeUserObserver(UserObserver oldObserver)
 {
   local int i;
 
-  for (i=0;i<sensorObservers.length;i++)
-    if (sensorObservers[i] == oldObserver)
-    {
-      sensorObservers.remove(i,1);
+  for (i=0;i<userObservers.length;i++)
+    if (userObservers[i] == oldObserver) {
+      userObservers.remove(i,1);
       break;
     }
 }

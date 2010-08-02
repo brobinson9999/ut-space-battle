@@ -21,6 +21,9 @@ simulated function runTests() {
   myAssert(policy.isFriendly(userB, userA), "now friendly");
   myAssert(!policy.isHostile(userB, userA), "setting friendly implies no longer hostile");
 
+  policy.clearDiplomaticStatus(userB, userA);
+  myAssert(!policy.isFriendly(userB, userA), "after clearing, no longer friendly");
+  
   policy.cleanup();
   userA.cleanup();
   userB.cleanup();

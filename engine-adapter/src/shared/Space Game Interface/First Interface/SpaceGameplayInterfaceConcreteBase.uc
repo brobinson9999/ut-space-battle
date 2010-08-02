@@ -91,12 +91,22 @@ var UnrealEngineAdapter engineAdapter;
   var vector                                  strategicCameraPanSpeed;
 
   var float                                   cameraShakeMagnitude;
+  var private SpaceGameplayInterfaceCameraShaker cameraShaker;
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
+  simulated function SpaceGameplayInterfaceCameraShaker getCameraShaker() {
+    if (cameraShaker == none) {
+      cameraShaker = SpaceGameplayInterfaceCameraShaker(allocateObject(class'SpaceGameplayInterfaceCameraShaker'));
+      cameraShaker.sgi = self;
+    }
+      
+    return cameraShaker;
+  }
+  
   simulated function int getStatusAreaWidth(CanvasObject canvas) {
     return (canvas.getSizeX() * 0.35);
   }
@@ -1763,6 +1773,7 @@ simulated function stopRenderingSectorProjectile(WeaponProjectile projectile) {
     if (renderableClass != none) {
       newRenderable = ShipRenderable(engineAdapter.spawnEngineObject(renderableClass,,,contact.getContactLocation(), contact.getContactSourceRotation()));
       class'UnrealEngineAdapter'.static.propogateGlobalsActor(self, newRenderable);
+      newRenderable.cameraShaker = getCameraShaker();
       newRenderable.setShip(contact.contactShip);
       newRenderable.initializeShipRenderable();
       
@@ -1836,6 +1847,11 @@ simulated function respawnedPlayer(UserInterfaceMediator mediator) {
 // ********************************************************************************************************************************************
 
   simulated function cleanup() {
+    if (cameraShaker != none) {
+      cameraShaker.cleanup();
+      cameraShaker = none;
+    }
+    
     setPlayerShip(none, none);
     
     cameraSector = none;

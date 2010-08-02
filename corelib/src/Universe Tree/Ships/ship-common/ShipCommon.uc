@@ -12,6 +12,10 @@ var private DockingSubsystem dockingSubsystem;
 
 var private PhysicsIntegrator physicsIntegrator;
 var private PhysicsStateInterface physicsState;
+var private ShipControlStrategy shipControlStrategy;
+
+var float maximumLinearAcceleration;
+var float maximumRotationalAcceleration;
 
 // DEBUGGING
 var bool bCleanedUp;
@@ -52,6 +56,15 @@ simulated function PhysicsIntegrator getPhysicsIntegrator() {
 simulated function setPhysicsIntegrator(PhysicsIntegrator newPhysicsIntegrator) {
   physicsIntegrator = newPhysicsIntegrator;
 }
+
+simulated function ShipControlStrategy getShipControlStrategy() {
+  return shipControlStrategy;
+}
+
+simulated function setShipControlStrategy(ShipControlStrategy newShipControlStrategy) {
+  shipControlStrategy = newShipControlStrategy;
+}
+
 /*
 simulated function addSystem(ShipSystem newSystem) {
   systems[systems.length] = newSystem;
@@ -76,64 +89,39 @@ simulated function array<ShipLaunchBay> getLaunchBays() {
   
 simulated function updateShip(float delta) {
 //  local int i;
-  local vector linearAcceleration;
-  local vector rotationalAcceleration;
-//  local float maxRotationalAccelerationRate;
 
   myAssert(!bCleanedUp, "ShipCommon.updateShip when bCleanedUp");
 
 //  for (i=systems.length-1;i>=0;i--)
 //    systems[i].updateShipSystem();
 
-  // Update Linear movement.
-  // linearAcceleration = ???;
-  getPhysicsIntegrator().linearPhysicsUpdate(getPhysicsState(), delta, linearAcceleration);
-
-  // Update Angular movement.
-  // rotationalAcceleration = ???;
-  getPhysicsIntegrator().angularPhysicsUpdate(getPhysicsState(), delta, rotationalAcceleration);  
-
-  // If the difference in desiredRotation and rotation is less than some quantity, I can just stop the ship at the exact rotation I want.
-  // I need enough rotational acceleration to both stop my rotational velocity, and to move by the desired amount.
-  // This is not perfect since it doesn't take into account current rotational velocity that could be leveraged to get there faster.
-//  if (2 * vsize(copyRotToVect(smallestRotatorMagnitude(desiredRotation uncoordRot rotation))) + vsize(rotationalVelocity) < maxRotationalAccelerationRate) {
-//    getPhysicsState().setRotation(desiredRotation);
-//    getPhysicsState().setRotationVelocity(vect(0,0,0));
-//  } else {
-//    getPhysicsIntegrator().angularPhysicsUpdate(getPhysicsState(), delta, rotationalAcceleration);
-//  }
-
-//  if (partShip(Self) != none)
-//    debugMSG("desiredRotationRate: "$pilot.desiredRotationRate$" rotation remaining: "$vsize(copyRotToVect(smallestRotatorMagnitude(desiredRotation uncoordRot rotation)))$" maxRotationalAccelerationRate "$maxRotationalAccelerationRate);
+  updateShipPhysics(delta);
 }
 
-simulated function shipCritical(object instigator) {
-//  local int i;
+simulated function float getMaximumLinearAcceleration() {
+  return maximumLinearAcceleration;
+}
+
+simulated function float getMaximumRotationalAcceleration() {
+  return maximumRotationalAcceleration;
+}
+
+simulated function vector getLinearAcceleration(float delta) {
+  return getShipControlStrategy().getShipThrust(delta, getPhysicsState(), getMaximumLinearAcceleration());
+}
+
+simulated function vector getRotationalAcceleration(float delta) {
+  return getShipControlStrategy().getShipSteering(delta, getPhysicsState(), getMaximumRotationalAcceleration());
+}
+
+simulated function updateShipPhysics(float delta) {
+  local PhysicsIntegrator integrator;
+  local PhysicsStateInterface physState;
   
-//  for (i=systems.length-1;i>=0;i--)
-//    if (systems[i].bEnabled)
-//      systems[i].disableSystem();
-      
-  // This needs to be on the observer.
-//  if (SpaceGameSimulation(getGameSimulation()) != none)
-//    SpaceGameSimulation(getGameSimulation()).notifyShipKilled(self, instigator);
-
-//  setShipOwner(none);
-
-//  destroyEvent = getClock().addAlarm(getCurrentTime() + 5, self);
-//  destroyEvent.callback = destroyTimeElapsed;
-//    destroyTime = getCurrentTime() + 5;
-}
-
-simulated function destroyTimeElapsed() {
-  cleanup();
-}
-
-// destroys the ship if necessary and cleans the ship up immediately
-simulated function cleanupShipNOW() {
-  shipCritical(none);
-  destroyTimeElapsed();
-  cleanup();
+  physState = getPhysicsState();
+  integrator = getPhysicsIntegrator();
+  integrator.linearPhysicsUpdate(physState, delta, getLinearAcceleration(delta));
+  integrator.angularPhysicsUpdate(physState, delta, getRotationalAcceleration(delta));  
 }
 
 simulated function reset() {
@@ -144,30 +132,7 @@ simulated function reset() {
 simulated function cleanup()
 {
   myAssert(!bCleanedUp, "Ship cleanup when bCleanedUp");
-/*
-  if (destroyEvent != none) {
-    if (getClock() != none)
-      getClock().removeAlarm(destroyEvent);
-    destroyEvent = none;
-  }
 
-  // 20090210: Should this be after or before it leaves the sector? It's not "destroyed" until it leaves, but the game might want to know where the ship was before it was destroyed.
-  if (SpaceGameSimulation(getGameSimulation()) != none)
-    SpaceGameSimulation(getGameSimulation()).notifyShipDestroyed(self);
-
-  if (sector != none)
-    sector.shipLeftSector(self);
-
-  if (Sector != None) {
-    Sector.ShipLeftSector(Self);
-    Sector = None;
-  }
-
-  setShipWorker(none);
-  setShipOwner(none);
-  
-  DesiredVelocity_RelativeTo = None;
-*/
   if (dockingSubsystem != none) {
     dockingSubsystem.cleanup();
     dockingSubsystem = none;
@@ -181,6 +146,11 @@ simulated function cleanup()
   if (physicsState != none) {
     physicsState.cleanup();
     physicsState = none;
+  }
+  
+  if (shipControlStrategy != none) {
+    shipControlStrategy.cleanup();
+    shipControlStrategy = none;
   }
   
 //  if (Weapons.Length > 0)

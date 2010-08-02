@@ -9,10 +9,6 @@ var private User shipOwner;
 // Friendly name for display purposes.
 var string shipTypeName;
 
-// Tracks Ship objects which are held in this ship's cargo bay.
-// var private DockingSubsystem    dockingSubsystem;
-
-
 var private array<ShipSystem>           systems;
 var array<ShipWeapon>           weapons;
 // var array<ShipLaunchBay>        launchBays;
@@ -25,9 +21,6 @@ var protected SpaceWorker_Ship shipWorker;
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
-
-//var PhysicsIntegrator physicsIntegrator;
-//var PhysicsStateInterface physicsState;
 
 var float                       radius;
 var float                       acceleration;
@@ -86,6 +79,7 @@ simulated function setShipCommon(ShipCommon newShipCommon) {
   if (shipCommon != none) {
     shipCommon.setPhysicsState(class'ShipReferencePhysicsState'.static.createNewShipReferencePhysicsState(self));
     shipCommon.setPhysicsIntegrator(PhysicsIntegrator(allocateObject(class'DefaultPhysicsIntegrator')));
+    shipCommon.setShipControlStrategy(class'ShipReferenceShipControlStrategy'.static.createNewShipReferenceShipControlStrategy(self));
   }
 }
 
@@ -251,9 +245,6 @@ simulated function updateShip()
 {
   local int i;
   local float delta;
-  local vector linearAcceleration;
-  local vector rotationalAcceleration;
-  local float maxRotationalAccelerationRate;
 
   // Find Elapsed time. Abort if no change.
   if (lastUpdatedTime == getCurrentTime()) return;
@@ -265,52 +256,63 @@ simulated function updateShip()
   for (i=systems.length-1;i>=0;i--)
     systems[i].updateShipSystem();
 
-  // Update Linear movement.
+  getShipCommon().maximumLinearAcceleration = acceleration;
+  getShipCommon().maximumRotationalAcceleration = rotationRate;
+  getShipCommon().updateShipPhysics(delta);
+}
+
+simulated function vector getLinearAcceleration(float delta) {
   if (pilot != none) {
     pilot.UpdateLinear();
     pilot.bUseDesiredVelocity = bUseDesiredVelocity;
     pilot.desiredVelocity = desiredVelocity;
     pilot.desiredAcceleration = desiredAcceleration;
-    linearAcceleration = capVector(pilot.getDesiredAcceleration(getPhysicsState(), delta), acceleration);
+    return capVector(pilot.getDesiredAcceleration(getPhysicsState(), delta), acceleration);
   } else {
-    linearAcceleration = vect(0,0,0);
+    return vect(0,0,0);
   }
-  
-  getPhysicsIntegrator().linearPhysicsUpdate(getPhysicsState(), delta, linearAcceleration);
-//  debugMSG(self$" "$linearAcceleration$" :: "$pilot.getDesiredAcceleration(self, delta));
+}
 
-  // Update Angular movement.
-  // The pilot is updated for it's angular movement AFTER the linear physics has been updated, so it can set it's desired rotation based on it's new position rather than the position from
-  // before the linear update. Hopefully this allows for a little better tracking of targets at high speed.
+simulated function vector getRotationalAcceleration(float delta) {
   if (pilot != none) {
     pilot.UpdateAngular();
     pilot.bUseDesiredRotation = true;
     pilot.desiredRotation = desiredRotation;
-    maxRotationalAccelerationRate = rotationRate * delta;
 
     // hack
     // having trouble getting this to work the way I want - grr.
     rotationalVelocity = normal(copyRotToVect(desiredRotation unCoordRot rotation)) * vsize(rotationalVelocity);
     // rotationalVelocity = normal(copyRotToVect(desiredRotation unCoordRot rotation)) * fmin(vsize(rotationalVelocity), vsize(copyRotToVect(desiredRotation unCoordRot rotation)));
 //    rotationalAcceleration = capVector(pilot.getDesiredRotationalAcceleration(getPhysicsState(), rotationRate, delta), maxRotationalAccelerationRate);
-    rotationalAcceleration = capVector(pilot.getDesiredRotationalAcceleration(getPhysicsState(), rotationRate, delta), rotationRate);
+    return capVector(pilot.getDesiredRotationalAcceleration(getPhysicsState(), rotationRate, delta), rotationRate);
   } else {
-    rotationalAcceleration = vect(0,0,0);
+    return vect(0,0,0);
   }
+}
+
+/*
+simulated function updateShipPhysics(float delta) {
+  local PhysicsIntegrator integrator;
+  local PhysicsStateInterface physState;
+//  local float maxRotationalAccelerationRate;
   
+  physState = getPhysicsState();
+  integrator = getPhysicsIntegrator();
+  integrator.linearPhysicsUpdate(physState, delta, getLinearAcceleration(delta));
+  integrator.angularPhysicsUpdate(physState, delta, getRotationalAcceleration(delta));  
+
   // If the difference in desiredRotation and rotation is less than some quantity, I can just stop the ship at the exact rotation I want.
   // I need enough rotational acceleration to both stop my rotational velocity, and to move by the desired amount.
   // This is not perfect since it doesn't take into account current rotational velocity that could be leveraged to get there faster.
+  maxRotationalAccelerationRate = rotationRate * delta;
   if (2 * vsize(copyRotToVect(smallestRotatorMagnitude(desiredRotation uncoordRot rotation))) + vsize(rotationalVelocity) < maxRotationalAccelerationRate) {
-    getPhysicsState().setRotation(desiredRotation);
-    getPhysicsState().setRotationVelocity(vect(0,0,0));
+    physState.setRotation(desiredRotation);
+    physState.setRotationVelocity(vect(0,0,0));
   } else {
-    getPhysicsIntegrator().angularPhysicsUpdate(getPhysicsState(), delta, rotationalAcceleration);
+    getPhysicsIntegrator().angularPhysicsUpdate(physState, delta, rotationalAcceleration);
   }
-
-//  if (partShip(Self) != none)
-//    debugMSG("desiredRotationRate: "$pilot.desiredRotationRate$" rotation remaining: "$vsize(copyRotToVect(smallestRotatorMagnitude(desiredRotation uncoordRot rotation)))$" maxRotationalAccelerationRate "$maxRotationalAccelerationRate);
 }
+*/
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************

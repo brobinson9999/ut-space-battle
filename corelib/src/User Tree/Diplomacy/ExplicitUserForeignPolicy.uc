@@ -12,15 +12,25 @@ simulated protected function UserDiplomaticStatus newDiplomaticStatus(User objec
 
   return newStatus;
 }
-  
-simulated function UserDiplomaticStatus getExistingDiplomaticStatus(User objectUser, User subjectUser) {
+
+simulated protected function int getExistingDiplomaticStatusIndex(User objectUser, User subjectUser) {
   local int i;
 
   for (i=0;i<diplomaticStatii.length;i++)
     if (objectUser == diplomaticStatii[i].objectUser && subjectUser == diplomaticStatii[i].subjectUser)
-      return diplomaticStatii[i];
+      return i;
+      
+  return -1;
+}
 
-  return none;
+simulated function UserDiplomaticStatus getExistingDiplomaticStatus(User objectUser, User subjectUser) {
+  local int index;
+  
+  index = getExistingDiplomaticStatusIndex(objectUser, subjectUser);
+  if (index != -1)
+    return diplomaticStatii[index];
+  else
+    return none;
 }
   
 simulated function UserDiplomaticStatus getOrCreateDiplomaticStatus(User objectUser, User subjectUser) {
@@ -31,6 +41,14 @@ simulated function UserDiplomaticStatus getOrCreateDiplomaticStatus(User objectU
     status = newDiplomaticStatus(objectUser, subjectUser);
 
   return status;
+}
+
+simulated function clearDiplomaticStatus(User objectUser, User subjectUser) {
+  local int index;
+  
+  index = getExistingDiplomaticStatusIndex(objectUser, subjectUser);
+  if (index != -1)
+    diplomaticStatii.remove(index,1);
 }
 
 simulated function bool isFriendly(User objectUser, User subjectUser) {

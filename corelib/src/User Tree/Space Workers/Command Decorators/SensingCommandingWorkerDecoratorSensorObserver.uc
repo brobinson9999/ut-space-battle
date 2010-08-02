@@ -1,4 +1,4 @@
-class SensingCommandingWorkerDecoratorSensorObserver extends UserSensorObserver;
+class SensingCommandingWorkerDecoratorSensorObserver extends UserObserver;
 
 var User observedUser;
 var SensingCommandingWorkerDecorator observingFor;
@@ -8,13 +8,13 @@ simulated function initializeSensorObserver(User observeUser, SensingCommandingW
   observedUser = observeUser;
   observingFor = observeFor;
 
-  observedUser.addSensorObserver(self);
+  observedUser.addUserObserver(self);
 }
 
 simulated function cleanup()
 {
   if (observedUser != none)
-    observedUser.removeSensorObserver(self);
+    observedUser.removeUserObserver(self);
 
   observedUser = none;
   observingFor = none;
