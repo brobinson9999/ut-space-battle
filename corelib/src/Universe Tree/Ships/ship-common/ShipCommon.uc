@@ -5,10 +5,10 @@ class ShipCommon extends BaseObject;
 // this class, while this class will use the ShipObserver to send out any necessary callbacks.
 
 // Variables to hold ship systems.
-var array<ShipSystem>           systems;
-var array<ShipWeapon>           weapons;
-var array<ShipLaunchBay>        launchBays;
-var private DockingSubsystem    dockingSubsystem;
+//var array<ShipSystem>           systems;
+//var array<ShipWeapon>           weapons;
+var private array<ShipLaunchBay> launchBays;
+var private DockingSubsystem dockingSubsystem;
 
 var private PhysicsIntegrator physicsIntegrator;
 var private PhysicsStateInterface physicsState;
@@ -33,11 +33,11 @@ simulated function removeShipObserver(ShipObserver oldObserver) {
   }
 }
 
-simulated function PhysicsStateInterface getPhysicsState() {
-  if (physicsState == none) {
-    setPhysicsState(PhysicsStateInterface(allocateObject(class'StoredPhysicsState')));
-  }
+simulated function array<ShipObserver> getShipObservers() {
+  return shipObservers;
+}
 
+simulated function PhysicsStateInterface getPhysicsState() {
   return physicsState;
 }
 
@@ -46,17 +46,13 @@ simulated function setPhysicsState(PhysicsStateInterface newPhysicsState) {
 }
 
 simulated function PhysicsIntegrator getPhysicsIntegrator() {
-  if (physicsIntegrator == none) {
-    setPhysicsIntegrator(PhysicsIntegrator(allocateObject(class'DefaultPhysicsIntegrator')));
-  }
-  
   return physicsIntegrator;
 }
 
 simulated function setPhysicsIntegrator(PhysicsIntegrator newPhysicsIntegrator) {
   physicsIntegrator = newPhysicsIntegrator;
 }
-
+/*
 simulated function addSystem(ShipSystem newSystem) {
   systems[systems.length] = newSystem;
 //  newSystem.addedToShip(self);
@@ -73,17 +69,21 @@ simulated function removeSystem(ShipSystem oldSystem) {
     }
   }
 }
+*/
+simulated function array<ShipLaunchBay> getLaunchBays() {
+  return launchBays;
+}
   
 simulated function updateShip(float delta) {
-  local int i;
+//  local int i;
   local vector linearAcceleration;
   local vector rotationalAcceleration;
 //  local float maxRotationalAccelerationRate;
 
   myAssert(!bCleanedUp, "ShipCommon.updateShip when bCleanedUp");
 
-  for (i=systems.length-1;i>=0;i--)
-    systems[i].updateShipSystem();
+//  for (i=systems.length-1;i>=0;i--)
+//    systems[i].updateShipSystem();
 
   // Update Linear movement.
   // linearAcceleration = ???;
@@ -108,11 +108,11 @@ simulated function updateShip(float delta) {
 }
 
 simulated function shipCritical(object instigator) {
-  local int i;
+//  local int i;
   
-  for (i=systems.length-1;i>=0;i--)
-    if (systems[i].bEnabled)
-      systems[i].disableSystem();
+//  for (i=systems.length-1;i>=0;i--)
+//    if (systems[i].bEnabled)
+//      systems[i].disableSystem();
       
   // This needs to be on the observer.
 //  if (SpaceGameSimulation(getGameSimulation()) != none)
@@ -167,11 +167,11 @@ simulated function cleanup()
   setShipOwner(none);
   
   DesiredVelocity_RelativeTo = None;
-
+*/
   if (dockingSubsystem != none) {
     dockingSubsystem.cleanup();
     dockingSubsystem = none;
-  }*/
+  }
 
   if (physicsIntegrator != none) {
     physicsIntegrator.cleanup();
@@ -183,48 +183,23 @@ simulated function cleanup()
     physicsState = none;
   }
   
-  if (Weapons.Length > 0)
-    Weapons.Remove(0,Weapons.Length);
+//  if (Weapons.Length > 0)
+//    Weapons.Remove(0,Weapons.Length);
 
   while (launchBays.length > 0)
     removeLaunchBay(launchBays[0]);
 
-  while (systems.length > 0)
-    removeSystem(systems[0]);
+//  while (systems.length > 0)
+//    removeSystem(systems[0]);
 
   while (shipObservers.length > 0)
     removeShipObserver(shipObservers[0]);
 
-//  pilot = none;
-  
   bCleanedUp = true;
 
   super.cleanup();
 }
-/*
-simulated function Ship cloneShip()
-{
-  local ShipCommon clone;
 
-  clone = ShipCommon(allocateObject(self.class));
-  initializeClonedShip(clone);
-
-  return clone;
-}
-
-simulated function initializeClonedShip(ShipCommon clone)
-{
-  local int i;
-  
-  clone.acceleration          = acceleration;
-  clone.rotationRate          = rotationRate;
-  clone.radius                = radius;
-  clone.shipTypeName          = shipTypeName;
-  
-  for (i=0;i<systems.length;i++)
-    clone.addSystem(systems[i].cloneSystem());
-}
-*/
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -254,8 +229,6 @@ simulated function removeLaunchBay(ShipLaunchBay launchBay) {
   myAssert(false, "Ship.removeLaunchBay attempted to remove a launch bay that was not in it's list of bays");
 }
 
-/*
-
 simulated function Ship getDockedTo() {
   // Checks first to see if there is a docking subystem, so we don't create it unecessarily.
   if (dockingSubsystem == none)
@@ -272,37 +245,17 @@ simulated function removeCargo(Ship oldCargo) {
   getDockingSubsystem().removeCargo(oldCargo);
 }
   
-simulated function bool attemptDock(Ship dockee) {
-  return getDockingSubsystem().attemptDock(self, dockee);
+simulated function bool attemptDock(Ship docker, Ship dockee) {
+  return getDockingSubsystem().attemptDock(docker, dockee);
 }
 
-simulated function bool acceptDock(Ship docker) {
-  return getDockingSubsystem().acceptDock(docker, self);
+simulated function bool acceptDock(Ship docker, Ship dockee) {
+  return getDockingSubsystem().acceptDock(docker, dockee);
 }
 
-simulated function bool attemptUndock() {
-  return getDockingSubsystem().attemptUndock(self, getDockedTo());
+simulated function bool attemptUndock(Ship docker) {
+  return getDockingSubsystem().attemptUndock(docker, getDockedTo());
 }
-
-// getOutermostDockee: -> ShipCommon
-// Returns this ship if it is not docked in another ship. If it is docked in another ship, that ship's "outermost carrier" is returned.
-simulated function ShipCommon getOutermostDockee() {
-  local Ship dockedTo;
-  
-  dockedTo = getDockedTo();
-  if (dockedTo == none)
-    return self;
-  else
-    return dockedTo.getOutermostDockee();
-}
-*/
-
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-
-simulated function float detection_Strength_Against(Contact other);
 
 defaultproperties
 {

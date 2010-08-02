@@ -133,14 +133,10 @@ simulated function installHUDDriver() {
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-simulated function installInputDriver()
-{
-  // Set Interaction Master to require raw joystick data.
-  // Not sure if this is necessary or not.
-  PC.player.interactionMaster.bRequireRawJoystick = true;
-
-  // Create Input Interaction.
-  inputDriver = InputDriver(PC.player.interactionMaster.addInteraction("ClientScripts.InputDriver"));
+simulated function installInputDriver() {
+  inputDriver = class'InputDriver'.static.installNewInputDriver(pc);
+  if (inputDriver == none)
+    errorMessage("An error occurred while installing the input driver.");
 }
 
 // ********************************************************************************************************************************************

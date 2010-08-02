@@ -43,6 +43,15 @@ simulated function cleanup() {
   super.cleanup();
 }
 
+simulated static function ShipReferencePhysicsState createNewShipReferencePhysicsState(Ship newShip) {
+  local ShipReferencePhysicsState result;
+  
+  result = ShipReferencePhysicsState(newShip.allocateObject(class'ShipReferencePhysicsState'));
+  result.setReference(newShip);
+    
+  return result;
+}
+
 defaultproperties
 {
 }

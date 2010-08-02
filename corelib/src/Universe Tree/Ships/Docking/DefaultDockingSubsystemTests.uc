@@ -20,13 +20,13 @@ simulated function runTests() {
   dockee.addCargo(cargo);
   dockee.removeCargo(cargo);
 
-  myAssert(dockee.launchBays.length == 0, "dockee has no launch bays");
+  myAssert(dockee.getLaunchBays().length == 0, "dockee has no launch bays");
   dockee.addLaunchBay(DefaultShipLaunchBay(allocateObject(class'DefaultShipLaunchBay')));
-  myAssert(dockee.launchBays.length == 1, "dockee now has one launch bay");
+  myAssert(dockee.getLaunchBays().length == 1, "dockee now has one launch bay");
   expectAssertFail("DefaultShipLaunchBay.launchShip shipToLaunch.getGameSimulation() == none");
   myAssert(docker.attemptUndock(), "attempting undock");
   myAssert(docker.getOutermostDockee() == docker, "docker is no longer docked");
 
-  dockee.removeLaunchBay(dockee.launchBays[0]);
-  myAssert(dockee.launchBays.length == 0, "launch bay removed from dockee");
+  dockee.removeLaunchBay(dockee.getLaunchBays()[0]);
+  myAssert(dockee.getLaunchBays().length == 0, "launch bay removed from dockee");
 }

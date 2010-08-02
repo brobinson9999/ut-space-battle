@@ -32,8 +32,6 @@ simulated function cleanup()
   super.cleanup();
 }
 
-
-
 simulated function bool keyEvent(string key, string action, float delta)
 {
   local int i;

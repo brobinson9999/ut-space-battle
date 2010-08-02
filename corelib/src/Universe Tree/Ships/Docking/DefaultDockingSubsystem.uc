@@ -69,11 +69,12 @@ simulated function dockAttemptUnsuccessful(Ship docker, Ship dockee);
 // If false is returned, the undock attempt was unsuccessful.
 simulated function bool attemptUndock(Ship docker, Ship dockee) {
   local int i;
-  local array<ShiplaunchBay> candidateLaunchBays;
+  local array<ShiplaunchBay> dockeeLaunchBays, candidateLaunchBays;
 
-  for (i=0;i<dockee.launchBays.length;i++)
-    if (dockee.launchBays[i].canLaunch(docker, dockee))
-      candidateLaunchBays[candidateLaunchBays.length] = dockee.launchBays[i];
+  dockeeLaunchBays = dockee.getLaunchBays();
+  for (i=0;i<dockeeLaunchBays.length;i++)
+    if (dockeeLaunchBays[i].canLaunch(docker, dockee))
+      candidateLaunchBays[candidateLaunchBays.length] = dockeeLaunchBays[i];
 
   if (candidateLaunchBays.length > 0) {
     candidateLaunchBays[rand(candidateLaunchBays.length)].launchShip(docker, dockee);
