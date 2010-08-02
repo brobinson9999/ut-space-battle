@@ -1,14 +1,12 @@
 class MapperDog extends ImprovedDragIntegratorDog;
 
 var class<ShipControlMapper> controlMapperClass;
-var ShipControlMapper controlMapper;
 
 simulated function ShipControlMapper getControlMapper() {
-  if (controlMapper == none) {
-    controlMapper = createControlMapper();
-  }
+  if (getShipCommon().getShipControlStrategy() == none)
+    getShipCommon().setShipControlStrategy(createControlMapper());
   
-  return controlMapper;
+  return ShipControlMapper(getShipCommon().getShipControlStrategy());
 }
 
 simulated function ShipControlMapper createControlMapper() {
@@ -21,21 +19,12 @@ simulated function receivedProcessedInput(float deltaTime, float fwdChange, floa
   localMapper = getControlMapper();
   localMapper.updateControls(deltaTime, rotation, fwdChange, strafeChange, upChange, yawChange, pitchChange, rollChange);
   
-  shipSteering = localMapper.getShipSteering(deltaTime, getPhysicsState(), maximumRotationalAcceleration);
-  shipThrust = localMapper.getShipThrust(deltaTime, getPhysicsState(), maximumThrust);
+//  shipSteering = localMapper.getShipSteering(deltaTime, getPhysicsState(), maximumRotationalAcceleration);
+//  shipThrust = localMapper.getShipThrust(deltaTime, getPhysicsState(), maximumThrust);
 }
 
 simulated function rotator getWeaponFireRotation() {
   return getControlMapper().getWeaponFireRotation(rotation);
-}
-
-simulated function destroyed() {
-  if (controlMapper != none) {
-    controlMapper.cleanup();
-    controlMapper = none;
-  }
-  
-  super.destroyed();
 }
 
 defaultProperties

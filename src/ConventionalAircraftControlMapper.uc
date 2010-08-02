@@ -23,11 +23,11 @@ simulated function updateControls(float deltaTime, rotator currentRotation, floa
 }
 
 simulated function vector getShipSteering(float deltaTime, PhysicsStateInterface physicsState, float maximumRotationalAcceleration) {
-  return shipSteering * vect(0,1,1);
+  return shipSteering * vect(0,1,1) * maximumRotationalAcceleration;
 }
 
 simulated function vector getShipThrust(float deltaTime, PhysicsStateInterface physicsState, float maximumAcceleration) {
-  return shipThrust;
+  return shipThrust * maximumAcceleration;
 }
 
 function rotator getWeaponFireRotation(rotator currentRotation) {

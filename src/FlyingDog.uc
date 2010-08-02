@@ -3,9 +3,17 @@ class FlyingDog extends CommonFlyingDog;
 //var vector  weaponFireOffset;
 var float fireArc;
 
-var array<DogWeapon> weapons;
+var private array<DogWeapon> weapons;
 
 simulated function createWeapons();
+
+simulated function array<DogWeapon> getWeapons() {
+  return weapons;
+}
+
+simulated function addWeapon(DogWeapon newWeapon) {
+  weapons[weapons.length] = newWeapon;
+}
 
 simulated function postBeginPlay() {
   super.postBeginPlay();

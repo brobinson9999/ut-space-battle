@@ -61,11 +61,11 @@ simulated function vector getShipSteering(float deltaTime, PhysicsStateInterface
   localShipController = getShipController();
   localShipController.desiredRotation = desiredAim;
 
-  return localShipController.getDesiredRotationalAcceleration(physicsState, maximumRotationalAcceleration, deltaTime) / maximumRotationalAcceleration;
+  return localShipController.getDesiredRotationalAcceleration(physicsState, maximumRotationalAcceleration, deltaTime);
 }
 
 simulated function vector getShipThrust(float deltaTime, PhysicsStateInterface physicsState, float maximumAcceleration) {
-  return shipThrust;
+  return shipThrust * maximumAcceleration;
 }
 
 simulated function rotator getWeaponFireRotation(rotator currentRotation) {

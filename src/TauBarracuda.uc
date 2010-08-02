@@ -5,10 +5,9 @@ var array<actor> turrets;
 simulated function createWeapons() {
   local DogMissilePods missilePods;
 
-  weapons[0] = new class'DogIonCannon';
+  addWeapon(new class'DogIonCannon');
   
   missilePods = new class'DogMissilePods';
-  weapons[1] = missilePods;
   
   missilePods.fireOffsets[missilePods.fireOffsets.length] = vect(10,60,0);
   missilePods.fireOffsets[missilePods.fireOffsets.length] = vect(10,-60,0);
@@ -19,6 +18,8 @@ simulated function createWeapons() {
   missilePods.fireOffsets[missilePods.fireOffsets.length] = vect(6,-80,0);
   missilePods.fireOffsets[missilePods.fireOffsets.length] = vect(4,90,0);
   missilePods.fireOffsets[missilePods.fireOffsets.length] = vect(4,-90,0);
+
+  addWeapon(missilePods);
 }
 
 simulated function postBeginPlay() {

@@ -1,8 +1,8 @@
 class ImperialVultureGunship extends MapperDog;
 
 simulated function createWeapons() {
-  weapons[0] = new class'DogAutoCannon';
-  weapons[1] = new class'ImperialTwinLascannon';
+  addWeapon(new class'DogAutoCannon');
+  addWeapon(new class'ImperialTwinLascannon');
 }
 
 simulated function drawCrosshair(Canvas canvas) {

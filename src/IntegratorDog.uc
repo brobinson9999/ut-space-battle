@@ -1,7 +1,5 @@
 class IntegratorDog extends SmoothedFlyingDog;
 
-//var PhysicsIntegrator physicsIntegrator;
-//var PhysicsStateInterface physicsState;
 var float rotationalDrag;
 var float linearDrag;
 
@@ -30,35 +28,14 @@ simulated function setShipCommon(ShipCommon newShipCommon) {
 
 simulated function PhysicsStateInterface getPhysicsState() {
   return getShipCommon().getPhysicsState();
-//  if (physicsState == none) {
-//    physicsState = new class'ActorReferencePhysicsState';
-//    ActorReferencePhysicsState(physicsState).setReference(self);
-//  }
-
-//  return physicsState;
 }
 
 simulated function PhysicsIntegrator getPhysicsIntegrator() {
   return getShipCommon().getPhysicsIntegrator();
-//  if (physicsIntegrator == none) {
-//    physicsIntegrator = new class'DefaultPhysicsIntegrator';
-//  }
-  
-//  return physicsIntegrator;
 }
 
 simulated function destroyed() {
   setShipCommon(none);
-
-//  if (physicsIntegrator != none) {
-//    physicsIntegrator.cleanup();
-//    physicsIntegrator = none;
-//  }
-
-//  if (physicsState != none) {
-//    physicsState.cleanup();
-//    physicsState = none;
-//  }
 
   super.destroyed();
 }
@@ -99,18 +76,22 @@ simulated function  RanInto( Actor Other ) {
 }
 
 simulated function updateRocketAcceleration(float delta, float yawChange, float pitchChange) {
-  local PhysicsIntegrator integrator;
+//  local PhysicsIntegrator integrator;
   local PhysicsStateInterface physState;
   
   super.updateRocketAcceleration(delta, yawChange, pitchChange);
 
-  integrator = getPhysicsIntegrator();
   physState = getPhysicsState();
   applyDrag(physState, delta);
-  integrator.linearPhysicsUpdate(physState, delta, multiplyRangeVector(shipThrust * maximumThrust, maximumThrust3d));
-  integrator.angularPhysicsUpdate(physState, delta, multiplyRangeVector(class'BaseObject'.static.capVector(getShipSteering(), 1) * maximumRotationalAcceleration, maximumRotationalAcceleration3d));
 
-  
+  getShipCommon().maximumLinearAcceleration = maximumThrust;
+  getShipCommon().maximumRotationalAcceleration = maximumRotationalAcceleration;
+  getShipCommon().updateShipPhysics(delta);
+
+  applyPhysicsStateToPawn(physState);
+}
+
+simulated function applyPhysicsStateToPawn(PhysicsStateInterface physState) {
   // PlayerController will tamper with velocity, based on acceleration - it will call:
   //   Pawn.Velocity = Pawn.Acceleration * Pawn.AirSpeed * 0.001;
   // So I will compensate by setting acceleration.
