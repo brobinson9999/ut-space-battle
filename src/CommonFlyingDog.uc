@@ -87,7 +87,7 @@ function bool KDriverLeave(bool bForceLeave)
 }
 
 function rotator getWeaponFireRotation() {
-  return rotator(vector(class'BaseObject'.static.copyVectToRot(shipSteering * 10)) >> rotation);
+  return rotator(vector(class'BaseObject'.static.copyVectToRot(getShipSteering() * 10)) >> rotation);
 }
 
 simulated function vector getFireLocation();

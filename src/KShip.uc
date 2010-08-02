@@ -23,6 +23,14 @@ var vector shipSteering;
 // Desired linear thrust to apply to the ship - not relative to it's current rotation.
 var vector shipThrust;
 
+simulated function vector getShipSteering() {
+  return shipSteering;
+}
+
+simulated function vector getShipThrust() {
+  return shipThrust;
+}
+
 simulated function setInitialState() {
   super.setInitialState();
 
@@ -58,21 +66,16 @@ simulated function nextWeapon() {
 }
 
 simulated function updateRocketAcceleration(float deltaTime, float yawChange, float pitchChange) {
-  // / 6000 because the aForward, etc. are 6000 by default when the appropriate button is pressed.
-  shipThrust = (((vect(1,0,0) * PlayerController(Controller).aForward) + (vect(0,1,0) * PlayerController(Controller).aStrafe) + (vect(0,0,1) * PlayerController(Controller).aUp)) / 6000) >> rotation;
-  if (vsize(shipThrust) > 1)
-    shipThrust = normal(shipThrust);
-
-  receivedRawRotationInput(deltaTime, yawChange, pitchChange, rollAccumulator);
+  receivedRawInput(deltaTime, PlayerController(Controller).aForward / 6000.0, PlayerController(Controller).aStrafe / 6000.0, PlayerController(Controller).aUp / 6000.0, yawChange, pitchChange, rollAccumulator);
   rollAccumulator = 0;
 }
 
 // This function allows a subclass to modify the inputs, eg by applying smoothing or acceleration.
-simulated function receivedRawRotationInput(float deltaTime, float yawChange, float pitchChange, float rollChange) {
-  receivedRotationInput(deltaTime, yawChange, pitchChange, rollChange);
+simulated function receivedRawInput(float deltaTime, float fwdChange, float strafeChange, float upChange, float yawChange, float pitchChange, float rollChange) {
+  receivedProcessedInput(deltaTime, fwdChange, strafeChange, upChange, yawChange, pitchChange, rollChange);
 }
 
-simulated function receivedRotationInput(float deltaTime, float yawChange, float pitchChange, float rollChange);
+simulated function receivedProcessedInput(float deltaTime, float fwdChange, float strafeChange, float upChange, float yawChange, float pitchChange, float rollChange);
 
 simulated function rotator getControlRotation() {
   return rotation;
@@ -95,16 +98,18 @@ simulated function tick(float delta)
 
 simulated function updateExtraForce(float delta)
 {
+  local vector localSteering;
   local vector worldForward, worldDown, worldLeft;
  
   worldForward = vect(1, 0, 0) >> getControlRotation();
   worldDown = vect(0, 0, -1) >> getControlRotation();
   worldLeft = vect(0, -1, 0) >> getControlRotation();
  
-  ExtraForce = ExtraForce + shipThrust * maximumThrust * delta; // Speed
-  ExtraTorque = ExtraTorque - worldDown * shipSteering.x * delta; // Yaw
-  ExtraTorque = ExtraTorque - worldLeft * -shipSteering.y * delta; // Pitch
-  ExtraTorque = ExtraTorque + worldForward * -shipSteering.z * delta; // Roll
+  localSteering = getShipSteering();
+  ExtraForce = ExtraForce + getShipThrust() * maximumThrust * delta; // Speed
+  ExtraTorque = ExtraTorque - worldDown * localSteering.x * delta; // Yaw
+  ExtraTorque = ExtraTorque - worldLeft * -localSteering.y * delta; // Pitch
+  ExtraTorque = ExtraTorque + worldForward * -localSteering.z * delta; // Roll
 }
 
 simulated event KApplyForce(out vector Force, out vector Torque)

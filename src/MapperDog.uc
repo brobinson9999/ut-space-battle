@@ -15,13 +15,14 @@ simulated function ShipControlMapper createControlMapper() {
   return new controlMapperClass;
 }
 
-simulated function receivedRotationInput(float deltaTime, float yawChange, float pitchChange, float rollChange) {
+simulated function receivedProcessedInput(float deltaTime, float fwdChange, float strafeChange, float upChange, float yawChange, float pitchChange, float rollChange) {
   local ShipControlMapper localMapper;
   
   localMapper = getControlMapper();
-  localMapper.updateControls(deltaTime, rotation, yawChange, pitchChange, rollChange);
+  localMapper.updateControls(deltaTime, rotation, fwdChange, strafeChange, upChange, yawChange, pitchChange, rollChange);
   
   shipSteering = localMapper.getShipSteering(deltaTime, getPhysicsState(), maximumRotationalAcceleration);
+  shipThrust = localMapper.getShipThrust(deltaTime, getPhysicsState(), maximumThrust);
 }
 
 simulated function rotator getWeaponFireRotation() {

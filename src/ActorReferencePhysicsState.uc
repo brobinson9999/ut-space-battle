@@ -46,6 +46,15 @@ simulated function cleanup() {
   super.cleanup();
 }
 
+simulated static function ActorReferencePhysicsState createNewActorReferencePhysicsState(Actor newActor) {
+  local ActorReferencePhysicsState result;
+  
+  result = new class'ActorReferencePhysicsState';
+  result.setReference(newActor);
+    
+  return result;
+}
+
 defaultproperties
 {
 }

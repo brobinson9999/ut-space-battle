@@ -1,37 +1,64 @@
 class IntegratorDog extends SmoothedFlyingDog;
 
-var PhysicsIntegrator physicsIntegrator;
-var PhysicsStateInterface physicsState;
+//var PhysicsIntegrator physicsIntegrator;
+//var PhysicsStateInterface physicsState;
 var float rotationalDrag;
 var float linearDrag;
 
-simulated function PhysicsStateInterface getPhysicsState() {
-  if (physicsState == none) {
-    physicsState = new class'ActorReferencePhysicsState';
-    ActorReferencePhysicsState(physicsState).setReference(self);
-  }
+var private ShipCommon shipCommon;
 
-  return physicsState;
+simulated function ShipCommon getShipCommon() {
+  if (shipCommon == none)
+    setShipCommon(new class'ShipCommon');
+
+  return shipCommon;
+}
+
+simulated function setShipCommon(ShipCommon newShipCommon) {
+  // clean anything out of old shipCommon here...
+  if (shipCommon != none) {
+    shipCommon.cleanup();
+  }
+  
+  shipCommon = newShipCommon;
+
+  if (shipCommon != none) {
+    shipCommon.setPhysicsState(class'ActorReferencePhysicsState'.static.createNewActorReferencePhysicsState(self));
+    shipCommon.setPhysicsIntegrator(new class'DefaultPhysicsIntegrator');
+  }
+}
+
+simulated function PhysicsStateInterface getPhysicsState() {
+  return getShipCommon().getPhysicsState();
+//  if (physicsState == none) {
+//    physicsState = new class'ActorReferencePhysicsState';
+//    ActorReferencePhysicsState(physicsState).setReference(self);
+//  }
+
+//  return physicsState;
 }
 
 simulated function PhysicsIntegrator getPhysicsIntegrator() {
-  if (physicsIntegrator == none) {
-    physicsIntegrator = new class'DefaultPhysicsIntegrator';
-  }
+  return getShipCommon().getPhysicsIntegrator();
+//  if (physicsIntegrator == none) {
+//    physicsIntegrator = new class'DefaultPhysicsIntegrator';
+//  }
   
-  return physicsIntegrator;
+//  return physicsIntegrator;
 }
 
 simulated function destroyed() {
-  if (physicsIntegrator != none) {
-    physicsIntegrator.cleanup();
-    physicsIntegrator = none;
-  }
+  setShipCommon(none);
 
-  if (physicsState != none) {
-    physicsState.cleanup();
-    physicsState = none;
-  }
+//  if (physicsIntegrator != none) {
+//    physicsIntegrator.cleanup();
+//    physicsIntegrator = none;
+//  }
+
+//  if (physicsState != none) {
+//    physicsState.cleanup();
+//    physicsState = none;
+//  }
 
   super.destroyed();
 }
@@ -81,7 +108,7 @@ simulated function updateRocketAcceleration(float delta, float yawChange, float 
   physState = getPhysicsState();
   applyDrag(physState, delta);
   integrator.linearPhysicsUpdate(physState, delta, multiplyRangeVector(shipThrust * maximumThrust, maximumThrust3d));
-  integrator.angularPhysicsUpdate(physState, delta, multiplyRangeVector(class'BaseObject'.static.capVector(shipSteering, 1) * maximumRotationalAcceleration, maximumRotationalAcceleration3d));
+  integrator.angularPhysicsUpdate(physState, delta, multiplyRangeVector(class'BaseObject'.static.capVector(getShipSteering(), 1) * maximumRotationalAcceleration, maximumRotationalAcceleration3d));
 
   
   // PlayerController will tamper with velocity, based on acceleration - it will call:
