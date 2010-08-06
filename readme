@@ -1,0 +1,19 @@
+ut-space-battle
+---------------
+
+  This work is licensed under the GNU GPLv3 or any later version.
+  The latest code from this project should be available at:
+  http://github.com/brobinson9999/ut-space-battle
+
+Dependencies
+  These packages have a dependency on the unreal-utility-lib package. The source for that package is available on GitHub at:
+  http://github.com/brobinson9999/unreal-utility-lib
+
+  It is possible to build the ut-space-battle packages using conventional means, in which case no additional dependencies are required. The optional build scripts have a dependency on pyun-build, avaiable on Github at:
+  http://github.com/brobinson9999/pyun-build
+
+Building
+  There are two packages that should be built to use ut-space-battle. One is a core library which has the same code for both UT2004 and UT3. The code and build scripts for this library are contained in the core-lib subdirectory. There is also an engine-specific package to build, which differs for UT2004 and UT3. The code and build scripts for this are in the engine-adapter subdirectory. To build for UT2004 the code from the engine-adapter/src/shared and engine-adapter/src/ut2004 subdirectories should be used. To build for UT3 the code from engine-adapter/src/shared and engine-adapter/src/ut3 should be used.
+
+Using the Build Scripts
+  As written, the build scripts expect *.uc to be in the same directory as the build script. This can be changed in the build scripts, or you can copy all of the files into one directory before building. pyun-build contains tools for doing this easily and a suitable Makefile can be used to automate the build.

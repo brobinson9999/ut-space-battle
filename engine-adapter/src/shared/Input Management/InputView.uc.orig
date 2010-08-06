@@ -1,0 +1,70 @@
+class InputView extends InputObserver;
+
+// This class is an input observer which does some processing of input before passing it off to it's own observers.
+
+var bool bDebugUnboundKeys;
+var array<vector> joysticks;
+  
+var array<InputObserver> observers;
+
+simulated function addObserver(InputObserver other) {
+  observers[observers.length] = other;
+}
+
+simulated function bool removeObserver(InputObserver other) {
+  local int i;
+
+  for (i=0;i<observers.length;i++) {
+    if (observers[i] == other) {
+      observers.remove(i,1);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+simulated function cleanup()
+{
+  while (observers.length > 0)
+    removeObserver(observers[0]);
+
+  super.cleanup();
+}
+
+simulated function bool keyEvent(string key, string action, float delta)
+{
+  local int i;
+
+  if (action == "IST_Hold") return false;
+  if (action == "IST_Press") delta = 1;
+  if (action == "IST_Release") delta = 0;
+
+  // X/Y reversal.
+  if (key == "IK_JoyX")
+    joysticks[0].y = delta;
+
+  if (key == "IK_JoyY")
+    joysticks[0].x = -delta;
+
+  if (key == "IK_JoyV")
+    joysticks[1].x = delta;
+
+  if (key == "IK_JoyZ")
+    joysticks[1].y = -delta;
+
+  for (i=0;i<observers.length;i++)
+    if (observers[i].keyEvent(key, action, delta))
+      return true;
+
+  if (bDebugUnboundKeys)
+    errorMessage("InputView.KeyEvent("$key$", "$action$", "$delta$")");
+
+  return false;
+}
+
+defaultproperties
+{
+  Joysticks(0)=()
+  Joysticks(1)=()
+}
