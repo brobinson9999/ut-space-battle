@@ -263,11 +263,12 @@ simulated function updateShip()
 
 simulated function vector getLinearAcceleration(float delta) {
   if (pilot != none) {
-    pilot.UpdateLinear();
+    pilot.updateLinear();
     pilot.bUseDesiredVelocity = bUseDesiredVelocity;
     pilot.desiredVelocity = desiredVelocity;
     pilot.desiredAcceleration = desiredAcceleration;
-    return capVector(pilot.getDesiredAcceleration(getPhysicsState(), delta), acceleration);
+    return pilot.getDesiredAcceleration(getPhysicsState(), delta);
+//    return capVector(pilot.getDesiredAcceleration(getPhysicsState(), delta), acceleration);
   } else {
     return vect(0,0,0);
   }
@@ -279,12 +280,9 @@ simulated function vector getRotationalAcceleration(float delta) {
     pilot.bUseDesiredRotation = true;
     pilot.desiredRotation = desiredRotation;
 
-    // hack
-    // having trouble getting this to work the way I want - grr.
     rotationalVelocity = normal(copyRotToVect(desiredRotation unCoordRot rotation)) * vsize(rotationalVelocity);
-    // rotationalVelocity = normal(copyRotToVect(desiredRotation unCoordRot rotation)) * fmin(vsize(rotationalVelocity), vsize(copyRotToVect(desiredRotation unCoordRot rotation)));
-//    rotationalAcceleration = capVector(pilot.getDesiredRotationalAcceleration(getPhysicsState(), rotationRate, delta), maxRotationalAccelerationRate);
-    return capVector(pilot.getDesiredRotationalAcceleration(getPhysicsState(), rotationRate, delta), rotationRate);
+    return pilot.getDesiredRotationalAcceleration(getPhysicsState(), rotationRate, delta);
+//    return capVector(pilot.getDesiredRotationalAcceleration(getPhysicsState(), rotationRate, delta), rotationRate);
   } else {
     return vect(0,0,0);
   }

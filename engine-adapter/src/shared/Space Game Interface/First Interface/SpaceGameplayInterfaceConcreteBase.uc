@@ -31,6 +31,8 @@ var UnrealEngineAdapter engineAdapter;
 
   var bool                                    bRelativeJoystickControls;
 
+  var vector                                  thrustDirB;
+  
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -713,6 +715,15 @@ var UnrealEngineAdapter engineAdapter;
       if (keyEvent_Strategic(key, action, delta)) return true;
     }
     
+    if (key == "IK_Up")
+      thrustDirB.x = delta;
+    if (key == "IK_Down")
+      thrustDirB.x = -delta;
+    if (key == "IK_Right")
+      thrustDirB.y = delta;
+    if (key == "IK_Left")
+      thrustDirB.y = -delta;
+    
     // Mouse Axis.
     if (Key == "IK_MouseX" || Key == "IK_MouseY")
     {
@@ -767,10 +778,7 @@ var UnrealEngineAdapter engineAdapter;
 
   simulated function cycle(InputView inputView, float delta)
   {
-    local vector forwardDesiredVelocity;
-    local vector inertialCompensationDesiredVelocity;
-    local vector newDesiredVelocity;
-    local vector newAcceleration;
+    local vector desiredThrustDir;
     
     super.cycle(inputView, delta);
     
@@ -783,9 +791,14 @@ var UnrealEngineAdapter engineAdapter;
 
       if (!bAIControl)
       {
-        // Update Joystick Controls.
-        updateJoystickControls(inputView, delta);
+        desiredThrustDir = normal(thrustDirB) coordRot cameraRotation;     
+        manualAcceleration = fmin(1,vsize(thrustDirB));
+//        desiredThrustDir = vector(getFreeFlightRotation());
+        setFreeFlightAcceleration(getNewFreeFlightAcceleration(delta, playerShip.acceleration, playerShip.velocity, desiredThrustDir, manualAcceleration, freeFlightInertialCompensationFactor));
 
+//        setFreeFlightAcceleration(getNewFreeFlightAcceleration(delta, playerShip.acceleration, playerShip.velocity, vector(getFreeFlightRotation()), manualAcceleration, freeFlightInertialCompensationFactor));
+
+/*
         // Update acceleration.
         if (playerShip.acceleration != 0)
         {
@@ -799,12 +812,29 @@ var UnrealEngineAdapter engineAdapter;
             
           setFreeFlightAcceleration(newAcceleration);
         }
+*/        
       } 
 
       // Fire Weapons
       if (bFire)
         fireWeapons();
     }
+  }
+  
+  simulated static function vector getNewFreeFlightAcceleration(float delta, float shipAcceleration, vector currentVelocity, vector desiredThrustDir, float inputThrottle, float inertialCompensationFactor) {
+    local vector forwardDesiredVelocity;
+    local vector inertialCompensationDesiredVelocity;
+    local vector newDesiredVelocity;
+
+    if (shipAcceleration == 0)
+      return vect(0,0,0);
+      
+    forwardDesiredVelocity = currentVelocity + (desiredThrustDir * inputThrottle * shipAcceleration);
+    inertialCompensationDesiredVelocity = desiredThrustDir * (vsize(currentVelocity) + (inputThrottle * shipAcceleration));
+
+    newDesiredVelocity = (inertialCompensationDesiredVelocity * inertialCompensationFactor) + (forwardDesiredVelocity * (1-inertialCompensationFactor));
+
+    return capVector(newDesiredVelocity - currentVelocity, 1);
   }
   
   simulated function updateCameraShakeMagnitude(float delta) {
@@ -1022,24 +1052,6 @@ simulated function setFreeFlightAcceleration(vector newAcceleration) {
     playerPilot.freeFlightAcceleration = newAcceleration;
 }
 
-simulated function updateJoystickControls(InputView inputView, float delta)
-{
-  local Rotator RotMod;
-  local vector joy1Position;
-
-  joy1Position = inputView.joysticks[0];
-  if (joy1Position != Vect(0,0,0))
-  {
-    rotMod.yaw    = joy1Position.y * delta * joyAimSensitivity;
-    rotMod.pitch  = joy1Position.x * delta * joyAimSensitivity;
-
-    if (bRelativeJoystickControls)
-      setFreeFlightRotation(rotMod coordRot playerShip.rotation);
-    else
-      setFreeFlightRotation(rotMod coordRot getFreeFlightRotation());
-  }
-}
-
 simulated function bool receivedConsoleCommand(UserInterfaceMediator mediator, string command)
 {
 //    local int i;
@@ -1171,20 +1183,26 @@ simulated function bool receivedConsoleCommand(UserInterfaceMediator mediator, s
   }
 
   if (stringParts[0] ~= "strategicCameraPanX") {
-    setStrategicCameraFocusContact(none);
-    strategicCameraPanSpeed.x = float(stringParts[1]);
+    if (bStrategicControls) {
+      setStrategicCameraFocusContact(none);
+      strategicCameraPanSpeed.x = float(stringParts[1]);
+    }
     return true;
   }
 
   if (stringParts[0] ~= "strategicCameraPanY") {
-    setStrategicCameraFocusContact(none);
-    strategicCameraPanSpeed.y = float(stringParts[1]);
+    if (bStrategicControls) {
+      setStrategicCameraFocusContact(none);
+      strategicCameraPanSpeed.y = float(stringParts[1]);
+    }
     return true;
   }
 
   if (stringParts[0] ~= "strategicCameraPanZ") {
-    setStrategicCameraFocusContact(none);
-    strategicCameraPanSpeed.z = float(stringParts[1]);
+    if (bStrategicControls) {
+      setStrategicCameraFocusContact(none);
+      strategicCameraPanSpeed.z = float(stringParts[1]);
+    }
     return true;
   }
 

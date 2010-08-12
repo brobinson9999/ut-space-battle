@@ -107,11 +107,11 @@ simulated function float getMaximumRotationalAcceleration() {
 }
 
 simulated function vector getLinearAcceleration(float delta) {
-  return getShipControlStrategy().getShipThrust(delta, getPhysicsState(), getMaximumLinearAcceleration());
+  return capVector(getShipControlStrategy().getShipThrust(delta, getPhysicsState(), getMaximumLinearAcceleration()), getMaximumLinearAcceleration());
 }
 
 simulated function vector getRotationalAcceleration(float delta) {
-  return getShipControlStrategy().getShipSteering(delta, getPhysicsState(), getMaximumRotationalAcceleration());
+  return capVector(getShipControlStrategy().getShipSteering(delta, getPhysicsState(), getMaximumRotationalAcceleration()), getMaximumRotationalAcceleration());
 }
 
 simulated function updateShipPhysics(float delta) {
