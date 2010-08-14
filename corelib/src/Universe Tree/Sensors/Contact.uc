@@ -99,14 +99,15 @@ simulated function vector getContactVelocity()
 
 simulated function vector getContactAcceleration()
 {
-  local vector VDiff;
+//  local vector VDiff;
 
   if (contactShip == None)
     return Vect(0,0,0);
+  else
+    return contactShip.tempEstimateAcceleration();
+//  VDiff = contactShip.desiredVelocity - contactShip.velocity;
 
-  VDiff = contactShip.desiredVelocity - contactShip.velocity;
-
-  return contactShip.acceleration * Normal(vDiff);
+//  return contactShip.acceleration * Normal(vDiff);
 }
 
 // ********************************************************************************************************************************************

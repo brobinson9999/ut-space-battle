@@ -69,8 +69,8 @@ simulated function setupObservers() {
 // ********************************************************************************************************************************************
 
   simulated function tick(float delta) {
-    if (part != none && part.ship != none) {
-      soundPitch = (64 - (baseSoundPitchAdjust * sqrt(part.ship.radius))) + (soundPitchRangeAdjust * FMin(1, VSize(part.ship.desiredAcceleration) / part.ship.acceleration));
+    if (part != none && part.ship != none && part.ship.pilot != none) {
+      soundPitch = (64 - (baseSoundPitchAdjust * sqrt(part.ship.radius))) + (soundPitchRangeAdjust * FMin(1, VSize(part.ship.pilot.desiredAcceleration) / part.ship.acceleration));
     }
   }
   

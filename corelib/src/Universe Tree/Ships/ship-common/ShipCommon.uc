@@ -4,9 +4,6 @@ class ShipCommon extends BaseObject;
 // ship class that interacts more concretely with the engine. Calls should be made into
 // this class, while this class will use the ShipObserver to send out any necessary callbacks.
 
-// Variables to hold ship systems.
-//var array<ShipSystem>           systems;
-//var array<ShipWeapon>           weapons;
 var private array<ShipLaunchBay> launchBays;
 var private DockingSubsystem dockingSubsystem;
 
@@ -17,10 +14,11 @@ var private ShipControlStrategy shipControlStrategy;
 var float maximumLinearAcceleration;
 var float maximumRotationalAcceleration;
 
+var array<ShipObserver> shipObservers;
+
 // DEBUGGING
 var bool bCleanedUp;
 
-var array<ShipObserver> shipObservers;
 
 simulated function addShipObserver(ShipObserver newObserver) {
   shipObservers[shipObservers.length] = newObserver;
@@ -65,35 +63,12 @@ simulated function setShipControlStrategy(ShipControlStrategy newShipControlStra
   shipControlStrategy = newShipControlStrategy;
 }
 
-/*
-simulated function addSystem(ShipSystem newSystem) {
-  systems[systems.length] = newSystem;
-//  newSystem.addedToShip(self);
-}
-  
-simulated function removeSystem(ShipSystem oldSystem) {
-  local int i;
-  
-  for (i=0;i<systems.length;i++) {
-    if (systems[i] == oldSystem) {
-      systems.remove(i, 1);
-//      oldSystem.removedFromShip(self);
-      break;
-    }
-  }
-}
-*/
 simulated function array<ShipLaunchBay> getLaunchBays() {
   return launchBays;
 }
   
 simulated function updateShip(float delta) {
-//  local int i;
-
   myAssert(!bCleanedUp, "ShipCommon.updateShip when bCleanedUp");
-
-//  for (i=systems.length-1;i>=0;i--)
-//    systems[i].updateShipSystem();
 
   updateShipPhysics(delta);
 }
@@ -153,14 +128,8 @@ simulated function cleanup()
     shipControlStrategy = none;
   }
   
-//  if (Weapons.Length > 0)
-//    Weapons.Remove(0,Weapons.Length);
-
   while (launchBays.length > 0)
     removeLaunchBay(launchBays[0]);
-
-//  while (systems.length > 0)
-//    removeSystem(systems[0]);
 
   while (shipObservers.length > 0)
     removeShipObserver(shipObservers[0]);

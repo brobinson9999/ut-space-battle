@@ -21,7 +21,7 @@ class FixedRelativePositionCameraStrategy extends CameraStrategy;
       positionScalar = 1;
     
     if (bFaceDesiredRotation)
-      interface.cameraRotation = interface.playerShip.desiredRotation;
+      interface.cameraRotation = interface.playerShip.getDesiredRotation();
     else
       interface.cameraRotation = interface.playerShip.rotation;
       

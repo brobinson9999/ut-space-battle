@@ -162,7 +162,7 @@ var UnrealEngineAdapter engineAdapter;
       drawStatusMessage(canvas, "System Status");
       
       // Show Desired Rotation Marker.
-      aimAccuracy = abs(acos(vector(playerShip.rotation) dot vector(playerShip.desiredRotation))) / (PI);
+      aimAccuracy = abs(acos(vector(playerShip.rotation) dot vector(playerShip.getDesiredRotation()))) / (PI);
       aimAccuracy = aimAccuracy ** 0.1;
       aimAccuracy = (2 - aimAccuracy) * 0.5;
       if (!(aimAccuracy > 0))
@@ -174,7 +174,7 @@ var UnrealEngineAdapter engineAdapter;
       bracketColor.G = bracketColor.G * aimAccuracy;
       bracketColor.B = bracketColor.B * aimAccuracy;
       canvas.setDrawColor(bracketColor);
-      drawBracketString(canvas, playerShip.getShipLocation(), vector(playerShip.desiredRotation), 5, playerShip.radius * 0.1, 1, playerShip.radius * 7.5, playerShip.radius * 5);
+      drawBracketString(canvas, playerShip.getShipLocation(), vector(playerShip.getDesiredRotation()), 5, playerShip.radius * 0.1, 1, playerShip.radius * 7.5, playerShip.radius * 5);
       
       // Show Heading Indicators.
       bracketColor = reticleColorFriendly;
@@ -794,25 +794,7 @@ var UnrealEngineAdapter engineAdapter;
         desiredThrustDir = normal(thrustDirB) coordRot cameraRotation;     
         manualAcceleration = fmin(1,vsize(thrustDirB));
 //        desiredThrustDir = vector(getFreeFlightRotation());
-        setFreeFlightAcceleration(getNewFreeFlightAcceleration(delta, playerShip.acceleration, playerShip.velocity, desiredThrustDir, manualAcceleration, freeFlightInertialCompensationFactor));
-
-//        setFreeFlightAcceleration(getNewFreeFlightAcceleration(delta, playerShip.acceleration, playerShip.velocity, vector(getFreeFlightRotation()), manualAcceleration, freeFlightInertialCompensationFactor));
-
-/*
-        // Update acceleration.
-        if (playerShip.acceleration != 0)
-        {
-          inertialCompensationDesiredVelocity = Vector(getFreeFlightRotation()) * (VSize(playerShip.velocity) + (manualAcceleration * playerShip.acceleration));
-          forwardDesiredVelocity = playerShip.velocity + (Vector(getFreeFlightRotation()) * manualAcceleration * playerShip.acceleration);
-
-          newDesiredVelocity = (inertialCompensationDesiredVelocity * freeFlightInertialCompensationFactor) + (forwardDesiredVelocity * (1-freeFlightInertialCompensationFactor));
-          newAcceleration = newDesiredVelocity - playerShip.velocity;
-          if (VSize(newAcceleration) > 1)
-            newAcceleration = Normal(newAcceleration);
-            
-          setFreeFlightAcceleration(newAcceleration);
-        }
-*/        
+        setFreeFlightAcceleration(class'TempIntermediateShipControlStrategy'.static.getNewFreeFlightAcceleration(delta, playerShip.acceleration, playerShip.velocity, desiredThrustDir, manualAcceleration, freeFlightInertialCompensationFactor));
       } 
 
       // Fire Weapons
@@ -821,21 +803,6 @@ var UnrealEngineAdapter engineAdapter;
     }
   }
   
-  simulated static function vector getNewFreeFlightAcceleration(float delta, float shipAcceleration, vector currentVelocity, vector desiredThrustDir, float inputThrottle, float inertialCompensationFactor) {
-    local vector forwardDesiredVelocity;
-    local vector inertialCompensationDesiredVelocity;
-    local vector newDesiredVelocity;
-
-    if (shipAcceleration == 0)
-      return vect(0,0,0);
-      
-    forwardDesiredVelocity = currentVelocity + (desiredThrustDir * inputThrottle * shipAcceleration);
-    inertialCompensationDesiredVelocity = desiredThrustDir * (vsize(currentVelocity) + (inputThrottle * shipAcceleration));
-
-    newDesiredVelocity = (inertialCompensationDesiredVelocity * inertialCompensationFactor) + (forwardDesiredVelocity * (1-inertialCompensationFactor));
-
-    return capVector(newDesiredVelocity - currentVelocity, 1);
-  }
   
   simulated function updateCameraShakeMagnitude(float delta) {
     local float baselineCameraShakeMagnitude;
@@ -1023,7 +990,7 @@ simulated function setAIControl(bool bNewAIControl)
     playerPilot.bFreeFlight = !bNewAIControl;
 
   if (!bAIControl && playerShip != none)
-    setFreeFlightRotation(playerShip.desiredRotation);
+    setFreeFlightRotation(playerShip.getDesiredRotation());
 }
 
 simulated function rotator getFreeFlightRotation() {

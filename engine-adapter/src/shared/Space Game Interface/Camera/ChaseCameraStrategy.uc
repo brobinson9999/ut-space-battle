@@ -35,7 +35,7 @@ simulated function positionCamera(SpaceGameplayInterfaceConcreteBase interface) 
 
     chasedShip = focusContact.getOwnedShip();
     if (chasedShip != none)
-      pilot.chasedContactRotation = chasedShip.desiredrotation;
+      pilot.chasedContactRotation = chasedShip.getDesiredRotation();
 
     pilot.chasedContactRadius = focusContact.estimateContactRadius();
     pilot.chasedContactVelocity = focusContact.getContactVelocity();

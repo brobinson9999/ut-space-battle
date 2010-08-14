@@ -13,15 +13,15 @@ var vector trailOffset;
 // ********************************************************************************************************************************************
 
 simulated function tick(float delta) {
-	super.tick(delta);
+  super.tick(delta);
 
-	if (observed == none)
-		return;
-		
-	if (observed.part.ship.desiredVelocity != Vect(0,0,0))
-		spawnTrail();
-	else
-		killTrail();
+  if (observed == none)
+    return;
+    
+  if (observed.part.ship.pilot.desiredVelocity != Vect(0,0,0))
+    spawnTrail();
+  else
+    killTrail();
 }
 
 // ********************************************************************************************************************************************
@@ -30,26 +30,26 @@ simulated function tick(float delta) {
 // ********************************************************************************************************************************************
 
 simulated function spawnTrail() {
-	local vector spawnLocation;
-	local vector spawnTrailOffset;
-	local rotator spawnRotation;
+  local vector spawnLocation;
+  local vector spawnTrailOffset;
+  local rotator spawnRotation;
 
-	if (trail != none)
-		return;
-		
-	spawnTrailOffset = (trailOffset * observed.drawscale);
-	spawnLocation = observed.location + (spawnTrailOffset CoordRot observed.rotation);
+  if (trail != none)
+    return;
+    
+  spawnTrailOffset = (trailOffset * observed.drawscale);
+  spawnLocation = observed.location + (spawnTrailOffset CoordRot observed.rotation);
 
-	// Always have trails go backward even if parts don't.
-//  	spawnRotation = observed.rotation;
-	spawnRotation = observed.part.ship.rotation;
+  // Always have trails go backward even if parts don't.
+//    spawnRotation = observed.rotation;
+  spawnRotation = observed.part.ship.rotation;
 
-	trail = spawn(trailClass, self,, spawnLocation, spawnRotation);
-	if (trail != none)
-	{
-		trail.setScale(observed.drawScale * emitterScaleFactor);
-		trail.setBase(observed);
-	}
+  trail = spawn(trailClass, self,, spawnLocation, spawnRotation);
+  if (trail != none)
+  {
+    trail.setScale(observed.drawScale * emitterScaleFactor);
+    trail.setBase(observed);
+  }
 }
 
 // ********************************************************************************************************************************************

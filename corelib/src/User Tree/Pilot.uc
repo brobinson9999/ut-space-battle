@@ -14,6 +14,7 @@ simulated function setPilotShip(Ship NewShip) {
 
   if (pilotShip != none) {
     pilotShip.pilot = self;
+    desiredRotation = pilotShip.getPhysicsState().getRotation();
   }
 }
 

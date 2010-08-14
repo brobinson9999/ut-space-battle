@@ -11,7 +11,6 @@ var string shipTypeName;
 
 var private array<ShipSystem>           systems;
 var array<ShipWeapon>           weapons;
-// var array<ShipLaunchBay>        launchBays;
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -24,13 +23,11 @@ var protected SpaceWorker_Ship shipWorker;
 
 var float                       radius;
 var float                       acceleration;
-
-var rotator                     rotation;
-
 var float                       rotationRate;       // Rotational Acceleration.
 
+// TODO Move these to physics state.
+var rotator                     rotation;
 var vector                      rotationalVelocity;
-
 var vector                      shipLocation;
 var vector                      velocity;
 
@@ -39,19 +36,6 @@ var array<ShipObserver> shipObservers;
 
 var bool bCleanedUp;
 var QueuedEvent destroyEvent;
-
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-
-var bool bUseDesiredVelocity;
-
-var vector desiredVelocity;
-var vector desiredAcceleration;
-var rotator desiredRotation;
-
-var Contact desiredVelocity_RelativeTo;
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -264,11 +248,7 @@ simulated function updateShip()
 simulated function vector getLinearAcceleration(float delta) {
   if (pilot != none) {
     pilot.updateLinear();
-    pilot.bUseDesiredVelocity = bUseDesiredVelocity;
-    pilot.desiredVelocity = desiredVelocity;
-    pilot.desiredAcceleration = desiredAcceleration;
     return pilot.getDesiredAcceleration(getPhysicsState(), delta);
-//    return capVector(pilot.getDesiredAcceleration(getPhysicsState(), delta), acceleration);
   } else {
     return vect(0,0,0);
   }
@@ -276,41 +256,16 @@ simulated function vector getLinearAcceleration(float delta) {
 
 simulated function vector getRotationalAcceleration(float delta) {
   if (pilot != none) {
-    pilot.UpdateAngular();
+    pilot.updateAngular();
+    // TODO The pilot should be deciding this.
     pilot.bUseDesiredRotation = true;
-    pilot.desiredRotation = desiredRotation;
 
-    rotationalVelocity = normal(copyRotToVect(desiredRotation unCoordRot rotation)) * vsize(rotationalVelocity);
+    rotationalVelocity = normal(copyRotToVect(getDesiredRotation() unCoordRot rotation)) * vsize(rotationalVelocity);
     return pilot.getDesiredRotationalAcceleration(getPhysicsState(), rotationRate, delta);
-//    return capVector(pilot.getDesiredRotationalAcceleration(getPhysicsState(), rotationRate, delta), rotationRate);
   } else {
     return vect(0,0,0);
   }
 }
-
-/*
-simulated function updateShipPhysics(float delta) {
-  local PhysicsIntegrator integrator;
-  local PhysicsStateInterface physState;
-//  local float maxRotationalAccelerationRate;
-  
-  physState = getPhysicsState();
-  integrator = getPhysicsIntegrator();
-  integrator.linearPhysicsUpdate(physState, delta, getLinearAcceleration(delta));
-  integrator.angularPhysicsUpdate(physState, delta, getRotationalAcceleration(delta));  
-
-  // If the difference in desiredRotation and rotation is less than some quantity, I can just stop the ship at the exact rotation I want.
-  // I need enough rotational acceleration to both stop my rotational velocity, and to move by the desired amount.
-  // This is not perfect since it doesn't take into account current rotational velocity that could be leveraged to get there faster.
-  maxRotationalAccelerationRate = rotationRate * delta;
-  if (2 * vsize(copyRotToVect(smallestRotatorMagnitude(desiredRotation uncoordRot rotation))) + vsize(rotationalVelocity) < maxRotationalAccelerationRate) {
-    physState.setRotation(desiredRotation);
-    physState.setRotationVelocity(vect(0,0,0));
-  } else {
-    getPhysicsIntegrator().angularPhysicsUpdate(physState, delta, rotationalAcceleration);
-  }
-}
-*/
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -318,7 +273,6 @@ simulated function updateShipPhysics(float delta) {
 // ********************************************************************************************************************************************
 
 simulated function applyDamage(float quantity, object instigator);
-//simulated function repair(float quantity);
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -384,30 +338,10 @@ simulated function cleanup()
   setShipWorker(none);
   setShipOwner(none);
   
-  DesiredVelocity_RelativeTo = None;
-
-//  if (dockingSubsystem != none) {
-//    dockingSubsystem.cleanup();
-//    dockingSubsystem = none;
-//  }
-  
   setShipCommon(none);
 
-//  if (physicsIntegrator != none) {
-//    physicsIntegrator.cleanup();
-//    physicsIntegrator = none;
-//  }
-
-//  if (physicsState != none) {
-//    physicsState.cleanup();
-//    physicsState = none;
-//  }
-  
   if (Weapons.Length > 0)
     Weapons.Remove(0,Weapons.Length);
-
-//  while (launchBays.length > 0)
-//    removeLaunchBay(launchBays[0]);
 
   while (systems.length > 0)
     removeSystem(systems[0]);
@@ -463,6 +397,15 @@ simulated function Ship getOutermostDockee() {
 }
 
 simulated function float detection_Strength_Against(Contact other);
+
+// TODO This is used by the Contact class. Contact needs to be changed so that this is no longer necessary!
+simulated function vector tempEstimateAcceleration() {
+  return capVector(pilot.desiredVelocity - getPhysicsState().getVelocity(), acceleration);
+}
+
+simulated function rotator getDesiredRotation() {
+  return pilot.desiredRotation;
+}
 
 defaultproperties
 {

@@ -101,7 +101,7 @@ simulated function Ship createShip_OpenSpace(User newOwner, Sector newSector, ve
   result = createShip(newOwner, factory);
   result.setShipLocation(newLocation);
   result.rotation = rotRand();
-  result.desiredRotation = result.rotation;
+//  result.desiredRotation = result.rotation;
   result.changeSector(newSector);
 
   return result;

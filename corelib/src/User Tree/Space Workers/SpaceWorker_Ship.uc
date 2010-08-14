@@ -157,13 +157,13 @@ simulated function float Rate_Effectiveness_Against_Attack(Contact X)
   // match speed - it looks like it's getting away.. Maybe I should only be measuring approach speed.
 //      Dv = X.getContactVelocity() - Ship.Velocity;
 //      TimeToMatchSpeed = (VSize(Dv) / Ship.Acceleration);
-//      Dp += ((Dv * 0.5) * TimeToMatchSpeed * (1+(Vector(Ship.DesiredRotation) Dot Normal(Dv))));
+//      Dp += ((Dv * 0.5) * TimeToMatchSpeed * (1+(Vector(ship.getDesiredRotation()) Dot Normal(Dv))));
 
   Dv = X.getContactVelocity() - Ship.Velocity;
   RotDv = Dv UnCoordRot Rotator(Dp);
   if (ship.acceleration > 0) {
     TimeToMatchSpeed = (FMin(RotDv.X,0) / Ship.Acceleration);
-    Dp += ((Dv * 0.5) * TimeToMatchSpeed * (1+(Vector(Ship.DesiredRotation) Dot Normal(Dv))));
+    Dp += ((Dv * 0.5) * TimeToMatchSpeed * (1+(Vector(ship.getDesiredRotation()) Dot Normal(Dv))));
   }
 
   XScore = 1;
@@ -180,7 +180,7 @@ simulated function float Rate_Effectiveness_Against_Attack(Contact X)
 //    DistanceFactor = sqrt(VSize(Dp)) + sqrt(VSize(X.getContactLocation()));
 //    XScore /= sqrt(VSize(Dp)) + sqrt(VSize(X.getContactLocation()));
   XScore /= DistanceFactor;
-  XScore *= 0.7 + (Vector(Ship.DesiredRotation) Dot Normal(Dp)) * 0.3;
+  XScore *= 0.7 + (Vector(ship.getDesiredRotation()) Dot Normal(Dp)) * 0.3;
 
 //    XScore *= 1/(VSize(X.getContactLocation()));
 
@@ -223,12 +223,12 @@ simulated function float Rate_Effectiveness_Against_Defense(Contact X)
     // match speed - it looks like it's getting away.. Maybe I should only be measuring approach speed.
 //      Dv = X.getContactVelocity() - Ship.Velocity;
 //      TimeToMatchSpeed = (VSize(Dv) / Ship.Acceleration);
-//      Dp += ((Dv * 0.5) * TimeToMatchSpeed * (1+(Vector(Ship.DesiredRotation) Dot Normal(Dv))));
+//      Dp += ((Dv * 0.5) * TimeToMatchSpeed * (1+(Vector(ship.getDesiredRotation()) Dot Normal(Dv))));
 
     Dv = X.getContactVelocity() - Ship.Velocity;
     RotDv = Dv UnCoordRot Rotator(Dp);
     TimeToMatchSpeed = (FMin(RotDv.X,0) / Ship.Acceleration);
-    Dp += ((Dv * 0.5) * TimeToMatchSpeed * (1+(Vector(Ship.DesiredRotation) Dot Normal(Dv))));
+    Dp += ((Dv * 0.5) * TimeToMatchSpeed * (1+(Vector(ship.getDesiredRotation()) Dot Normal(Dv))));
   }
 
   XScore = 1;
@@ -238,7 +238,7 @@ simulated function float Rate_Effectiveness_Against_Defense(Contact X)
 //    DistanceFactor = sqrt(VSize(Dp)) + sqrt(VSize(X.getContactLocation()));
 //    XScore /= sqrt(VSize(Dp)) + sqrt(VSize(X.getContactLocation()));
   XScore /= DistanceFactor;
-  XScore *= 0.7 + (Vector(Ship.DesiredRotation) Dot Normal(Dp)) * 0.3;
+  XScore *= 0.7 + (Vector(ship.getDesiredRotation()) Dot Normal(Dp)) * 0.3;
 
 //    XScore *= 1/(VSize(X.getContactLocation()));
 
@@ -267,19 +267,19 @@ simulated function float Rate_Effectiveness_Against_Patrol(Contact X)
   // match speed - it looks like it's getting away.. Maybe I should only be measuring approach speed.
 //      Dv = X.getContactVelocity() - Ship.Velocity;
 //      TimeToMatchSpeed = (VSize(Dv) / Ship.Acceleration);
-//      Dp += ((Dv * 0.5) * TimeToMatchSpeed * (1+(Vector(Ship.DesiredRotation) Dot Normal(Dv))));
+//      Dp += ((Dv * 0.5) * TimeToMatchSpeed * (1+(Vector(ship.getDesiredRotation()) Dot Normal(Dv))));
 
   Dv = X.getContactVelocity() - Ship.Velocity;
   RotDv = Dv UnCoordRot Rotator(Dp);
   TimeToMatchSpeed = (FMin(RotDv.X,0) / Ship.Acceleration);
-  Dp += ((Dv * 0.5) * TimeToMatchSpeed * (1+(Vector(Ship.DesiredRotation) Dot Normal(Dv))));
+  Dp += ((Dv * 0.5) * TimeToMatchSpeed * (1+(Vector(ship.getDesiredRotation()) Dot Normal(Dv))));
 
   XScore = 1;
   DistanceFactor = FMax(25, VSize(Dp) / Ship.Acceleration);
 //    DistanceFactor = sqrt(VSize(Dp)) + sqrt(VSize(X.getContactLocation()));
 //    XScore /= sqrt(VSize(Dp)) + sqrt(VSize(X.getContactLocation()));
   XScore /= DistanceFactor;
-  XScore *= 0.7 + (Vector(Ship.DesiredRotation) Dot Normal(Dp)) * 0.3;
+  XScore *= 0.7 + (Vector(ship.getDesiredRotation()) Dot Normal(Dp)) * 0.3;
 
 //    XScore *= 1/(VSize(X.getContactLocation()));
 

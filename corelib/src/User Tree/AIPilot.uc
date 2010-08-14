@@ -265,12 +265,7 @@ simulated function launchIfNecessary() {
   {
     launchIfNecessary();
 
-//    pilotShip.bUseDesiredVelocity = true;
-//    pilotShip.bUseDesiredLocation = false;
-
     setDesiredVelocity(pilotShip.velocity + (pilotShip.acceleration * freeFlightAcceleration));
-    
-    pilotShip.desiredVelocity_RelativeTo = None;
 
     rotationManuever(rm_freeFlight);
   }
@@ -284,7 +279,6 @@ simulated function launchIfNecessary() {
 
     // Don't move. Rotate to face target if we have one.
     setDesiredVelocity(Vect(0,0,0));
-    pilotShip.DesiredVelocity_RelativeTo = None;
 
     rotationManuever(rm_faceInterceptTargetLeadIn);
   }
@@ -298,9 +292,6 @@ simulated function launchIfNecessary() {
     
     launchIfNecessary();
 
-    // Maintain Distance.
-    pilotShip.DesiredVelocity_RelativeTo = interceptTarget_Contact;
-    
     Dp = InterceptTarget_Contact.getContactLocation() - pilotShip.getShipLocation();
     setDesiredVelocity(Normal(Dp) * (VSize(Dp) - 400));
 
@@ -332,7 +323,6 @@ simulated function launchIfNecessary() {
       // cheat - change ship acceleration when farther away and/or going faster.
       pilotShip.acceleration = (vSize(pilotShip.velocity) * 4) + 5000;
       setDesiredVelocity(vect(0,0,0));
-      pilotShip.desiredVelocity_RelativeTo = none;
       return;
     }
       
@@ -354,7 +344,6 @@ simulated function launchIfNecessary() {
 
 
     setDesiredVelocity((normal(Dp) * desiredSpeed) + (chasedContactVelocity * 0.8));
-    pilotShip.desiredVelocity_RelativeTo = none;
 
     // Face some point ahead of the contact.    
     rotateToFacePosition(chasedContactLocation + (Vector(chasedContactRotation) * 50000) + (Normal(chasedContactVelocity) * 0));
@@ -399,16 +388,12 @@ simulated function launchIfNecessary() {
     local float desiredSpeed;
     local vector interceptLocation;
 
-//    pilotShip.bUseDesiredVelocity = true;
-//    pilotShip.bUseDesiredLocation = false;
-
     interceptLocation = formationLeader.getContactLocation() + (relativePosition CoordRot formationLeader.getContactSourceRotation());
     Dp = interceptLocation - pilotShip.getShipLocation();
 
     desiredSpeed = sqrt(2 * vSize(Dp) * pilotShip.acceleration * 0.5);
 
     setDesiredVelocity(normal(Dp) * desiredSpeed);
-    pilotShip.desiredVelocity_RelativeTo = formationLeader;
   }
   
 // ********************************************************************************************************************************************
@@ -462,15 +447,7 @@ simulated function launchIfNecessary() {
     RotatedTargetVelocity = Target_Velocity UnCoordRot Rotator(Dp);
     DesiredSpeed -= -RotatedTargetVelocity.X;
     
-//    pilotShip.bUseDesiredVelocity = true;
-//    pilotShip.bUseDesiredLocation = false;
-
     setDesiredVelocity(Normal(Dp) * DesiredSpeed);
-    pilotShip.DesiredVelocity_RelativeTo = None;
-    
-//    // Indicate manuever completion.
-//    if (LDp < 100)
-//      Manuever_Completed();
   }
 
   simulated function float ProjectileSpeed()
@@ -736,18 +713,21 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
 // ********************************************************************************************************************************************
 
   simulated function setDesiredVelocity(vector newDesiredVelocity) {
-    if (pilotShip != none) {
-      pilotShip.bUseDesiredVelocity = true;
-      pilotShip.desiredVelocity = newDesiredVelocity;
-      pilotShip.desiredAcceleration = pilotShip.acceleration * normal(pilotShip.desiredvelocity - pilotShip.velocity);
-    }
+    local vector currentVelocity;
+    
+    if (pilotShip != none && pilotShip.getPhysicsState() != none)
+      currentVelocity = pilotShip.getPhysicsState().getVelocity();
+    else
+      currentVelocity = vect(0,0,0);
+      
+    bUseDesiredVelocity = true;
+    desiredVelocity = newDesiredVelocity;
+    desiredAcceleration = pilotShip.acceleration * normal(desiredvelocity - currentVelocity);
   }
   
   simulated function setDesiredAcceleration(vector newDesiredAcceleration) {
-    if (pilotShip != none) {
-      pilotShip.bUseDesiredVelocity = false;
-      pilotShip.desiredAcceleration = newDesiredAcceleration;
-    }
+    bUseDesiredVelocity = false;
+    desiredAcceleration = newDesiredAcceleration;
   }
   
 // ********************************************************************************************************************************************
@@ -831,15 +811,15 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
   }
 
   simulated function rotateToFaceAcceleration() {
-    rotateToFacingVector(pilotShip.desiredAcceleration);
+    rotateToFacingVector(desiredAcceleration);
   }
   
   simulated function rotateToFaceDesiredVelocity() {
-    rotateToFacingVector(pilotShip.desiredVelocity);
+    rotateToFacingVector(desiredVelocity);
   }
 
   simulated function rotateToFaceVelocity() {
-    rotateToFacingVector(pilotShip.velocity);
+    rotateToFacingVector(pilotShip.getPhysicsState().getVelocity());
   }
   
   simulated function rotateToFacePosition(vector facingPosition) {
@@ -847,7 +827,7 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
   }
   
   simulated function rotateToFacingVector(vector facingVector) {
-    local rotator newDesiredRotation;
+    local rotator newDesiredRotation, currentRotation;
     local vector relativeVector;
     local rotator relativeRotator;
     
@@ -855,15 +835,17 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
     if (facingVector == vect(0,0,0))
       return;
       
-    relativeVector = facingVector UncoordRot pilotShip.rotation;
+    currentRotation = pilotShip.getPhysicsState().getRotation();
+      
+    relativeVector = facingVector UncoordRot currentRotation;
     relativeRotator = rotator(relativeVector);
-    newDesiredRotation = relativeRotator CoordRot pilotShip.rotation;
+    newDesiredRotation = relativeRotator CoordRot currentRotation;
     
     setDesiredRotation(newDesiredRotation);
   }
   
   simulated function setDesiredRotation(rotator newDesiredRotation) {
-    pilotShip.desiredRotation = newDesiredRotation;
+    desiredRotation = newDesiredRotation;
   }
   
 // ********************************************************************************************************************************************
