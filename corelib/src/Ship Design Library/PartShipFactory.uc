@@ -28,9 +28,9 @@ simulated function recalcPrototypePhysics() {
   // Volume = 4/3*pi*r^3
   // Constant part cancels out
   for (i=0;i<localPrototype.parts.length;i++)
-    volume += (localPrototype.parts[i].radius ** 3);
+    volume += (localPrototype.parts[i].partRadius ** 3);
 
-  localPrototype.radius = volume ** (1.0/3.0);
+  localPrototype.setShipRadius(volume ** (1.0/3.0));
 }
 
 // ********************************************************************************************************************************************
@@ -40,7 +40,7 @@ simulated function recalcPrototypePhysics() {
 
 simulated function recalcPrototypePartPhysics(Part prototypePart)
 {
-  prototypePart.radius = 50 * prototypePart.physicalScale;
+  prototypePart.partRadius = 50 * prototypePart.physicalScale;
 
   // changes here can affect lost (lost? maybe it meant to say lots?)
   recalcPrototypePhysics();

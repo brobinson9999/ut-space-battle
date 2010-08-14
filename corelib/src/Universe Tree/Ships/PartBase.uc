@@ -8,7 +8,7 @@ class PartBase extends BaseObject;
 var PartShip                    ship;
 var vector                      relativeLocation;
 var rotator                     relativeRotation;
-var float                       radius;
+var float                       partRadius;
 var float                       physicalScale;
 
 var bool                        bOnline;
@@ -27,11 +27,11 @@ simulated function initializePart();
 
 simulated function rotator getPartRotation() {
   myAssert(ship != none, "getPartRotation when ship == none");
-  return (relativeRotation CoordRot ship.rotation);
+  return (relativeRotation CoordRot ship.getShipRotation());
 }
 
 simulated function vector getPartLocation() {
-  return ship.getShipLocation() + (relativeLocation CoordRot ship.rotation);
+  return ship.getShipLocation() + (relativeLocation CoordRot ship.getShipRotation());
 }
 
 // ********************************************************************************************************************************************
@@ -55,7 +55,7 @@ simulated function cleanup() {
 }
 
 simulated function initializeClonedPart(Part clone) {
-  clone.radius                  = radius;
+  clone.partRadius              = partRadius;
   clone.physicalScale           = physicalScale;
 
   clone.relativeLocation        = relativeLocation;

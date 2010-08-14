@@ -42,7 +42,7 @@ simulated function spawnTrail() {
 
   // Always have trails go backward even if parts don't.
 //    spawnRotation = observed.rotation;
-  spawnRotation = observed.part.ship.rotation;
+  spawnRotation = observed.part.ship.getShipRotation();
 
   trail = spawn(trailClass, self,, spawnLocation, spawnRotation);
   if (trail != none)

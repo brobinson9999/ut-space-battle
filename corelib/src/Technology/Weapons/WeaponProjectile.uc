@@ -12,7 +12,7 @@ var     Sector      sector;
 
 var     Ship        target;
 var     float       damage;
-var     float       radius;
+var     float       projectileBlastRadius;
 
 var     bool        bRendering;
 
@@ -87,13 +87,13 @@ simulated function impact()
 
     // Determine Damage.
     HitDistance = VSize(EndLocation - Target.getShipLocation());
-    HitDistance = FMax(HitDistance - Radius, 0);
+    HitDistance = FMax(HitDistance - projectileBlastRadius, 0);
 
-    if (HitDistance < Target.Radius)
+    if (HitDistance < Target.getShipRadius())
     {
       notifyProjectileImpacted();
 
-      damageCoefficient = (Target.Radius - HitDistance) / Target.Radius;
+      damageCoefficient = (Target.getShipRadius() - HitDistance) / Target.getShipRadius();
 
       damage *= damageCoefficient;
 //      target.instigator = Instigator;

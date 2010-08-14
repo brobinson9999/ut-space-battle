@@ -26,7 +26,7 @@ simulated function launchShip(Ship shipToLaunch, Ship launchFrom)
 
   shipToLaunch.setShipLocation(part.getPartLocation() + VRand() * 5);
   shipToLaunch.changeSector(launchFrom.sector);
-  shipToLaunch.velocity = launchFrom.velocity;
+  shipToLaunch.setShipVelocity(launchFrom.getShipVelocity());
 }
 
 simulated function cleanup() {

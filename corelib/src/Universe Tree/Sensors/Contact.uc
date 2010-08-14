@@ -16,7 +16,7 @@ class Contact extends BaseObject;
 var Ship                        contactShip;          // The ship this contact is for.
 var vector                      lastKnownLocation;    // Last known location of contact.
 
-var float                       radius;               // Radius of sphere around contact. 0 if pinpointed.
+var float                       contactRadius;        // Radius of sphere around contact. 0 if pinpointed.
 
 var vector                      locationOffsetNormal; // Normal of offset.
 
@@ -79,14 +79,14 @@ simulated function vector getContactSourceLocation()
 
 simulated function vector getContactLocation()
 {
-  return getContactSourceLocation() + (locationOffsetNormal * radius);
+  return getContactSourceLocation() + (locationOffsetNormal * contactRadius);
 }
 
 simulated function rotator getContactSourceRotation() {
   if (contactShip == none)
     return rot(0,0,0);
   else
-    return contactShip.rotation;
+    return contactShip.getShipRotation();
 }
 
 simulated function vector getContactVelocity()
@@ -94,20 +94,14 @@ simulated function vector getContactVelocity()
   if (contactShip == None)
     return Vect(0,0,0);
 
-  return contactShip.Velocity;
+  return contactShip.getShipVelocity();
 }
 
-simulated function vector getContactAcceleration()
-{
-//  local vector VDiff;
-
+simulated function vector getContactAcceleration() {
   if (contactShip == None)
     return Vect(0,0,0);
   else
     return contactShip.tempEstimateAcceleration();
-//  VDiff = contactShip.desiredVelocity - contactShip.velocity;
-
-//  return contactShip.acceleration * Normal(vDiff);
 }
 
 // ********************************************************************************************************************************************
@@ -162,7 +156,7 @@ simulated function bool isHostile() {
 
 simulated function float estimateContactRadius() {
   if (contactShip != none)
-    return contactShip.radius;
+    return contactShip.getShipRadius();
   else
     return 100;
 }
@@ -178,7 +172,7 @@ simulated function float getSensorSignature() {
   if (contactShip == none)
     return 0;
 
-  return contactShip.radius;
+  return contactShip.getShipRadius();
 }
 
 // ********************************************************************************************************************************************
@@ -273,5 +267,5 @@ simulated function cleanup()
 
 defaultproperties
 {
-  radius=10000
+  contactRadius=10000
 }

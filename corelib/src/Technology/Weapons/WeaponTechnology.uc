@@ -8,7 +8,7 @@ var     float     burstRefireTime;
 // Effects
 var     float     intensity;
 var     float     precision;
-var     float     radius;
+var     float     weaponBlastRadius;
 
 // Projectiles
 var     float     muzzleVelocity;

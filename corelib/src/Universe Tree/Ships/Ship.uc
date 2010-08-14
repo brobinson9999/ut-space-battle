@@ -12,24 +12,12 @@ var string shipTypeName;
 var private array<ShipSystem>           systems;
 var array<ShipWeapon>           weapons;
 
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-
 var Pilot pilot;
-var protected SpaceWorker_Ship shipWorker;
+var private SpaceWorker_Ship shipWorker;
 
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-
-var float                       radius;
-var float                       acceleration;
-var float                       rotationRate;       // Rotational Acceleration.
-
-// TODO Move these to physics state.
-var rotator                     rotation;
-var vector                      rotationalVelocity;
-var vector                      shipLocation;
-var vector                      velocity;
+var private float                       shipRadius;
+var private float                       shipMaximumAcceleration;
+var private float                       shipMaximumRotationalAcceleration;
 
 var Sector sector;
 var array<ShipObserver> shipObservers;
@@ -61,7 +49,8 @@ simulated function setShipCommon(ShipCommon newShipCommon) {
   shipCommon = newShipCommon;
 
   if (shipCommon != none) {
-    shipCommon.setPhysicsState(class'ShipReferencePhysicsState'.static.createNewShipReferencePhysicsState(self));
+    shipCommon.setPhysicsState(StoredPhysicsState(allocateObject(class'StoredPhysicsState')));
+//    shipCommon.setPhysicsState(class'ShipReferencePhysicsState'.static.createNewShipReferencePhysicsState(self));
     shipCommon.setPhysicsIntegrator(PhysicsIntegrator(allocateObject(class'DefaultPhysicsIntegrator')));
     shipCommon.setShipControlStrategy(class'ShipReferenceShipControlStrategy'.static.createNewShipReferenceShipControlStrategy(self));
   }
@@ -117,12 +106,36 @@ simulated function array<ShipLaunchBay> getLaunchBays() {
 // ********************************************************************************************************************************************
 // ** Things delegated elsewhere
 
+simulated function rotator getShipRotation() {
+  return getPhysicsState().getRotation();
+}
+
+simulated function setShipRotation(rotator newShipRotation) {
+  getPhysicsState().setRotation(newShipRotation);
+}
+
+simulated function vector getShipRotationalVelocity() {
+  return getPhysicsState().getRotationVelocity();
+}
+
+simulated function setShipRotationalVelocity(vector newShipRotationalVelocity) {
+  getPhysicsState().setRotationVelocity(newShipRotationalVelocity);
+}
+
 simulated function vector getShipLocation() {
   return getPhysicsState().getLocation();
 }
 
 simulated function setShipLocation(vector newLocation) {
   getPhysicsState().setLocation(newLocation);
+}
+
+simulated function vector getShipVelocity() {
+  return getPhysicsState().getVelocity();
+}
+
+simulated function setShipVelocity(vector newShipVelocity) {
+  getPhysicsState().setVelocity(newShipVelocity);
 }
 
 // ********************************************************************************************************************************************
@@ -170,7 +183,31 @@ simulated function removeSystem(ShipSystem oldSystem) {
     }
   }
 }
+
+simulated function float getShipRadius() {
+  return shipRadius;
+}
   
+simulated function setShipRadius(float newRadius) {
+  shipRadius = newRadius;
+}
+
+simulated function float getShipMaximumAcceleration() {
+  return shipMaximumAcceleration;
+}
+  
+simulated function setShipMaximumAcceleration(float newMaximumAcceleration) {
+  shipMaximumAcceleration = newMaximumAcceleration;
+}
+
+simulated function float getShipMaximumRotationalAcceleration() {
+  return shipMaximumRotationalAcceleration;
+}
+  
+simulated function setShipMaximumRotationalAcceleration(float newMaximumRotationalAcceleration) {
+  shipMaximumRotationalAcceleration = newMaximumRotationalAcceleration;
+}
+
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -240,8 +277,8 @@ simulated function updateShip()
   for (i=systems.length-1;i>=0;i--)
     systems[i].updateShipSystem();
 
-  getShipCommon().maximumLinearAcceleration = acceleration;
-  getShipCommon().maximumRotationalAcceleration = rotationRate;
+  getShipCommon().maximumLinearAcceleration = getShipMaximumAcceleration();
+  getShipCommon().maximumRotationalAcceleration = getShipMaximumRotationalAcceleration();
   getShipCommon().updateShipPhysics(delta);
 }
 
@@ -260,8 +297,8 @@ simulated function vector getRotationalAcceleration(float delta) {
     // TODO The pilot should be deciding this.
     pilot.bUseDesiredRotation = true;
 
-    rotationalVelocity = normal(copyRotToVect(getDesiredRotation() unCoordRot rotation)) * vsize(rotationalVelocity);
-    return pilot.getDesiredRotationalAcceleration(getPhysicsState(), rotationRate, delta);
+    setShipRotationalVelocity(normal(copyRotToVect(getDesiredRotation() unCoordRot getShipRotation())) * vsize(getShipRotationalVelocity()));
+    return pilot.getDesiredRotationalAcceleration(getPhysicsState(), getShipMaximumRotationalAcceleration(), delta);
   } else {
     return vect(0,0,0);
   }
@@ -294,7 +331,6 @@ simulated function shipCritical(object instigator)
 
   destroyEvent = getClock().addAlarm(getCurrentTime() + 5, self);
   destroyEvent.callback = destroyTimeElapsed;
-//    destroyTime = getCurrentTime() + 5;
 }
 
 simulated function destroyTimeElapsed() {
@@ -370,9 +406,10 @@ simulated function initializeClonedShip(Ship clone)
 {
   local int i;
   
-  clone.acceleration          = acceleration;
-  clone.rotationRate          = rotationRate;
-  clone.radius                = radius;
+  clone.setShipMaximumAcceleration(getShipMaximumAcceleration());
+  clone.setShipMaximumRotationalAcceleration(getShipMaximumRotationalAcceleration());
+  clone.setShipRadius(getShipRadius());
+  
   clone.shipTypeName          = shipTypeName;
   
   for (i=0;i<systems.length;i++)
@@ -400,7 +437,7 @@ simulated function float detection_Strength_Against(Contact other);
 
 // TODO This is used by the Contact class. Contact needs to be changed so that this is no longer necessary!
 simulated function vector tempEstimateAcceleration() {
-  return capVector(pilot.desiredVelocity - getPhysicsState().getVelocity(), acceleration);
+  return capVector(pilot.desiredVelocity - getPhysicsState().getVelocity(), getShipMaximumAcceleration());
 }
 
 simulated function rotator getDesiredRotation() {

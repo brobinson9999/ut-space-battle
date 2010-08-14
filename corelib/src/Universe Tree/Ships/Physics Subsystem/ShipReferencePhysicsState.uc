@@ -7,35 +7,35 @@ simulated function setReference(Ship newReference) {
 }
 
 simulated function vector getLocation() {
-  return storedReference.shipLocation;
+  return storedReference.getShipLocation();
 }
 
 simulated function setLocation(vector newValue) {
-  storedReference.shipLocation = newValue;
+  storedReference.setShipLocation(newValue);
 }
 
 simulated function vector getVelocity() {
-  return storedReference.velocity;
+  return storedReference.getShipVelocity();
 }
 
 simulated function setVelocity(vector newValue) {
-  storedReference.velocity = newValue;
+  storedReference.setShipVelocity(newValue);
 }
 
 simulated function rotator getRotation() {
-  return storedReference.rotation;
+  return storedReference.getShipRotation();
 }
 
 simulated function setRotation(rotator newValue) {
-  storedReference.rotation = newValue;
+  storedReference.setShipRotation(newValue);
 }
 
 simulated function vector getRotationVelocity() {
-  return storedReference.rotationalVelocity;
+  return storedReference.getShipRotationalVelocity();
 }
 
 simulated function setRotationVelocity(vector newValue) {
-  storedReference.rotationalVelocity = newValue;
+  storedReference.setShipRotationalVelocity(newValue);
 }
 
 simulated function cleanup() {

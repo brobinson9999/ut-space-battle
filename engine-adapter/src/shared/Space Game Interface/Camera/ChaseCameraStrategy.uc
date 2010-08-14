@@ -52,7 +52,7 @@ simulated function positionCamera(SpaceGameplayInterfaceConcreteBase interface) 
     smoothedPosition = (interface.cameraLocation * 0.9) + (chaseCameraShip.getShipLocation() * 0.1);
   }
 
-  interface.cameraRotation = chaseCameraShip.rotation;
+  interface.cameraRotation = chaseCameraShip.getShipRotation();
   interface.cameraLocation = smoothedPosition;
 
   if (focusContact != none) {

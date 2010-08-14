@@ -9,7 +9,7 @@ simulated function runTests() {
   ship = Ship(allocateObject(class'Ship'));
   physicsState = ship.getPhysicsState();
   
-  ship.acceleration = 100;
+  ship.setShipMaximumAcceleration(100);
   
   shipController.desiredAcceleration = vect(50,0,0);
   myAssert(shipController.getDesiredAcceleration(physicsState, 1) == vect(50,0,0), "specified desired acceleration");
@@ -26,7 +26,7 @@ simulated function runTests() {
 
   shipController.bUseDesiredVelocity = true;
   shipController.desiredVelocity = vect(0,0,0);
-  ship.velocity = vect(0,0,0);
+  ship.setShipVelocity(vect(0,0,0));
 
   myAssert(shipController.getDesiredAcceleration(physicsState, 0.5) == vect(0,0,0), "desired velocity - no change");
 
@@ -39,41 +39,41 @@ simulated function runTests() {
   shipController.desiredVelocity = vect(100,0,0);
   myAssert(shipController.getDesiredAcceleration(physicsState, 2) == vect(50,0,0), "desired velocity - excess time");
 
-  ship.rotationRate = 100;
-  ship.rotation = rot(0,0,0);
-  ship.rotationalVelocity = vect(0,0,0);
+  ship.setShipMaximumRotationalAcceleration(100);
+  ship.setShipRotation(rot(0,0,0));
+  ship.setShipRotationalVelocity(vect(0,0,0));
 
   shipController.bUseDesiredRotationRate = true;
 
   shipController.desiredRotationRate = vect(0,0,0);
-  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.rotationRate, 0.5) == vect(0,0,0), "desired rotation rate - no change");
+  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.getShipMaximumRotationalAcceleration(), 0.5) == vect(0,0,0), "desired rotation rate - no change");
   shipController.desiredRotationRate = vect(100,0,0);
-  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.rotationRate, 0.5) == vect(200,0,0), "desired rotation rate - full acceleration");
+  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.getShipMaximumRotationalAcceleration(), 0.5) == vect(200,0,0), "desired rotation rate - full acceleration");
   shipController.desiredRotationRate = vect(100,0,0);
-  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.rotationRate, 1) == vect(100,0,0), "desired rotation rate - full acceleration");
+  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.getShipMaximumRotationalAcceleration(), 1) == vect(100,0,0), "desired rotation rate - full acceleration");
   shipController.desiredRotationRate = vect(0,100,0);
-  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.rotationRate, 1) == vect(0,100,0), "desired rotation rate - full acceleration");
+  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.getShipMaximumRotationalAcceleration(), 1) == vect(0,100,0), "desired rotation rate - full acceleration");
   shipController.desiredRotationRate = vect(100,0,0);
-  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.rotationRate, 2) == vect(50,0,0), "desired rotation rate - excess time");
+  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.getShipMaximumRotationalAcceleration(), 2) == vect(50,0,0), "desired rotation rate - excess time");
   shipController.desiredRotationRate = vect(-100,0,0);
-  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.rotationRate, 1) == vect(-100,0,0), "desired rotation rate - reverse acceleration");
+  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.getShipMaximumRotationalAcceleration(), 1) == vect(-100,0,0), "desired rotation rate - reverse acceleration");
 
-  ship.rotationalVelocity = vect(65500,0,0);
+  ship.setShipRotationalVelocity(vect(65500,0,0));
   shipController.desiredRotationRate = vect(100,0,0);
-  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.rotationRate, 1) == vect(136,0,0), "desired rotation rate - wraparound");
+  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.getShipMaximumRotationalAcceleration(), 1) == vect(136,0,0), "desired rotation rate - wraparound");
 
-  ship.rotationalVelocity = vect(100,0,0);
+  ship.setShipRotationalVelocity(vect(100,0,0));
   shipController.desiredRotationRate = vect(65500,0,0);
-  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.rotationRate, 1) == vect(-136,0,0), "desired rotation rate - reverse wraparound");
+  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.getShipMaximumRotationalAcceleration(), 1) == vect(-136,0,0), "desired rotation rate - reverse wraparound");
 
   myAssert(shipController.getDesiredChangeRateWithAcceleration(1, vect(50,0,0), 100) == vect(100,0,0), "getDesiredChangeRateWithAcceleration");
   myAssert(shipController.getDesiredChangeRateWithAcceleration(1, vect(50,0,0), 400) == vect(200,0,0), "getDesiredChangeRateWithAcceleration");
 
   shipController.bUseDesiredRotation = true;
-  ship.rotationalVelocity = vect(0,0,0);
+  ship.setShipRotationalVelocity(vect(0,0,0));
   shipController.desiredRotation = rot(50,0,0);
   shipController.useRotationRateFactor = 1;
-  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.rotationRate, 1) == vect(0,100,0), "desired rotation");
+  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.getShipMaximumRotationalAcceleration(), 1) == vect(0,100,0), "desired rotation");
 
 // change rate with acceleration
 // max change rate should be the rate that we can decelerate from within the allotted time
@@ -84,24 +84,24 @@ simulated function runTests() {
 /*
 
   shipController.desiredRotation = rot(0,0,0);
-  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.rotationRate, 0.5) == rot(0,0,0), "desired rotation - no change");
+  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.getShipMaximumRotationalAcceleration(), 0.5) == rot(0,0,0), "desired rotation - no change");
   shipController.desiredRotation = rot(100,0,0);
-  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.rotationRate, 0.5) == rot(100,0,0), "desired rotation - full acceleration");
+  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.getShipMaximumRotationalAcceleration(), 0.5) == rot(100,0,0), "desired rotation - full acceleration");
   shipController.desiredRotation = rot(100,0,0);
-  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.rotationRate, 1) == rot(100,0,0), "desired rotation - full acceleration");
+  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.getShipMaximumRotationalAcceleration(), 1) == rot(100,0,0), "desired rotation - full acceleration");
   shipController.desiredRotation = rot(0,100,0);
-  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.rotationRate, 1) == rot(0,100,0), "desired rotation - full acceleration");
+  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.getShipMaximumRotationalAcceleration(), 1) == rot(0,100,0), "desired rotation - full acceleration");
   shipController.desiredRotation = rot(100,0,0);
-  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.rotationRate, 2) == rot(50,0,0), "desired rotation - excess time");
+  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.getShipMaximumRotationalAcceleration(), 2) == rot(50,0,0), "desired rotation - excess time");
   shipController.desiredRotation = rot(-100,0,0);
-  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.rotationRate, 1) == rot(-100,00,0), "desired rotation - reverse acceleration");
+  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.getShipMaximumRotationalAcceleration(), 1) == rot(-100,00,0), "desired rotation - reverse acceleration");
 
-  ship.rotation = rot(65500,0,0);
+  ship.getShipRotation() = rot(65500,0,0);
   shipController.desiredRotation = rot(100,0,0);
-  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.rotationRate, 1) == rot(100,00,0), "desired rotation - wraparound");
+  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.getShipMaximumRotationalAcceleration(), 1) == rot(100,00,0), "desired rotation - wraparound");
 
-  ship.rotation = rot(100,0,0);
+  ship.getShipRotation() = rot(100,0,0);
   shipController.desiredRotation = rot(65500,0,0);
-  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.rotationRate, 1) == rot(-100,00,0), "desired rotation - reverse wraparound");
+  myAssert(shipController.getDesiredRotationalAcceleration(physicsState, ship.getShipMaximumRotationalAcceleration(), 1) == rot(-100,00,0), "desired rotation - reverse wraparound");
   */
 }

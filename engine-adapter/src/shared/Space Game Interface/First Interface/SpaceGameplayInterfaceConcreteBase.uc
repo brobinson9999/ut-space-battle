@@ -162,7 +162,7 @@ var UnrealEngineAdapter engineAdapter;
       drawStatusMessage(canvas, "System Status");
       
       // Show Desired Rotation Marker.
-      aimAccuracy = abs(acos(vector(playerShip.rotation) dot vector(playerShip.getDesiredRotation()))) / (PI);
+      aimAccuracy = abs(acos(vector(playerShip.getShipRotation()) dot vector(playerShip.getDesiredRotation()))) / (PI);
       aimAccuracy = aimAccuracy ** 0.1;
       aimAccuracy = (2 - aimAccuracy) * 0.5;
       if (!(aimAccuracy > 0))
@@ -174,7 +174,7 @@ var UnrealEngineAdapter engineAdapter;
       bracketColor.G = bracketColor.G * aimAccuracy;
       bracketColor.B = bracketColor.B * aimAccuracy;
       canvas.setDrawColor(bracketColor);
-      drawBracketString(canvas, playerShip.getShipLocation(), vector(playerShip.getDesiredRotation()), 5, playerShip.radius * 0.1, 1, playerShip.radius * 7.5, playerShip.radius * 5);
+      drawBracketString(canvas, playerShip.getShipLocation(), vector(playerShip.getDesiredRotation()), 5, playerShip.getShipRadius() * 0.1, 1, playerShip.getShipRadius() * 7.5, playerShip.getShipRadius() * 5);
       
       // Show Heading Indicators.
       bracketColor = reticleColorFriendly;
@@ -183,7 +183,7 @@ var UnrealEngineAdapter engineAdapter;
       bracketColor.B = bracketColor.B * aimAccuracy;
 
       canvas.setDrawColor(bracketColor);
-      drawBracketString(canvas, playerShip.getShipLocation(), vector(playerShip.rotation), 10, playerShip.radius * 0.25, 1, playerShip.radius * 5, playerShip.radius * 5);
+      drawBracketString(canvas, playerShip.getShipLocation(), vector(playerShip.getShipRotation()), 10, playerShip.getShipRadius() * 0.25, 1, playerShip.getShipRadius() * 5, playerShip.getShipRadius() * 5);
 
       playerShipWorker = playerShip.getShipWorker();
       if (playerShipWorker != none) {
@@ -571,7 +571,7 @@ var UnrealEngineAdapter engineAdapter;
     targetRadius = target.estimateContactRadius();
     targetScreenWidth = canvas.convertWorldWidthToCanvasWidth(VSize(deltaPosition), targetRadius);
 
-    alphaMod = FMax(1 - (target.radius / 500), 0.1);
+    alphaMod = FMax(1 - (target.contactRadius / 500), 0.1);
 
     if (target.isFriendly())
       baseColor = alphaModColor(reticleColorFriendly, alphaMod);
@@ -605,14 +605,14 @@ var UnrealEngineAdapter engineAdapter;
 
       if (HUDReadoutType == HUD_Physics) {
 
-        ReadoutText[ReadoutText.Length] = "Range: "$VSize(playerShip.shipLocation - target.getContactLocation())$" u";
+        ReadoutText[ReadoutText.Length] = "Range: "$VSize(playerShip.getShipLocation() - target.getContactLocation())$" u";
         if (playerShip != none) {
-          Dv = playerShip.velocity - target.getContactVelocity();
+          Dv = playerShip.getShipVelocity() - target.getContactVelocity();
           rotDv = Dv UnCoordRot Rotator(deltaPosition);
           ReadoutText[ReadoutText.Length] = "Approach: "$rotDv.x$" us";
         }
       } else if (HUDReadoutType == HUD_Sensors) {
-        readoutText[ReadoutText.Length] = "Sensor: "$target.radius$" u";
+        readoutText[ReadoutText.Length] = "Sensor: "$target.contactRadius$" u";
         readoutText[ReadoutText.Length] = "Target: "$target.estimateContactRadius()$" u";
       } else if (HUDReadoutType == HUD_ShipID) {
         contactOwner = target.estimateContactUser();
@@ -794,7 +794,7 @@ var UnrealEngineAdapter engineAdapter;
         desiredThrustDir = normal(thrustDirB) coordRot cameraRotation;     
         manualAcceleration = fmin(1,vsize(thrustDirB));
 //        desiredThrustDir = vector(getFreeFlightRotation());
-        setFreeFlightAcceleration(class'TempIntermediateShipControlStrategy'.static.getNewFreeFlightAcceleration(delta, playerShip.acceleration, playerShip.velocity, desiredThrustDir, manualAcceleration, freeFlightInertialCompensationFactor));
+        setFreeFlightAcceleration(class'TempIntermediateShipControlStrategy'.static.getNewFreeFlightAcceleration(delta, playerShip.getShipMaximumAcceleration(), playerShip.getShipVelocity(), desiredThrustDir, manualAcceleration, freeFlightInertialCompensationFactor));
       } 
 
       // Fire Weapons

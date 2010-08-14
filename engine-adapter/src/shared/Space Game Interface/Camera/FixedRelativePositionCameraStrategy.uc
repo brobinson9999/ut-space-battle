@@ -16,14 +16,14 @@ class FixedRelativePositionCameraStrategy extends CameraStrategy;
       return;
       
     if (bRelativePositionScaledByRadius)
-      positionScalar = interface.playerShip.radius;
+      positionScalar = interface.playerShip.getShipRadius();
     else
       positionScalar = 1;
     
     if (bFaceDesiredRotation)
       interface.cameraRotation = interface.playerShip.getDesiredRotation();
     else
-      interface.cameraRotation = interface.playerShip.rotation;
+      interface.cameraRotation = interface.playerShip.getShipRotation();
       
     interface.cameraLocation = interface.playerShip.getShipLocation() + ((relativePosition * positionScalar) coordRot interface.cameraRotation);
   }

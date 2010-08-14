@@ -265,7 +265,7 @@ simulated function launchIfNecessary() {
   {
     launchIfNecessary();
 
-    setDesiredVelocity(pilotShip.velocity + (pilotShip.acceleration * freeFlightAcceleration));
+    setDesiredVelocity(pilotShip.getShipVelocity() + (pilotShip.getShipMaximumAcceleration() * freeFlightAcceleration));
 
     rotationManuever(rm_freeFlight);
   }
@@ -321,7 +321,7 @@ simulated function launchIfNecessary() {
     
     if (interceptTarget_Contact == none) {
       // cheat - change ship acceleration when farther away and/or going faster.
-      pilotShip.acceleration = (vSize(pilotShip.velocity) * 4) + 5000;
+      pilotShip.setShipMaximumAcceleration((vSize(pilotShip.getShipVelocity()) * 4) + 5000);
       setDesiredVelocity(vect(0,0,0));
       return;
     }
@@ -338,9 +338,9 @@ simulated function launchIfNecessary() {
     Dp = interceptLocation - pilotShip.getShipLocation();
 
     // cheat - change ship acceleration when farther away and/or going faster.
-    pilotShip.acceleration = vSize(Dp) + vSize(chasedContactVelocity - pilotShip.velocity) + 5000;
+    pilotShip.setShipMaximumAcceleration(vSize(Dp) + vSize(chasedContactVelocity - pilotShip.getShipVelocity()) + 5000);
 
-    desiredSpeed = sqrt(2 * vSize(Dp) * pilotShip.acceleration * 0.5);
+    desiredSpeed = sqrt(2 * vSize(Dp) * pilotShip.getShipMaximumAcceleration() * 0.5);
 
 
     setDesiredVelocity((normal(Dp) * desiredSpeed) + (chasedContactVelocity * 0.8));
@@ -374,7 +374,7 @@ simulated function launchIfNecessary() {
     moveToFormation(interceptTarget_Contact, (normal(pilotShip.getShipLocation() - interceptTarget_Contact.getContactLocation()) uncoordRot interceptTarget_Contact.getContactSourceRotation()) * strafeDistanceForWeapons(interceptTarget_Contact, desiredStrafeAccuracy));
 
     // Use generic intercept.
-    AMIntercept_Generic(interceptTarget_Contact.getContactLocation(), interceptTarget_Contact.getContactVelocity(), pilotShip.acceleration * desiredInterceptionSpeedFactor, pilotShip.acceleration);
+    AMIntercept_Generic(interceptTarget_Contact.getContactLocation(), interceptTarget_Contact.getContactVelocity(), pilotShip.getShipMaximumAcceleration() * desiredInterceptionSpeedFactor, pilotShip.getShipMaximumAcceleration());
     rotationManuever(rm_faceInterceptTargetLeadIn);
   }
 
@@ -391,7 +391,7 @@ simulated function launchIfNecessary() {
     interceptLocation = formationLeader.getContactLocation() + (relativePosition CoordRot formationLeader.getContactSourceRotation());
     Dp = interceptLocation - pilotShip.getShipLocation();
 
-    desiredSpeed = sqrt(2 * vSize(Dp) * pilotShip.acceleration * 0.5);
+    desiredSpeed = sqrt(2 * vSize(Dp) * pilotShip.getShipMaximumAcceleration() * 0.5);
 
     setDesiredVelocity(normal(Dp) * desiredSpeed);
   }
@@ -440,7 +440,7 @@ simulated function launchIfNecessary() {
     
     // 20081109: Worked out in black notebook.
     // Desired Approach Speed.
-    DesiredSpeed = sqrt((2 * LDp * pilotShip.Acceleration * ExpectDecelThrottle) + (InterceptSpeed ** 2));
+    DesiredSpeed = sqrt((2 * LDp * pilotShip.getShipMaximumAcceleration() * ExpectDecelThrottle) + (InterceptSpeed ** 2));
 
     // I have the desired approach speed, (that is under my control) but I have to factor in the target's approach speed as well.
     // If RotatedTargetVelocity.X is negative, the target is approaching me.
@@ -461,7 +461,7 @@ simulated function launchIfNecessary() {
   }
 
 simulated function vector AM_Intercept_Calculate_Lead_In(vector Target_Position, vector Target_Velocity, float ProjSpeed) {
-  return calculateLeadIn(pilotShip.getShipLocation(), pilotShip.velocity, target_position, target_velocity, projSpeed);
+  return calculateLeadIn(pilotShip.getShipLocation(), pilotShip.getShipVelocity(), target_position, target_velocity, projSpeed);
 }
 
 simulated static function vector calculateLeadIn(vector ownLocation, vector ownVelocity, vector Target_Position, vector Target_Velocity, float ProjSpeed) {
@@ -533,7 +533,7 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
     }
 
     // Use generic intercept.
-    AMIntercept_Generic(InterceptTarget_Ship.getShipLocation(), InterceptTarget_Ship.Velocity, pilotShip.Acceleration * 1, 0);
+    AMIntercept_Generic(InterceptTarget_Ship.getShipLocation(), InterceptTarget_Ship.getShipVelocity(), pilotShip.getShipMaximumAcceleration() * 1, 0);
   }
 
 // ********************************************************************************************************************************************
@@ -559,7 +559,7 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
     }
     
     // Use generic orbit.
-    Generic_Orbit(InterceptTarget_Contact.getContactLocation(), strafeDistanceForShip(interceptTarget_Contact, pilotShip.acceleration * 2, desiredDefenseAccuracy), pilotShip.Acceleration * 5);
+    Generic_Orbit(InterceptTarget_Contact.getContactLocation(), strafeDistanceForShip(interceptTarget_Contact, pilotShip.getShipMaximumAcceleration() * 2, desiredDefenseAccuracy), pilotShip.getShipMaximumAcceleration() * 5);
 
 
     if (fixedWeaponsTarget != none)
@@ -583,7 +583,7 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
     }
 
     // Use generic orbit.
-    generic_Orbit(interceptTarget_Contact.getContactLocation(), strafeDistanceForWeapons(interceptTarget_Contact, desiredStrafeAccuracy), pilotShip.acceleration * 5);
+    generic_Orbit(interceptTarget_Contact.getContactLocation(), strafeDistanceForWeapons(interceptTarget_Contact, desiredStrafeAccuracy), pilotShip.getShipMaximumAcceleration() * 5);
 
     if (hasFixedWeapons(pilotShip))
       rotationManuever(rm_faceInterceptTargetLeadIn);
@@ -601,7 +601,7 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
   {
     local float result;
 
-    result = ((2 * strafeSpeed)**2) / (pi * pilotShip.acceleration);
+    result = ((2 * strafeSpeed)**2) / (pi * pilotShip.getShipMaximumAcceleration());
 
     return result;
   }
@@ -659,7 +659,7 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
 
     LocDiff = TargetLocation - pilotShip.getShipLocation();
 
-    RotModdedLocDiff = pilotShip.Velocity UnCoordRot Rotator(LocDiff);
+    RotModdedLocDiff = pilotShip.getShipVelocity() UnCoordRot Rotator(LocDiff);
     RotModdedLocDiff.X = 0;
     TweakedLocDiff = RotModdedLocDiff CoordRot Rotator(LocDiff);
 
@@ -722,7 +722,7 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
       
     bUseDesiredVelocity = true;
     desiredVelocity = newDesiredVelocity;
-    desiredAcceleration = pilotShip.acceleration * normal(desiredvelocity - currentVelocity);
+    desiredAcceleration = pilotShip.getShipMaximumAcceleration() * normal(desiredvelocity - currentVelocity);
   }
   
   simulated function setDesiredAcceleration(vector newDesiredAcceleration) {
@@ -762,7 +762,7 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
   simulated function rotationManuever(int manueverType) {
     switch (manueverType) {
       case rm_stationary:
-        setDesiredRotation(pilotShip.rotation);
+        setDesiredRotation(pilotShip.getShipRotation());
         break;
       case rm_faceAcceleration:
         rotateToFaceAcceleration();

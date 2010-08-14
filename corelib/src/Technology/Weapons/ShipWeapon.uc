@@ -94,13 +94,13 @@ class ShipWeapon extends Part;
     newProjectile = WeaponProjectile(allocateObject(class'WeaponProjectile'));
     newProjectile.Damage = localTechnology.Intensity;
     newProjectile.StartTime = getCurrentTime(); // Used to be the ships last update time - that causes problems and is not correct. If we use the ships last update time impact events can be scheduled prior to the current game time.
-    newProjectile.StartLocation = Ship.getShipLocation() + (RelativeLocation CoordRot Ship.Rotation);
+    newProjectile.StartLocation = Ship.getShipLocation() + (RelativeLocation CoordRot Ship.getShipRotation());
     
     // Should go through the contact for this...
     newProjectile.Target = Target.contactShip;
     
     
-    newProjectile.Radius = localTechnology.Radius;
+    newProjectile.projectileBlastRadius = localTechnology.weaponBlastRadius;
     
     newProjectile.Owner = Ship.getShipOwner();
     newProjectile.Instigator = newProjectile.Owner;
@@ -109,7 +109,7 @@ class ShipWeapon extends Part;
     // We want to distribute fire through the area that the contact might be.
     // To do this we pick a random point in a sphere around the center of the contact,
     // with radius equal to the amount of uncertainty in the contact's recorded position.
-    guessedLocation = target.getContactLocation() + (vRand() * fRand() * target.radius);
+    guessedLocation = target.getContactLocation() + (vRand() * fRand() * target.contactRadius);
     newProjectile.EndLocation = guessedLocation;
     range = VSize(newProjectile.EndLocation - newProjectile.StartLocation);
 
@@ -121,7 +121,7 @@ class ShipWeapon extends Part;
       // I think this can be improved.
 
       // Determine actual projectile speed.
-      ShotVelocity = localTechnology.MuzzleVelocity + VSize(Ship.Velocity);
+      ShotVelocity = localTechnology.MuzzleVelocity + VSize(Ship.getShipVelocity());
 
       // Estimate lead in.
       oldRangeGuess = range;
@@ -141,18 +141,18 @@ class ShipWeapon extends Part;
     }
 
     // If we don't know the target's exact location, we want to fire within the envelope of space that we think the target is in.
-    if (target.radius > 0)
-      newProjectile.endLocation += VRand() * FRand() * target.radius;
+    if (target.contactRadius > 0)
+      newProjectile.endLocation += VRand() * FRand() * target.contactRadius;
 
     desiredFireDirection = normal(newProjectile.endLocation - newProjectile.startLocation);
-    actualFireDirection = getBestFireDirection(desiredFireDirection, vector(ship.rotation), maxFireArc);
+    actualFireDirection = getBestFireDirection(desiredFireDirection, vector(ship.getShipRotation()), maxFireArc);
     newProjectile.endLocation = newProjectile.startLocation + (actualFireDirection * vsize(newProjectile.endLocation - newProjectile.startLocation));
     
     newProjectile.endLocation += VRand() * FRand() * localTechnology.precision * range;
 
     if (localTechnology.muzzleVelocity > 0) {
       // Setup End Time and Impact Event.
-      newProjectile.endTime = newProjectile.startTime + (range / (localTechnology.muzzleVelocity + VSize(ship.velocity)));
+      newProjectile.endTime = newProjectile.startTime + (range / (localTechnology.muzzleVelocity + VSize(ship.getShipVelocity())));
       ship.sector.projectileEnteredSector(newProjectile);
     } else {
       // Impact immediately.
@@ -202,7 +202,7 @@ class ShipWeapon extends Part;
       return 0;
     
     // Get Target Location.
-    TargetLocation = class'AIPilot'.static.calculateLeadIn(ship.getShipLocation(), ship.velocity, target.getContactLocation(), target.getContactVelocity(), localTechnology.MuzzleVelocity);
+    TargetLocation = class'AIPilot'.static.calculateLeadIn(ship.getShipLocation(), ship.getShipVelocity(), target.getContactLocation(), target.getContactVelocity(), localTechnology.MuzzleVelocity);
     
     // Determine range.
     Range = VSize(TargetLocation - Ship.getShipLocation());
@@ -217,14 +217,14 @@ class ShipWeapon extends Part;
       ExpectedDeviation += VSize(Target.getContactAcceleration()) * (Range / localTechnology.MuzzleVelocity) * 0.5;
     
     // Account for sensor inaccuracy.
-    ExpectedDeviation += Target.Radius;
+    ExpectedDeviation += Target.contactRadius;
 
     // Adjust for fixed weapons.
     if (maxFireArc < 32768)
     {
       desiredFireDirection = normal(targetLocation - ship.getShipLocation());
-      Fixed_Cos = getBestFireDirection(desiredFireDirection, vector(ship.rotation), maxFireArc) dot desiredFireDirection;
-//      Fixed_Cos = Normal(Vector(Ship.Rotation)) Dot Normal(TargetLocation - Ship.getShipLocation());
+      Fixed_Cos = getBestFireDirection(desiredFireDirection, vector(ship.getShipRotation()), maxFireArc) dot desiredFireDirection;
+//      Fixed_Cos = Normal(Vector(Ship.getShipRotation())) Dot Normal(TargetLocation - Ship.getShipLocation());
       
       Fixed_Cos = FMax(minFixedCos, fixed_Cos);
       
@@ -243,7 +243,7 @@ class ShipWeapon extends Part;
       }
     }
     
-    Fixed_Deviation -= localTechnology.radius;
+    Fixed_Deviation -= localTechnology.weaponBlastRadius;
     
     // Offset for radius.
     ExpectedDeviation = FMax(ExpectedDeviation, 0);

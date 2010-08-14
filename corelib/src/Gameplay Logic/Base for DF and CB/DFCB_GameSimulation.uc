@@ -129,7 +129,7 @@ simulated function setInitialFlagshipPoints(User other) {
 // ********************************************************************************************************************************************
 
 simulated function scoreShipKill(UTSB_BaseUser user, Ship other) {
-  addPoints(user, pointsPerKill * other.radius);
+  addPoints(user, pointsPerKill * other.getShipRadius());
 }
 
 simulated function addPoints(User user, float points) {

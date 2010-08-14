@@ -26,9 +26,9 @@ simulated function bungeeShip(Ship other, float delta)
 
   // Apply Damping effect.
   if (vSize(bungeeVelocity) > 0)
-    other.velocity *= (1-delta);
+    other.setShipVelocity(other.getShipVelocity() * (1-delta));
 
-  other.velocity += bungeeVelocity * delta;
+  other.setShipVelocity(other.getShipVelocity() + (bungeeVelocity * delta));
 }
 
 defaultproperties

@@ -27,19 +27,19 @@ simulated function updateContact(SectorPresence sensorClient, Contact contact) {
 
   // Drop contacts for ships that no longer exist.
   if (contact.getSensorSignature() == 0) {
-    contact.radius = 1000000;
+    contact.contactRadius = 1000000;
     sensorClient.lostContact(contact);
     return;
   }
   
   if (contact.bContactKnown) {
     if (closestDistance >= loseContactDistance) {
-      contact.radius = 1000000;
+      contact.contactRadius = 1000000;
       sensorClient.lostContact(contact);
     }
   } else {
     if (closestDistance <= gainContactDistance) {
-      contact.radius = 0;
+      contact.contactRadius = 0;
       sensorClient.gainedContact(contact);
     }
   }

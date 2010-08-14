@@ -17,7 +17,7 @@ simulated function addTechnologyToUser(BaseUser other, SpaceTechnology technolog
   other.technologies[other.technologies.Length] = technology;
 }
   
-simulated function WeaponTechnology newWeaponTechnology(BaseUser Other, string identifier, float intensity, float muzzleVelocity, float precision, float refireTime, float burstRefireTime, float burstSize, float radius, string friendlyName)
+simulated function WeaponTechnology newWeaponTechnology(BaseUser Other, string identifier, float intensity, float muzzleVelocity, float precision, float refireTime, float burstRefireTime, float burstSize, float weaponBlastRadius, string friendlyName)
 {
   local WeaponTechnology technology;
 
@@ -30,7 +30,7 @@ simulated function WeaponTechnology newWeaponTechnology(BaseUser Other, string i
   technology.refireTime = refireTime;
   technology.burstRefireTime = burstRefireTime;
   technology.burstSize = burstSize;
-  technology.radius = radius;
+  technology.weaponBlastRadius = weaponBlastRadius;
   technology.friendlyname = friendlyName;
 
   addTechnologyToUser(other, technology);
@@ -74,8 +74,8 @@ simulated function PartShip newPartShip(BaseUser other, string identifier, strin
   // this is less than ideal
   prototype = DefaultShip(shipFactory.getPrototype());
 
-  prototype.acceleration = (thrust / mass);
-  prototype.rotationRate = rotationRate;
+  prototype.setShipMaximumAcceleration(thrust / mass);
+  prototype.setShipMaximumRotationalAcceleration(rotationRate);
   prototype.armor = armor;
   
   if (selfRepairRate > 0)

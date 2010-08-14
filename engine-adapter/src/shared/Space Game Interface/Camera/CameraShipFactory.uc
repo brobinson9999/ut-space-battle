@@ -13,10 +13,10 @@ simulated protected function Ship createPrototype() {
   
   newPrototype = Ship(allocateObject(class'DefaultShip'));
 
-  newPrototype.acceleration          = 30000;
-  newPrototype.rotationRate          = 100000;
+  newPrototype.setShipMaximumAcceleration(30000);
+  newPrototype.setShipMaximumRotationalAcceleration(100000);
 
-  newPrototype.radius = 1;
+  newPrototype.setShipRadius(1);
   
   return newPrototype;
 }

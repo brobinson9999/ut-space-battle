@@ -39,7 +39,7 @@ simulated function tick(float Delta) {
   
   if (ship != none) {
     setLocation(ship.getShipLocation() * getGlobalPositionScaleFactor());
-    setRotation(ship.rotation);
+    setRotation(ship.getShipRotation());
   }
 }
 

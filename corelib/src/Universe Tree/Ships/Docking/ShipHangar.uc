@@ -23,7 +23,7 @@ simulated function launchShip(Ship other)
 
   other.setShipLocation(getPartLocation() + VRand() * 5);
   other.ChangeSector(Ship.Sector);
-  other.Velocity = Ship.Velocity;
+  other.setShipVelocity(ship.getShipVelocity());
 }
 
 simulated function cleanup() {

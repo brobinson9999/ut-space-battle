@@ -13,7 +13,7 @@ class SkymineProjectileRenderable extends ScalableEmitterProjectileRenderable;
 
     shockBallExplosion = spawn(class'ShockBallExplosion',,,location, rotRand());
     if (shockBallExplosion != none && projectile != none)
-      shockBallExplosion.setScale(projectile.radius * getGlobalDrawscaleFactor());
+      shockBallExplosion.setScale(projectile.projectileBlastRadius * getGlobalDrawscaleFactor());
 
     super.impact();
   }
