@@ -26,7 +26,8 @@ simulated function initializeEngineAdapter()
 //  bDebugReferences = true;
   
   setPawnClass("ClientScripts.PawnAdapter");
-  setPlayerControllerClass("ClientScripts.PlayerControllerAdapter");
+  setPlayerControllerClass("ClientScripts.BasicControlExtractingPlayerControllerAdapter");
+//  setPlayerControllerClass("ClientScripts.PlayerControllerAdapter");
   setHUDClass("ClientScripts.HUDAdapter");
   
   gameSimulationAnchor = GameSimulationAnchor(spawnEngineObject(class'GameSimulationAnchor'));

@@ -22,7 +22,7 @@ simulated function launchShip(Ship other)
   other.updateShip();
 
   other.setShipLocation(getPartLocation() + VRand() * 5);
-  other.ChangeSector(Ship.Sector);
+  other.changeShipSector(Ship.getShipSector());
   other.setShipVelocity(ship.getShipVelocity());
 }
 

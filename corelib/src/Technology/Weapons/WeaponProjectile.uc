@@ -79,7 +79,7 @@ simulated function impact()
   local float DamageCoefficient;
 
   // Check if Target still exists and is in the same sector.
-  if (Target != None && Target.Sector != None && Target.Sector == Sector)
+  if (Target != None && Target.getShipSector() != None && Target.getShipSector() == Sector)
   {
     // Advance the Target to the current time.
     myAssert(target.getGameSimulation() != none, "Projectile impact but target.getGameSimulation() == none");

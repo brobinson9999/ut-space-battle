@@ -432,7 +432,7 @@ simulated function userLostShip(Ship other)
   local CompositeSpaceWorker parentWorker;
 
   // Remove Workers.
-  parentWorker = sectorCommandAIFor(other.sector);
+  parentWorker = sectorCommandAIFor(other.getShipSector());
   removeWorkerForShip(parentWorker, other);
 
   // Remove from ships list.
@@ -448,8 +448,8 @@ simulated function userLostShip(Ship other)
 }
 
 simulated function clearPilot(Ship other) {
-  if (other.pilot != none) {
-    other.pilot.cleanup();
+  if (other.getShipPilot() != none) {
+    other.getShipPilot().cleanup();
   }
 }
 

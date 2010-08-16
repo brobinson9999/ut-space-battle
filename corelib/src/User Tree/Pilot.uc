@@ -5,15 +5,15 @@ var Ship pilotShip;
 simulated function updateLinear();
 simulated function updateAngular();
 
-simulated function setPilotShip(Ship NewShip) {
+simulated function setPilotShip(Ship newShip) {
   if (pilotShip != none) {
-    pilotShip.pilot = none;
+    pilotShip.setShipPilot(none);
   }
 
   pilotShip = newShip;
 
   if (pilotShip != none) {
-    pilotShip.pilot = self;
+    pilotShip.setShipPilot(self);
     desiredRotation = pilotShip.getPhysicsState().getRotation();
   }
 }

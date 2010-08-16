@@ -148,7 +148,7 @@ simulated function float Rate_Effectiveness_Against_Attack(Contact X)
   local float XScore;
   local float DistanceFactor;
 
-  if (!X.isHostile() || X.Sector != Ship.Sector)
+  if (!X.isHostile() || X.Sector != Ship.getShipSector())
     return 0;
 
   Dp = X.getContactLocation() - Ship.getShipLocation();
@@ -326,7 +326,7 @@ simulated function float Rate_Effectiveness_Against_Patrol(Contact X)
 
   simulated function bool Is_Relevant()
   {
-    return (Ship != None && Ship.Pilot != None && !Ship.bCleanedUp);
+    return (Ship != None && Ship.getShipPilot() != None && !Ship.bCleanedUp);
   }
 
 // ********************************************************************************************************************************************
@@ -353,7 +353,7 @@ simulated function float Rate_Effectiveness_Against_Patrol(Contact X)
     local AIPilot Pilot;
     
     // Get Pilot.
-    Pilot = AIPilot(Ship.Pilot);
+    Pilot = AIPilot(Ship.getShipPilot());
     if (Pilot == None)
     {
       errorMessage("Assign_Next_Manuever: Ship does not have an AIPilot.");

@@ -55,7 +55,7 @@ simulated function bool acceptDock(Ship docker, Ship dockee) {
 // dockAttemptSuccessful: Ship Ship ->
 // Called by the ship attempting to dock if the dock attempt succeeded.
 simulated function dockAttemptSuccessful(Ship docker, Ship dockee) {
-  docker.changeSector(none);
+  docker.changeShipSector(none);
   dockedTo = dockee;
 }
 

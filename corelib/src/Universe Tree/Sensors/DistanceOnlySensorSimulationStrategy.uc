@@ -61,7 +61,7 @@ simulated function float getDistanceToContact(SectorPresence sensorClient, Conta
   closestDistance = loseContactDistance + gainContactDistance + 10000000;
   
   for (i=0;i<sensorClient.user.ships.length;i++) {
-    if (sensorClient.user.ships[i].sector == sensorClient.sector) {
+    if (sensorClient.user.ships[i].getShipSector() == sensorClient.sector) {
       thisDistance = VSize(sensorClient.user.ships[i].getShipLocation() - contactPosition);
       closestDistance = FMin(thisDistance, closestDistance);
     }

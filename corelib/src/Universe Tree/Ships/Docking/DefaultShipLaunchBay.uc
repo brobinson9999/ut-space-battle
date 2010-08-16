@@ -15,7 +15,7 @@ simulated function launchShip(Ship shipToLaunch, Ship launchFrom)
   shipToLaunch.updateShip();
 
   shipToLaunch.setShipLocation(launchFrom.getShipLocation());
-  shipToLaunch.changeSector(launchFrom.sector);
+  shipToLaunch.changeShipSector(launchFrom.getShipSector());
   shipToLaunch.setShipVelocity(launchFrom.getShipVelocity());
 }
 

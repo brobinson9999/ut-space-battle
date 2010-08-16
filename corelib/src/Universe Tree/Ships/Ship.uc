@@ -12,15 +12,15 @@ var string shipTypeName;
 var private array<ShipSystem>           systems;
 var array<ShipWeapon>           weapons;
 
-var Pilot pilot;
+var private Pilot shipPilot;
 var private SpaceWorker_Ship shipWorker;
 
 var private float                       shipRadius;
 var private float                       shipMaximumAcceleration;
 var private float                       shipMaximumRotationalAcceleration;
 
-var Sector sector;
-var array<ShipObserver> shipObservers;
+var private Sector shipSector;
+var private array<ShipObserver> shipObservers;
 
 var bool bCleanedUp;
 var QueuedEvent destroyEvent;
@@ -144,6 +144,14 @@ simulated function setShipVelocity(vector newShipVelocity) {
 // ********************************************************************************************************************************************
 // ** Things directly stored
 
+simulated function Pilot getShipPilot() {
+  return shipPilot;
+}
+
+simulated function setShipPilot(Pilot newShipPilot) {
+  shipPilot = newShipPilot;
+}
+
 simulated function SpaceWorker_Ship getShipWorker() {
   return shipWorker;
 }
@@ -213,36 +221,44 @@ simulated function setShipMaximumRotationalAcceleration(float newMaximumRotation
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
-  simulated function addShipObserver(ShipObserver newObserver) {
-    shipObservers[shipObservers.length] = newObserver;
-  }
-  
-  simulated function removeShipObserver(ShipObserver oldObserver) {
-    local int i;
-    
-    for (i=0;i<shipObservers.length;i++) {
-      if (shipObservers[i] == oldObserver) {
-        shipObservers.remove(i, 1);
-        break;
-      }
-    }
-  }
-
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-
-simulated function setSector(Sector newSector) {
-  if (shipOwner != none)
-    shipOwner.getOrCreateSectorPresenceForSector(newSector);
-  sector = newSector;
+simulated function addShipObserver(ShipObserver newObserver) {
+  shipObservers[shipObservers.length] = newObserver;
 }
 
-simulated function changeSector(Sector newSector) {
+simulated function removeShipObserver(ShipObserver oldObserver) {
+  local int i;
+
+  for (i=0;i<shipObservers.length;i++) {
+    if (shipObservers[i] == oldObserver) {
+      shipObservers.remove(i, 1);
+      break;
+    }
+  }
+}
+
+simulated function array<ShipObserver> getShipObservers() {
+  return shipObservers;
+}
+
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+// ********************************************************************************************************************************************
+
+simulated function Sector getShipSector() {
+  return shipSector;
+}
+
+simulated function setShipSector(Sector newSector) {
+  if (shipOwner != none)
+    shipOwner.getOrCreateSectorPresenceForSector(newSector);
+  shipSector = newSector;
+}
+
+simulated function changeShipSector(Sector newSector) {
   // Set New Sector. Sectors handle the changing of RenderData.
-  if (sector != none)
-    sector.shipLeftSector(self);
+  if (shipSector != none)
+    shipSector.shipLeftSector(self);
   if (newSector != none)
     newSector.shipEnteredSector(self);
 }
@@ -283,22 +299,24 @@ simulated function updateShip()
 }
 
 simulated function vector getLinearAcceleration(float delta) {
-  if (pilot != none) {
-    pilot.updateLinear();
-    return pilot.getDesiredAcceleration(getPhysicsState(), delta);
+  if (getShipPilot() != none) {
+    // TODO: These probably don't need to be separate calls.
+    getShipPilot().updateLinear();
+    return getShipPilot().getDesiredAcceleration(getPhysicsState(), delta);
   } else {
     return vect(0,0,0);
   }
 }
 
 simulated function vector getRotationalAcceleration(float delta) {
-  if (pilot != none) {
-    pilot.updateAngular();
+  if (getShipPilot() != none) {
+    // TODO: These probably don't need to be separate calls.
+    getShipPilot().updateAngular();
     // TODO The pilot should be deciding this.
-    pilot.bUseDesiredRotation = true;
+    getShipPilot().bUseDesiredRotation = true;
 
     setShipRotationalVelocity(normal(copyRotToVect(getDesiredRotation() unCoordRot getShipRotation())) * vsize(getShipRotationalVelocity()));
-    return pilot.getDesiredRotationalAcceleration(getPhysicsState(), getShipMaximumRotationalAcceleration(), delta);
+    return getShipPilot().getDesiredRotationalAcceleration(getPhysicsState(), getShipMaximumRotationalAcceleration(), delta);
   } else {
     return vect(0,0,0);
   }
@@ -363,13 +381,17 @@ simulated function cleanup()
   if (SpaceGameSimulation(getGameSimulation()) != none)
     SpaceGameSimulation(getGameSimulation()).notifyShipDestroyed(self);
 
-  if (sector != none)
-    sector.shipLeftSector(self);
+  changeShipSector(none);
+//  if (shipSector != none) {
+//    shipSector.shipLeftSector(self);
+//    shipSector = none;
+//  }
 
-  if (Sector != None) {
-    Sector.ShipLeftSector(Self);
-    Sector = None;
-  }
+  // This appeared twice - once with just the leftsector and the second time with leftsector and = none. I have removed the second occurrence.
+//  if (Sector != None) {
+//    Sector.ShipLeftSector(Self);
+//    Sector = None;
+//  }
 
   setShipWorker(none);
   setShipOwner(none);
@@ -385,7 +407,7 @@ simulated function cleanup()
   while (shipObservers.length > 0)
     removeShipObserver(shipObservers[0]);
 
-  pilot = none;
+  setShipPilot(none);
   
   bCleanedUp = true;
 
@@ -437,11 +459,11 @@ simulated function float detection_Strength_Against(Contact other);
 
 // TODO This is used by the Contact class. Contact needs to be changed so that this is no longer necessary!
 simulated function vector tempEstimateAcceleration() {
-  return capVector(pilot.desiredVelocity - getPhysicsState().getVelocity(), getShipMaximumAcceleration());
+  return capVector(getShipPilot().desiredVelocity - getPhysicsState().getVelocity(), getShipMaximumAcceleration());
 }
 
 simulated function rotator getDesiredRotation() {
-  return pilot.desiredRotation;
+  return getShipPilot().desiredRotation;
 }
 
 defaultproperties

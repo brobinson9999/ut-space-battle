@@ -188,8 +188,8 @@ var UnrealEngineAdapter engineAdapter;
       playerShipWorker = playerShip.getShipWorker();
       if (playerShipWorker != none) {
         // Show lead in.
-        if (playerShipWorker.mainWeaponsTarget != none && AIPilot(playerShip.pilot).hasFixedWeapons(playerShip)) {
-          leadInPosition = AIPilot(playerShip.pilot).AM_Intercept_Calculate_Lead_In(playerShipWorker.mainWeaponsTarget.getContactLocation(), playerShipWorker.mainWeaponsTarget.getContactVelocity(), AIPilot(playerShip.pilot).projectileSpeed());
+        if (playerShipWorker.mainWeaponsTarget != none && AIPilot(playerShip.getShipPilot()).hasFixedWeapons(playerShip)) {
+          leadInPosition = AIPilot(playerShip.getShipPilot()).AM_Intercept_Calculate_Lead_In(playerShipWorker.mainWeaponsTarget.getContactLocation(), playerShipWorker.mainWeaponsTarget.getContactVelocity(), AIPilot(playerShip.getShipPilot()).projectileSpeed());
           leadInDelta = leadInPosition - playerShipWorker.mainWeaponsTarget.getContactLocation();
 
           canvas.setDrawColor(reticleColorHostile);
@@ -974,7 +974,7 @@ var UnrealEngineAdapter engineAdapter;
 
 simulated function AIPilot getPlayerPilot() {
   if (playerShip != none)
-    return AIPilot(playerShip.pilot);
+    return AIPilot(playerShip.getShipPilot());
   else
     return none;
 }
@@ -1498,8 +1498,8 @@ simulated function setPlayerShip(UserInterfaceMediator mediator, contact newPlay
     playerShipObserver = PlayerShipObserver(allocateObject(class'PlayerShipObserver'));
     playerShipObserver.initializeShipObserver(playerShip, self);
 
-    if (cameraSector != playerShip.sector)
-      changeCameraSector(mediator, playerShip.sector);
+    if (cameraSector != playerShip.getShipSector())
+      changeCameraSector(mediator, playerShip.getShipSector());
 
     setAIControl(true);
   }
@@ -1609,8 +1609,8 @@ simulated function setPlayerShip(UserInterfaceMediator mediator, contact newPlay
     if (designation ~= "poi" && pointOfInterestContact != none)
       result[result.length] = pointOfInterestContact;
 
-    if (designation ~= "knownContactsInPlayerShipSector" && playerShip != none && playerShip.sector != none) {
-      sectorPresence = mediator.getSectorPresenceForSector(playerShip.sector);
+    if (designation ~= "knownContactsInPlayerShipSector" && playerShip != none && playerShip.getShipSector() != none) {
+      sectorPresence = mediator.getSectorPresenceForSector(playerShip.getShipSector());
       if (sectorPresence != none)
         result = sectorPresence.knownContacts;
     }

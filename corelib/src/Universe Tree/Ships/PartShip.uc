@@ -55,14 +55,16 @@ simulated function repairPart(Part other) {
 simulated function shipCritical(object instigator)
 {
   local int i;
+  local array<ShipObserver> observers;
 
   for (i=0;i<parts.length;i++)
     if (parts[i].bOnline) {
       damagePart(parts[i]);
     }
 
-  for (i=shipObservers.length-1;i>=0;i--)
-    shipObservers[i].notifyShipCritical();
+  observers = getShipObservers();
+  for (i=observers.length-1;i>=0;i--)
+    observers[i].notifyShipCritical();
 
   super.shipCritical(instigator);
 }
@@ -70,35 +72,43 @@ simulated function shipCritical(object instigator)
 simulated function destroyTimeElapsed()
 {
   local int i;
+  local array<ShipObserver> observers;
 
-  for (i=shipObservers.length-1;i>=0;i--)
-    shipObservers[i].notifyShipDestroyed();
+  observers = getShipObservers();
+  for (i=observers.length-1;i>=0;i--)
+    observers[i].notifyShipDestroyed();
 
   super.destroyTimeElapsed();
 }
 
 simulated function notifyPartRepaired(Part part) {
   local int i;
+  local array<ShipObserver> observers;
 
-  for (i=shipObservers.length-1;i>=0;i--)
-    if (PartShipObserver(shipObservers[i]) != none)
-      PartShipObserver(shipObservers[i]).notifyPartRepaired(part);
+  observers = getShipObservers();
+  for (i=observers.length-1;i>=0;i--)
+    if (PartShipObserver(observers[i]) != none)
+      PartShipObserver(observers[i]).notifyPartRepaired(part);
 }
 
 simulated function notifyPartDamaged(Part part) {
   local int i;
+  local array<ShipObserver> observers;
 
-  for (i=shipObservers.length-1;i>=0;i--)
-    if (PartShipObserver(shipObservers[i]) != none)
-      PartShipObserver(shipObservers[i]).notifyPartDamaged(part);
+  observers = getShipObservers();
+  for (i=observers.length-1;i>=0;i--)
+    if (PartShipObserver(observers[i]) != none)
+      PartShipObserver(observers[i]).notifyPartDamaged(part);
 }
 
 simulated function notifyPartFiredWeapon(Part part, WeaponProjectile projectile) {
   local int i;
+  local array<ShipObserver> observers;
 
-  for (i=shipObservers.length-1;i>=0;i--)
-    if (PartShipObserver(shipObservers[i]) != none)
-      PartShipObserver(shipObservers[i]).notifyPartFiredWeapon(part, projectile);
+  observers = getShipObservers();
+  for (i=observers.length-1;i>=0;i--)
+    if (PartShipObserver(observers[i]) != none)
+      PartShipObserver(observers[i]).notifyPartFiredWeapon(part, projectile);
 }
 
 // ********************************************************************************************************************************************

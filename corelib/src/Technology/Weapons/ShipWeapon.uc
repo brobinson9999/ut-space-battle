@@ -89,7 +89,7 @@ class ShipWeapon extends Part;
     local vector actualFireDirection;
 
     myAssert(ship != none, "ShipWeapon.fire but ship == none");
-    myAssert(ship.sector != none, "ShipWeapon.fire but ship.sector == none");
+    myAssert(ship.getShipSector() != none, "ShipWeapon.fire but ship.getShipSector() == none");
       
     newProjectile = WeaponProjectile(allocateObject(class'WeaponProjectile'));
     newProjectile.Damage = localTechnology.Intensity;
@@ -153,11 +153,11 @@ class ShipWeapon extends Part;
     if (localTechnology.muzzleVelocity > 0) {
       // Setup End Time and Impact Event.
       newProjectile.endTime = newProjectile.startTime + (range / (localTechnology.muzzleVelocity + VSize(ship.getShipVelocity())));
-      ship.sector.projectileEnteredSector(newProjectile);
+      ship.getShipSector().projectileEnteredSector(newProjectile);
     } else {
       // Impact immediately.
       newProjectile.EndTime = newProjectile.StartTime;
-      ship.sector.projectileEnteredSector(newProjectile);
+      ship.getShipSector().projectileEnteredSector(newProjectile);
     }
     
     if (ship != none)

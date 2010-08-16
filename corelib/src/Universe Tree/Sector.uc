@@ -21,25 +21,25 @@ simulated function shipEnteredSector(Ship newShip)
   local int i;
 
   ships[ships.length] = newShip;
-  newShip.setSector(self);
+  newShip.setShipSector(self);
 
   for (i=0;i<sectorPresences.length;i++)
     sectorPresences[i].notifyShipEnteredSector(newShip);
 }
 
-simulated function shipLeftSector(Ship X)
+simulated function shipLeftSector(Ship oldShip)
 {
   local int i;
 
   // Notify Sector Commands.
   for (i=0;i<SectorPresences.Length;i++)
-    SectorPresences[i].NotifyShipLeftSector(X);
+    SectorPresences[i].NotifyShipLeftSector(oldShip);
 
-  X.Sector = None;
+  oldShip.setShipSector(none);
 
   // Remove from sector.
   for (i=0;i<Ships.Length;i++)
-    if (Ships[i] == X)
+    if (Ships[i] == oldShip)
     {
       Ships.Remove(i,1);
       break;
