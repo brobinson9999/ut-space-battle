@@ -82,10 +82,10 @@ var UnrealEngineAdapter engineAdapter;
   var CameraStrategy                          cameraStrategy;
   var array<CameraStrategy>                   cameraStrategies;
   
-  var FixedRelativePositionCameraStrategy     behindViewCameraStrategy;
-  var FixedRelativePositionCameraStrategy     pilotCameraStrategy;
-  var StrategicCameraStrategy                 strategicCameraStrategy;
-  var ChaseCameraStrategy                     chaseCameraStrategy;
+  var private FixedRelativePositionCameraStrategy     behindViewCameraStrategy;
+  var private FixedRelativePositionCameraStrategy     pilotCameraStrategy;
+  var private StrategicCameraStrategy                 strategicCameraStrategy;
+  var private ChaseCameraStrategy                     chaseCameraStrategy;
 
   var Contact                                 strategicCameraFocusContact;
 
@@ -706,71 +706,67 @@ var UnrealEngineAdapter engineAdapter;
 // ********************************************************************************************************************************************
 // Interface
 
-  simulated function bool keyEvent(string key, string action, float delta)
-  {
-    local rotator rotationDelta;
-    local rotator rotationFrame;
-    
-    if (bStrategicControls) {
-      if (keyEvent_Strategic(key, action, delta)) return true;
+simulated function rawInput(float deltaTime, float aBaseX, float aBaseY, float aBaseZ, float aMouseX, float aMouseY, float aForward, float aTurn, float aStrafe, float aUp, float aLookUp) {
+  local rotator rotationDelta;
+  local rotator rotationFrame;
+
+  if (bStrategicControls) {
+    if (aLookUp != 0)
+      receivedConsoleCommand(none, "strategic_camera_pitch_delta "$(aLookUp * strategicCameraSensitivity));
+    if (aTurn != 0)
+      receivedConsoleCommand(none, "strategic_camera_yaw_delta "$(aTurn * strategicCameraSensitivity));
+  } else {
+    if (playerShip != None) {
+      // Which direction the ship should turn toward depends on the camera's roll.
+      // It must be relative to the player's free flight rotation since we will be rotating it into that reference frame later.
+      // Pitch and yaw of the camera should not be considered, else even a small rotation becomes large when placed in the reference
+      // frame of the camera.
+      rotationFrame = cameraRotation uncoordRot getFreeFlightRotation();
+      rotationFrame.pitch = 0;
+      rotationFrame.yaw = 0;
+
+      rotationDelta = (((rot(0,1,0) * aTurn) + (rot(1,0,0) * aLookUp)) * strategicCameraSensitivity) coordRot rotationFrame;
+      rotationDelta.roll = 0;
+
+      setFreeFlightRotation(rotationDelta coordRot getFreeFlightRotation());
     }
-    
-    if (key == "IK_Up")
-      thrustDirB.x = delta;
-    if (key == "IK_Down")
-      thrustDirB.x = -delta;
-    if (key == "IK_Right")
-      thrustDirB.y = delta;
-    if (key == "IK_Left")
-      thrustDirB.y = -delta;
-    
-    // Mouse Axis.
-    if (Key == "IK_MouseX" || Key == "IK_MouseY")
-    {
-      if (playerShip != None) {
-        if (Key == "IK_MouseX")
-          rotationDelta = rot(0,1,0);
-        else
-          rotationDelta = rot(1,0,0);
-      
-        // Which direction the ship should turn toward depends on the camera's roll.
-        // It must be relative to the player's free flight rotation since we will be rotating it into that reference frame later.
-        // Pitch and yaw of the camera should not be considered, else even a small rotation becomes large when placed in the reference
-        // frame of the camera.
-        rotationFrame = cameraRotation uncoordRot getFreeFlightRotation();
-        rotationFrame.pitch = 0;
-        rotationFrame.yaw = 0;
-
-        rotationDelta = (delta * strategicCameraSensitivity * rotationDelta) CoordRot rotationFrame;
-        rotationDelta.roll = 0;
-
-        setFreeFlightRotation(rotationDelta coordRot getFreeFlightRotation());
-      }
-      
-      return true;
-    }
-
-    return super.keyEvent(key, action, delta);
   }
-  
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
+}
 
-  simulated function bool keyEvent_Strategic(string key, string action, float delta) {
-    if (key == "IK_MouseX") {
-      receivedConsoleCommand(none, "strategic_camera_yaw_delta "$(Delta * StrategicCameraSensitivity));
-      return true;
-    }
+simulated function prevWeapon() {
+  infoMessage("prevWeapon");
+}
 
-    // Mouse Axis.
-    if (key == "IK_MouseY") {
-      receivedConsoleCommand(none, "strategic_camera_pitch_delta "$(Delta * StrategicCameraSensitivity));
-      return true;
-    }
-    
-    return false;
-  }
-  
+simulated function nextWeapon() {
+  infoMessage("nextWeapon");
+}
+
+simulated function switchWeapon(byte weaponGroupNumber) {
+  infoMessage("switchWeapon "$weaponGroupNumber);
+}
+
+// only on joypad by default
+simulated function prevItem() {
+  infoMessage("prevItem");
+}
+
+// only on joypad by default
+simulated function activateItem() {
+  infoMessage("activateItem");
+}
+
+simulated function fire(float f) {
+  bFire = (f > 0);
+}
+
+simulated function altFire(float f) {
+  setAIControl(f > 0);     
+}
+
+simulated function use() {
+  infoMessage("use");
+}
+
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -904,6 +900,8 @@ var UnrealEngineAdapter engineAdapter;
     behindViewCameraStrategy.bRelativePositionScaledByRadius = true;
     behindViewCameraStrategy.bFaceDesiredRotation = true;
     
+    chaseCameraStrategy = ChaseCameraStrategy(addCameraStrategy("chase", class'ChaseCameraStrategy'));
+
     pilotCameraStrategy = FixedRelativePositionCameraStrategy(addCameraStrategy("pilot", class'FixedRelativePositionCameraStrategy'));
     pilotCameraStrategy.relativePosition = vect(8,0,1.5);
 
@@ -911,8 +909,6 @@ var UnrealEngineAdapter engineAdapter;
     pilotCameraStrategy.bFaceDesiredRotation = false;
     
     strategicCameraStrategy = StrategicCameraStrategy(addCameraStrategy("strategic", class'StrategicCameraStrategy'));
-    
-    chaseCameraStrategy = ChaseCameraStrategy(addCameraStrategy("chase", class'ChaseCameraStrategy'));
     
     setCameraStrategy(strategicCameraStrategy);
 
@@ -983,6 +979,13 @@ simulated function setAIControl(bool bNewAIControl)
 {
   local AIPilot playerPilot;
 
+  if (bAIControl != bNewAIControl) {
+    if (bNewAIControl)
+      infoMessage("AI Control Enabled");
+    else
+      infoMessage("AI Control Disabled");
+  }
+
   bAIControl = bNewAIControl;
 
   playerPilot = getPlayerPilot();
@@ -1028,8 +1031,13 @@ simulated function bool receivedConsoleCommand(UserInterfaceMediator mediator, s
   // Get command and arguments.
   StringParts = splitString(command, " ");
 
+  if (StringParts[0] ~= "toggle_ai_control") {
+    setAIControl(!bAIControl);     
+    return true;
+  }
+
   if (StringParts[0] ~= "set_ai_control") {
-    SetAIControl(Int(StringParts[1]) == 1);     
+    setAIControl(Int(StringParts[1]) == 1);     
     return true;
   }
 
@@ -1122,13 +1130,14 @@ simulated function bool receivedConsoleCommand(UserInterfaceMediator mediator, s
     return true;
   }
 
+/*
   if (StringParts[0] ~= "set_bFire")
   {
     bFire = (Int(StringParts[1]) == 1);
 
     return true;
   }
-
+*/
   if (StringParts[0] ~=  "set_camera") {
     setCameraStrategyByID(stringParts[1]);
     return true;
@@ -1184,7 +1193,7 @@ simulated function bool receivedConsoleCommand(UserInterfaceMediator mediator, s
   }
 
   if (StringParts[0] ~= "set_strategic_camera_sensitivity") {
-    strategicCameraSensitivity = Int(stringParts[1]);
+    strategicCameraSensitivity = float(stringParts[1]);
     infoMessage("Now using Strategic Camera Sensitivity: "$strategicCameraSensitivity);
 
     return true;
@@ -1931,7 +1940,7 @@ defaultproperties
   bStrategicControls=true
   
   graphic=None
-  strategicCameraSensitivity=150
+  strategicCameraSensitivity=1.0
   joyAimSensitivity = 8092
   
   reticleColorFriendly=(R=0,G=255,B=0,A=128)

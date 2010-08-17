@@ -294,18 +294,19 @@ simulated function initializeGameSimulation() {
   mainInputView.addObserver(interfaceObserver);
 
   createKeyBinding("IK_W", "IST_Press", "randomize_player_ship|focus ps");
-  createKeyBinding("IK_E", "IST_Press", "set_ai_control 0");
-  createKeyBinding("IK_Q", "IST_Press", "set_ai_control 1");
-  createKeyBinding("IK_RightMouse", "IST_Press", "set_ai_control 1");
-  createKeyBinding("IK_RightMouse", "IST_Release", "set_ai_control 0");
-  createKeyBinding("IK_LeftMouse", "IST_Press", "set_bFire 1");
-  createKeyBinding("IK_LeftMouse", "IST_Release", "set_bFire 0");
-  createKeyBinding("IK_5", "IST_Press", "set_acceleration -1");
-  createKeyBinding("IK_6", "IST_Press", "set_acceleration -0.5");
-  createKeyBinding("IK_7", "IST_Press", "set_acceleration 0");
-  createKeyBinding("IK_8", "IST_Press", "set_acceleration 0.33");
-  createKeyBinding("IK_9", "IST_Press", "set_acceleration 0.66");
-  createKeyBinding("IK_0", "IST_Press", "set_acceleration 1");
+//  createKeyBinding("IK_E", "IST_Press", "set_ai_control 0");
+  createKeyBinding("IK_Q", "IST_Press", "toggle_ai_control");
+//  createKeyBinding("IK_RightMouse", "IST_Press", "set_ai_control 1");
+//  createKeyBinding("IK_RightMouse", "IST_Release", "set_ai_control 0");
+//  createKeyBinding("IK_LeftMouse", "IST_Press", "set_bFire 1");
+//  createKeyBinding("IK_LeftMouse", "IST_Release", "set_bFire 0");
+//  createKeyBinding("IK_5", "IST_Press", "set_acceleration -1");
+//  createKeyBinding("IK_6", "IST_Press", "set_acceleration -0.5");
+//  createKeyBinding("IK_7", "IST_Press", "set_acceleration 0");
+//  createKeyBinding("IK_8", "IST_Press", "set_acceleration 0.33");
+//  createKeyBinding("IK_9", "IST_Press", "set_acceleration 0.66");
+//  createKeyBinding("IK_0", "IST_Press", "set_acceleration 1");
+
   createKeyBinding("IK_R", "IST_Press", "set_hud_readout_delta 1");
   createKeyBinding("IK_Y", "IST_Press", "toggleShowAllHUDReadouts");
   createKeyBinding("IK_J", "IST_Press", "toggleRenderHUD");
@@ -314,27 +315,32 @@ simulated function initializeGameSimulation() {
   createKeyBinding("IK_I", "IST_Press", "set_camera behindview|set_relative_controls 0|set_strategic_controls 0");
   createKeyBinding("IK_O", "IST_Press", "set_camera strategic|set_relative_controls 0|set_strategic_controls 1");
   createKeyBinding("IK_P", "IST_Press", "set_camera pilot|set_relative_controls 1|set_strategic_controls 0");
+
   createKeyBinding("IK_LeftBracket", "IST_Press", "set_camera chase|set_relative_controls 0|set_strategic_controls 0");
-  createKeyBinding("IK_MouseWheelDown", "IST_Press", "strategic_camera_distance_delta 50");
-  createKeyBinding("IK_MouseWheelUp", "IST_Press", "strategic_camera_distance_delta -50");
-  createKeyBinding("IK_SpaceBar", "IST_Press", "multiplyStrategicCameraDistance 100");
-  createKeyBinding("IK_SpaceBar", "IST_Release", "multiplyStrategicCameraDistance 0.01");
-  createKeyBinding("IK_Up", "IST_Press", "strategicCameraPanX 10000");
-  createKeyBinding("IK_Up", "IST_Release", "strategicCameraPanX 0");
-  createKeyBinding("IK_Down", "IST_Press", "strategicCameraPanX -10000");
-  createKeyBinding("IK_Down", "IST_Release", "strategicCameraPanX 0");
-  createKeyBinding("IK_Right", "IST_Press", "strategicCameraPanY 10000");
-  createKeyBinding("IK_Right", "IST_Release", "strategicCameraPanY 0");
-  createKeyBinding("IK_Left", "IST_Press", "strategicCameraPanY -10000");
-  createKeyBinding("IK_Left", "IST_Release", "strategicCameraPanY 0");
-  createKeyBinding("IK_T", "IST_Press", "o fts atk closestToCameraCenter<hostile<knownContactsInPlayerShipSector");
-  createKeyBinding("IK_C", "IST_Press", "o fts clr");
-  createKeyBinding("IK_D", "IST_Press", "o fts def ps");
-  createKeyBinding("IK_F", "IST_Press", "o fts atk pswt");
-  createKeyBinding("IK_1", "IST_Press", "set_friendly_targets owned<knownContactsInCameraSector");
-  createKeyBinding("IK_2", "IST_Press", "set_friendly_targets ps");
-  createKeyBinding("IK_3", "IST_Press", "set_friendly_targets carrier");
-  createKeyBinding("IK_4", "IST_Press", "set_friendly_targets fighters");
+
+//  createKeyBinding("IK_MouseWheelDown", "IST_Press", "strategic_camera_distance_delta 50");
+//  createKeyBinding("IK_MouseWheelUp", "IST_Press", "strategic_camera_distance_delta -50");
+
+//  createKeyBinding("IK_SpaceBar", "IST_Press", "multiplyStrategicCameraDistance 100");
+//  createKeyBinding("IK_SpaceBar", "IST_Release", "multiplyStrategicCameraDistance 0.01");
+
+//  createKeyBinding("IK_Up", "IST_Press", "strategicCameraPanX 10000");
+//  createKeyBinding("IK_Up", "IST_Release", "strategicCameraPanX 0");
+//  createKeyBinding("IK_Down", "IST_Press", "strategicCameraPanX -10000");
+//  createKeyBinding("IK_Down", "IST_Release", "strategicCameraPanX 0");
+//  createKeyBinding("IK_Right", "IST_Press", "strategicCameraPanY 10000");
+//  createKeyBinding("IK_Right", "IST_Release", "strategicCameraPanY 0");
+//  createKeyBinding("IK_Left", "IST_Press", "strategicCameraPanY -10000");
+//  createKeyBinding("IK_Left", "IST_Release", "strategicCameraPanY 0");
+
+//  createKeyBinding("IK_T", "IST_Press", "o fts atk closestToCameraCenter<hostile<knownContactsInPlayerShipSector");
+//  createKeyBinding("IK_C", "IST_Press", "o fts clr");
+//  createKeyBinding("IK_D", "IST_Press", "o fts def ps");
+//  createKeyBinding("IK_F", "IST_Press", "o fts atk pswt");
+//  createKeyBinding("IK_1", "IST_Press", "set_friendly_targets owned<knownContactsInCameraSector");
+//  createKeyBinding("IK_2", "IST_Press", "set_friendly_targets ps");
+//  createKeyBinding("IK_3", "IST_Press", "set_friendly_targets carrier");
+//  createKeyBinding("IK_4", "IST_Press", "set_friendly_targets fighters");
   createKeyBinding("IK_Backslash", "IST_Press", "setFleetDelta 1");
   
   interfaceMediator = UserInterfaceMediator(allocateObject(class'UserInterfaceMediator'));

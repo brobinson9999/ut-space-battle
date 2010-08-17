@@ -54,9 +54,9 @@ class UserInterfaceMediator extends BaseObject;
     userInterface.notifySetPlayerUser(self);
     
     if (newPlayerUser != none && bHadNoPlayerUserBefore) {
-      // use chase camera by default, but true "default" is strategic for spectators.
+      // use behindview camera by default, but true "default" is strategic for spectators.
       userInterface.receivedConsoleCommand(self, "set_strategic_controls 0");
-      userInterface.receivedConsoleCommand(self, "set_camera chase");
+      userInterface.receivedConsoleCommand(self, "set_camera behindview");
     }
   }
     
