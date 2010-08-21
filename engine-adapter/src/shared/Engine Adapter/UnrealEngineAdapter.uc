@@ -293,7 +293,7 @@ simulated function initializeGameSimulation() {
   interfaceObserver = InterfaceInputObserver(allocateObject(class'InterfaceInputObserver'));
   mainInputView.addObserver(interfaceObserver);
 
-  createKeyBinding("IK_W", "IST_Press", "randomize_player_ship|focus ps");
+//  createKeyBinding("IK_W", "IST_Press", "randomize_player_ship|focus ps");
 //  createKeyBinding("IK_E", "IST_Press", "set_ai_control 0");
   createKeyBinding("IK_Q", "IST_Press", "toggle_ai_control");
 //  createKeyBinding("IK_RightMouse", "IST_Press", "set_ai_control 1");

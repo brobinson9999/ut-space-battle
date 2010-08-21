@@ -9,7 +9,7 @@ var private User shipOwner;
 // Friendly name for display purposes.
 var string shipTypeName;
 
-var private array<ShipSystem>           systems;
+var private array<ShipSystem> systems;
 var array<ShipWeapon>           weapons;
 
 var private Pilot shipPilot;
@@ -22,8 +22,10 @@ var private float                       shipMaximumRotationalAcceleration;
 var private Sector shipSector;
 var private array<ShipObserver> shipObservers;
 
+var private QueuedEvent destroyEvent;
+
+// DEBUGGING
 var bool bCleanedUp;
-var QueuedEvent destroyEvent;
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -301,7 +303,7 @@ simulated function updateShip()
 simulated function vector getLinearAcceleration(float delta) {
   if (getShipPilot() != none) {
     // TODO: These probably don't need to be separate calls.
-    getShipPilot().updateLinear();
+//    getShipPilot().updateLinear();
     return getShipPilot().getDesiredAcceleration(getPhysicsState(), delta);
   } else {
     return vect(0,0,0);
@@ -311,9 +313,9 @@ simulated function vector getLinearAcceleration(float delta) {
 simulated function vector getRotationalAcceleration(float delta) {
   if (getShipPilot() != none) {
     // TODO: These probably don't need to be separate calls.
-    getShipPilot().updateAngular();
-    // TODO The pilot should be deciding this.
-    getShipPilot().bUseDesiredRotation = true;
+//    getShipPilot().updateAngular();
+//    // TODO The pilot should be deciding this.
+//    getShipPilot().bUseDesiredRotation = true;
 
     setShipRotationalVelocity(normal(copyRotToVect(getDesiredRotation() unCoordRot getShipRotation())) * vsize(getShipRotationalVelocity()));
     return getShipPilot().getDesiredRotationalAcceleration(getPhysicsState(), getShipMaximumRotationalAcceleration(), delta);
@@ -463,7 +465,7 @@ simulated function vector tempEstimateAcceleration() {
 }
 
 simulated function rotator getDesiredRotation() {
-  return getShipPilot().desiredRotation;
+  return getShipPilot().getDesiredRotation();
 }
 
 defaultproperties

@@ -206,12 +206,12 @@ class AIPilot extends Pilot;
       AutoSelectTurretAttackMode();
   }
 
-  simulated function bool hasFixedWeapons(Ship Target)
+  simulated function bool hasFixedWeapons(Ship other)
   {
     local int i;
     
-    for (i=0;i<Target.Weapons.Length;i++)
-      if (isFixedWeapon(Target.Weapons[i]))
+    for (i=0;i<other.weapons.length;i++)
+      if (isFixedWeapon(other.weapons[i]))
         return true;
 
     return false;
@@ -855,6 +855,8 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
 
 defaultproperties
 {
+  bUseDesiredRotation=true
+  
   desiredStrafeAccuracy=0.75
   desiredDefenseAccuracy=4
   desiredInterceptionSpeedFactor=4

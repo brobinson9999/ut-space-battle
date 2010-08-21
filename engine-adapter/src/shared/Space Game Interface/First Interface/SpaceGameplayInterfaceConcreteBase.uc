@@ -729,6 +729,8 @@ simulated function rawInput(float deltaTime, float aBaseX, float aBaseY, float a
       rotationDelta.roll = 0;
 
       setFreeFlightRotation(rotationDelta coordRot getFreeFlightRotation());
+      
+      thrustDirB = capVector(((vect(1,0,0) * aForward) + (vect(0,1,0) * aStrafe) + (vect(0,0,1) * aUp)), 1);
     }
   }
 }

@@ -5,6 +5,20 @@ var Ship pilotShip;
 simulated function updateLinear();
 simulated function updateAngular();
 
+simulated function vector getDesiredAcceleration(PhysicsStateInterface physicsState, float delta) {
+  updateLinear();
+  return super.getDesiredAcceleration(physicsState, delta);
+}
+
+simulated function vector getDesiredRotationalAcceleration(PhysicsStateInterface physicsState, float shipRotationRate, float delta) {
+  updateAngular();
+  return super.getDesiredRotationalAcceleration(physicsState, shipRotationRate, delta);
+}
+
+simulated function rotator getDesiredRotation() {
+  return desiredRotation;
+}
+
 simulated function setPilotShip(Ship newShip) {
   if (pilotShip != none) {
     pilotShip.setShipPilot(none);
