@@ -1,4 +1,4 @@
-class DefaultShipController extends ShipController;
+class DefaultShipController extends ShipControlStrategy;
 
 var bool bUseDesiredVelocity;
 var vector desiredVelocity;
@@ -12,19 +12,19 @@ var vector desiredRotationalAcceleration;
 
 var float useRotationRateFactor;
 
-simulated function vector getDesiredAcceleration(PhysicsStateInterface physicsState, float delta) {
+simulated function vector getShipThrust(float deltaTime, PhysicsStateInterface physicsState, float maximumAcceleration) {
   if (bUseDesiredVelocity)
-    desiredAcceleration = getDesiredChangeRate(delta, desiredVelocity - physicsState.getVelocity());
+    desiredAcceleration = getDesiredChangeRate(deltaTime, desiredVelocity - physicsState.getVelocity());
   
   return desiredAcceleration;
 }
 
-simulated function vector getDesiredRotationalAcceleration(PhysicsStateInterface physicsState, float shipRotationRate, float delta) {
+simulated function vector getShipSteering(float deltaTime, PhysicsStateInterface physicsState, float maximumRotationalAcceleration) {
   if (bUseDesiredRotation)
-    desiredRotationRate = getDesiredChangeRateWithAcceleration(delta, smallestVRotatorMagnitude(copyRotToVect(desiredRotation unCoordRot physicsState.getRotation())), shipRotationRate * useRotationRateFactor);
+    desiredRotationRate = getDesiredChangeRateWithAcceleration(deltaTime, smallestVRotatorMagnitude(copyRotToVect(desiredRotation unCoordRot physicsState.getRotation())), maximumRotationalAcceleration * useRotationRateFactor);
 
   if (bUseDesiredRotationRate || bUseDesiredRotation)
-    desiredRotationalAcceleration = getDesiredChangeRate(delta, smallestVRotatorMagnitude(desiredRotationRate - physicsState.getRotationVelocity()));
+    desiredRotationalAcceleration = getDesiredChangeRate(deltaTime, smallestVRotatorMagnitude(desiredRotationRate - physicsState.getRotationVelocity()));
     
   return desiredRotationalAcceleration;
 }

@@ -66,6 +66,14 @@ simulated function PhysicsIntegrator getPhysicsIntegrator() {
   return getShipCommon().getPhysicsIntegrator();
 }
 
+simulated function ShipControlStrategy getShipControlStrategy() {
+  return getShipCommon().getShipControlStrategy();
+}
+
+simulated function setShipControlStrategy(ShipControlStrategy newShipControlStrategy) {
+  getShipCommon().setShipControlStrategy(newShipControlStrategy);
+}
+
 simulated function addLaunchBay(ShipLaunchBay launchBay) {
   getShipCommon().addLaunchBay(launchBay);
 }
@@ -295,33 +303,20 @@ simulated function updateShip()
   for (i=systems.length-1;i>=0;i--)
     systems[i].updateShipSystem();
 
+  // this is less than ideal
+  setShipRotationalVelocity(normal(copyRotToVect(getDesiredRotation() unCoordRot getShipRotation())) * vsize(getShipRotationalVelocity()));
+
   getShipCommon().maximumLinearAcceleration = getShipMaximumAcceleration();
   getShipCommon().maximumRotationalAcceleration = getShipMaximumRotationalAcceleration();
   getShipCommon().updateShipPhysics(delta);
 }
 
 simulated function vector getLinearAcceleration(float delta) {
-  if (getShipPilot() != none) {
-    // TODO: These probably don't need to be separate calls.
-//    getShipPilot().updateLinear();
-    return getShipPilot().getDesiredAcceleration(getPhysicsState(), delta);
-  } else {
-    return vect(0,0,0);
-  }
+  return getShipPilot().getShipThrust(delta, getPhysicsState(), getShipMaximumAcceleration());
 }
 
 simulated function vector getRotationalAcceleration(float delta) {
-  if (getShipPilot() != none) {
-    // TODO: These probably don't need to be separate calls.
-//    getShipPilot().updateAngular();
-//    // TODO The pilot should be deciding this.
-//    getShipPilot().bUseDesiredRotation = true;
-
-    setShipRotationalVelocity(normal(copyRotToVect(getDesiredRotation() unCoordRot getShipRotation())) * vsize(getShipRotationalVelocity()));
-    return getShipPilot().getDesiredRotationalAcceleration(getPhysicsState(), getShipMaximumRotationalAcceleration(), delta);
-  } else {
-    return vect(0,0,0);
-  }
+  return getShipPilot().getShipSteering(delta, getPhysicsState(), getShipMaximumRotationalAcceleration());
 }
 
 // ********************************************************************************************************************************************

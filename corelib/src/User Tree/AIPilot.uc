@@ -75,18 +75,15 @@ class AIPilot extends Pilot;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
   
-  simulated function updateLinear() {
-    autoManuever();
-  }
-  
-  simulated function updateAngular() {
-    autoManuever();
-  }
+simulated function vector getShipThrust(float deltaTime, PhysicsStateInterface physicsState, float maximumAcceleration) {
+  autoManuever();
+  return super.getShipThrust(deltaTime, physicsState, maximumAcceleration);
+}
 
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
-// ********************************************************************************************************************************************
+simulated function vector getShipSteering(float deltaTime, PhysicsStateInterface physicsState, float maximumRotationalAcceleration) {
+  autoManuever();
+  return super.getShipSteering(deltaTime, physicsState, maximumRotationalAcceleration);
+}
 
   simulated function AutoWait()
   {
