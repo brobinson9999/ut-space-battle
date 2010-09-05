@@ -10,14 +10,14 @@ var private User shipOwner;
 var string shipTypeName;
 
 var private array<ShipSystem> systems;
-var array<ShipWeapon>           weapons;
+var array<ShipWeapon> weapons;
 
 var private Pilot shipPilot;
 var private SpaceWorker_Ship shipWorker;
 
-var private float                       shipRadius;
-var private float                       shipMaximumAcceleration;
-var private float                       shipMaximumRotationalAcceleration;
+var private Pilot shipAutoPilot;
+
+var private float shipRadius;
 
 var private Sector shipSector;
 var private array<ShipObserver> shipObservers;
@@ -52,9 +52,7 @@ simulated function setShipCommon(ShipCommon newShipCommon) {
 
   if (shipCommon != none) {
     shipCommon.setPhysicsState(StoredPhysicsState(allocateObject(class'StoredPhysicsState')));
-//    shipCommon.setPhysicsState(class'ShipReferencePhysicsState'.static.createNewShipReferencePhysicsState(self));
     shipCommon.setPhysicsIntegrator(PhysicsIntegrator(allocateObject(class'DefaultPhysicsIntegrator')));
-    shipCommon.setShipControlStrategy(class'ShipReferenceShipControlStrategy'.static.createNewShipReferenceShipControlStrategy(self));
   }
 }
 
@@ -72,6 +70,22 @@ simulated function ShipControlStrategy getShipControlStrategy() {
 
 simulated function setShipControlStrategy(ShipControlStrategy newShipControlStrategy) {
   getShipCommon().setShipControlStrategy(newShipControlStrategy);
+}
+
+simulated function float getShipMaximumLinearAcceleration() {
+  return getShipCommon().getShipMaximumLinearAcceleration();
+}
+  
+simulated function setShipMaximumLinearAcceleration(float newMaximumAcceleration) {
+  getShipCommon().setShipMaximumLinearAcceleration(newMaximumAcceleration);
+}
+
+simulated function float getShipMaximumRotationalAcceleration() {
+  return getShipCommon().getShipMaximumRotationalAcceleration();
+}
+  
+simulated function setShipMaximumRotationalAcceleration(float newMaximumRotationalAcceleration) {
+  getShipCommon().setShipMaximumRotationalAcceleration(newMaximumRotationalAcceleration);
 }
 
 simulated function addLaunchBay(ShipLaunchBay launchBay) {
@@ -159,7 +173,23 @@ simulated function Pilot getShipPilot() {
 }
 
 simulated function setShipPilot(Pilot newShipPilot) {
-  shipPilot = newShipPilot;
+  if (shipPilot != newShipPilot) {
+    if (shipPilot != none && shipPilot == getShipControlStrategy())
+      setShipControlStrategy(none);
+    
+    shipPilot = newShipPilot;
+
+    if (shipPilot != none)
+      setShipControlStrategy(shipPilot);
+  }
+}
+
+simulated function Pilot getShipAutopilot() {
+  return shipAutopilot;
+}
+
+simulated function setShipAutopilot(Pilot newShipAutopilot) {
+  shipAutopilot = newShipAutopilot;
 }
 
 simulated function SpaceWorker_Ship getShipWorker() {
@@ -208,22 +238,6 @@ simulated function float getShipRadius() {
   
 simulated function setShipRadius(float newRadius) {
   shipRadius = newRadius;
-}
-
-simulated function float getShipMaximumAcceleration() {
-  return shipMaximumAcceleration;
-}
-  
-simulated function setShipMaximumAcceleration(float newMaximumAcceleration) {
-  shipMaximumAcceleration = newMaximumAcceleration;
-}
-
-simulated function float getShipMaximumRotationalAcceleration() {
-  return shipMaximumRotationalAcceleration;
-}
-  
-simulated function setShipMaximumRotationalAcceleration(float newMaximumRotationalAcceleration) {
-  shipMaximumRotationalAcceleration = newMaximumRotationalAcceleration;
 }
 
 // ********************************************************************************************************************************************
@@ -306,17 +320,7 @@ simulated function updateShip()
   // this is less than ideal
   setShipRotationalVelocity(normal(copyRotToVect(getDesiredRotation() unCoordRot getShipRotation())) * vsize(getShipRotationalVelocity()));
 
-  getShipCommon().maximumLinearAcceleration = getShipMaximumAcceleration();
-  getShipCommon().maximumRotationalAcceleration = getShipMaximumRotationalAcceleration();
   getShipCommon().updateShipPhysics(delta);
-}
-
-simulated function vector getLinearAcceleration(float delta) {
-  return getShipPilot().getShipThrust(delta, getPhysicsState(), getShipMaximumAcceleration());
-}
-
-simulated function vector getRotationalAcceleration(float delta) {
-  return getShipPilot().getShipSteering(delta, getPhysicsState(), getShipMaximumRotationalAcceleration());
 }
 
 // ********************************************************************************************************************************************
@@ -405,6 +409,7 @@ simulated function cleanup()
     removeShipObserver(shipObservers[0]);
 
   setShipPilot(none);
+  setShipAutopilot(none);
   
   bCleanedUp = true;
 
@@ -425,7 +430,7 @@ simulated function initializeClonedShip(Ship clone)
 {
   local int i;
   
-  clone.setShipMaximumAcceleration(getShipMaximumAcceleration());
+  clone.setShipMaximumLinearAcceleration(getShipMaximumLinearAcceleration());
   clone.setShipMaximumRotationalAcceleration(getShipMaximumRotationalAcceleration());
   clone.setShipRadius(getShipRadius());
   
@@ -456,11 +461,14 @@ simulated function float detection_Strength_Against(Contact other);
 
 // TODO This is used by the Contact class. Contact needs to be changed so that this is no longer necessary!
 simulated function vector tempEstimateAcceleration() {
-  return capVector(getShipPilot().desiredVelocity - getPhysicsState().getVelocity(), getShipMaximumAcceleration());
+  return capVector(getShipPilot().desiredVelocity - getPhysicsState().getVelocity(), getShipMaximumLinearAcceleration());
 }
 
 simulated function rotator getDesiredRotation() {
-  return getShipPilot().getDesiredRotation();
+  if (getShipControlStrategy() == getShipPilot())
+    return getShipPilot().getDesiredRotation();
+  else
+    return AimingShipControlMapper(getShipControlStrategy()).desiredAim;
 }
 
 defaultproperties

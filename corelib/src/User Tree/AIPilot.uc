@@ -32,7 +32,6 @@ class AIPilot extends Pilot;
   const                   rm_faceInterceptTarget        = 5;
   const                   rm_faceInterceptTargetLeadIn  = 6;
   const                   rm_faceWeaponsTargetLeadIn    = 8;
-  const                   rm_freeFlight                 = 7;
   
   const                   lm_stationary                 = 0;
   const                   lm_maintainVelocity           = 1;
@@ -40,7 +39,6 @@ class AIPilot extends Pilot;
   const                   lm_interceptTargetDirect      = 3;
   const                   lm_interceptTargetLeadIn      = 4;
   const                   lm_orbitTarget                = 5;
-  const                   lm_freeFlight                 = 6;
   
   var int                 ManueverMode;
 
@@ -52,10 +50,6 @@ class AIPilot extends Pilot;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
-
-  var bool                bFreeFlight;
-  var vector              freeFlightAcceleration;
-  var rotator             freeFlightRotation;
 
   var rotator             chasedContactRotation;
   var vector              chasedContactLocation;
@@ -126,12 +120,7 @@ simulated function vector getShipSteering(float deltaTime, PhysicsStateInterface
 
   simulated function AutoManuever()
   {
-    if (bFreeFlight)
-    {
-      AMFreeFlight();
-      return;
-    }
-    
+   
     switch (ManueverMode)
     {
       case MM_DoNothing:
@@ -258,15 +247,6 @@ simulated function launchIfNecessary() {
     pilotShip.attemptUndock();
 }
 
-  simulated function AMFreeFlight()
-  {
-    launchIfNecessary();
-
-    setDesiredVelocity(pilotShip.getShipVelocity() + (pilotShip.getShipMaximumAcceleration() * freeFlightAcceleration));
-
-    rotationManuever(rm_freeFlight);
-  }
-
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
@@ -318,7 +298,7 @@ simulated function launchIfNecessary() {
     
     if (interceptTarget_Contact == none) {
       // cheat - change ship acceleration when farther away and/or going faster.
-      pilotShip.setShipMaximumAcceleration((vSize(pilotShip.getShipVelocity()) * 4) + 5000);
+      pilotShip.setShipMaximumLinearAcceleration((vSize(pilotShip.getShipVelocity()) * 4) + 5000);
       setDesiredVelocity(vect(0,0,0));
       return;
     }
@@ -335,9 +315,9 @@ simulated function launchIfNecessary() {
     Dp = interceptLocation - pilotShip.getShipLocation();
 
     // cheat - change ship acceleration when farther away and/or going faster.
-    pilotShip.setShipMaximumAcceleration(vSize(Dp) + vSize(chasedContactVelocity - pilotShip.getShipVelocity()) + 5000);
+    pilotShip.setShipMaximumLinearAcceleration(vSize(Dp) + vSize(chasedContactVelocity - pilotShip.getShipVelocity()) + 5000);
 
-    desiredSpeed = sqrt(2 * vSize(Dp) * pilotShip.getShipMaximumAcceleration() * 0.5);
+    desiredSpeed = sqrt(2 * vSize(Dp) * pilotShip.getShipMaximumLinearAcceleration() * 0.5);
 
 
     setDesiredVelocity((normal(Dp) * desiredSpeed) + (chasedContactVelocity * 0.8));
@@ -371,7 +351,7 @@ simulated function launchIfNecessary() {
     moveToFormation(interceptTarget_Contact, (normal(pilotShip.getShipLocation() - interceptTarget_Contact.getContactLocation()) uncoordRot interceptTarget_Contact.getContactSourceRotation()) * strafeDistanceForWeapons(interceptTarget_Contact, desiredStrafeAccuracy));
 
     // Use generic intercept.
-    AMIntercept_Generic(interceptTarget_Contact.getContactLocation(), interceptTarget_Contact.getContactVelocity(), pilotShip.getShipMaximumAcceleration() * desiredInterceptionSpeedFactor, pilotShip.getShipMaximumAcceleration());
+    AMIntercept_Generic(interceptTarget_Contact.getContactLocation(), interceptTarget_Contact.getContactVelocity(), pilotShip.getShipMaximumLinearAcceleration() * desiredInterceptionSpeedFactor, pilotShip.getShipMaximumLinearAcceleration());
     rotationManuever(rm_faceInterceptTargetLeadIn);
   }
 
@@ -388,7 +368,7 @@ simulated function launchIfNecessary() {
     interceptLocation = formationLeader.getContactLocation() + (relativePosition CoordRot formationLeader.getContactSourceRotation());
     Dp = interceptLocation - pilotShip.getShipLocation();
 
-    desiredSpeed = sqrt(2 * vSize(Dp) * pilotShip.getShipMaximumAcceleration() * 0.5);
+    desiredSpeed = sqrt(2 * vSize(Dp) * pilotShip.getShipMaximumLinearAcceleration() * 0.5);
 
     setDesiredVelocity(normal(Dp) * desiredSpeed);
   }
@@ -425,8 +405,7 @@ simulated function launchIfNecessary() {
     // Scattering is beneficial because fighters targetting the group have to rotate to target the members of the group. This introduces a delay for enemy fighters
     // when they retarget. If the fighters are clumped up there is no delay and many fighters can be destroyed in quick succession with only minor adjustments to 
     // aim.
-//    if (pilotShip.owner.AISkillLevel > 0.4)
-      interceptPoint = interceptPoint + (VRand() * wobbleMagnitude);
+    interceptPoint = interceptPoint + (VRand() * wobbleMagnitude);
 
     // Head Toward
     Dp = InterceptPoint - pilotShip.getShipLocation();
@@ -435,9 +414,8 @@ simulated function launchIfNecessary() {
     // Don't assume that ALL throttle can be applied to deceleration.
     ExpectDecelThrottle = 0.5;
     
-    // 20081109: Worked out in black notebook.
     // Desired Approach Speed.
-    DesiredSpeed = sqrt((2 * LDp * pilotShip.getShipMaximumAcceleration() * ExpectDecelThrottle) + (InterceptSpeed ** 2));
+    DesiredSpeed = sqrt((2 * LDp * pilotShip.getShipMaximumLinearAcceleration() * ExpectDecelThrottle) + (InterceptSpeed ** 2));
 
     // I have the desired approach speed, (that is under my control) but I have to factor in the target's approach speed as well.
     // If RotatedTargetVelocity.X is negative, the target is approaching me.
@@ -530,7 +508,7 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
     }
 
     // Use generic intercept.
-    AMIntercept_Generic(InterceptTarget_Ship.getShipLocation(), InterceptTarget_Ship.getShipVelocity(), pilotShip.getShipMaximumAcceleration() * 1, 0);
+    AMIntercept_Generic(InterceptTarget_Ship.getShipLocation(), InterceptTarget_Ship.getShipVelocity(), pilotShip.getShipMaximumLinearAcceleration() * 1, 0);
   }
 
 // ********************************************************************************************************************************************
@@ -556,7 +534,7 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
     }
     
     // Use generic orbit.
-    Generic_Orbit(InterceptTarget_Contact.getContactLocation(), strafeDistanceForShip(interceptTarget_Contact, pilotShip.getShipMaximumAcceleration() * 2, desiredDefenseAccuracy), pilotShip.getShipMaximumAcceleration() * 5);
+    Generic_Orbit(InterceptTarget_Contact.getContactLocation(), strafeDistanceForShip(interceptTarget_Contact, pilotShip.getShipMaximumLinearAcceleration() * 2, desiredDefenseAccuracy), pilotShip.getShipMaximumLinearAcceleration() * 5);
 
 
     if (fixedWeaponsTarget != none)
@@ -580,7 +558,7 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
     }
 
     // Use generic orbit.
-    generic_Orbit(interceptTarget_Contact.getContactLocation(), strafeDistanceForWeapons(interceptTarget_Contact, desiredStrafeAccuracy), pilotShip.getShipMaximumAcceleration() * 5);
+    generic_Orbit(interceptTarget_Contact.getContactLocation(), strafeDistanceForWeapons(interceptTarget_Contact, desiredStrafeAccuracy), pilotShip.getShipMaximumLinearAcceleration() * 5);
 
     if (hasFixedWeapons(pilotShip))
       rotationManuever(rm_faceInterceptTargetLeadIn);
@@ -598,7 +576,7 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
   {
     local float result;
 
-    result = ((2 * strafeSpeed)**2) / (pi * pilotShip.getShipMaximumAcceleration());
+    result = ((2 * strafeSpeed)**2) / (pi * pilotShip.getShipMaximumLinearAcceleration());
 
     return result;
   }
@@ -719,7 +697,7 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
       
     bUseDesiredVelocity = true;
     desiredVelocity = newDesiredVelocity;
-    desiredAcceleration = pilotShip.getShipMaximumAcceleration() * normal(desiredvelocity - currentVelocity);
+    desiredAcceleration = pilotShip.getShipMaximumLinearAcceleration() * normal(desiredvelocity - currentVelocity);
   }
   
   simulated function setDesiredAcceleration(vector newDesiredAcceleration) {
@@ -745,8 +723,6 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
       case lm_interceptTargetLeadIn:
         break;
       case lm_orbitTarget:
-        break;
-      case lm_freeFlight:
         break;
     }
   }
@@ -775,12 +751,6 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
         break;
       case rm_faceInterceptTargetLeadIn:
         rotateToFaceLeadIn(interceptTarget_Contact.getContactLocation(), interceptTarget_Contact.getContactVelocity(), projectileSpeed());
-        break;
-//      case rm_faceWeaponsTargetLeadIn:
-//        rotateToFaceLeadIn(weapons_Target.getContactLocation(), weapons_Target.getContactVelocity(), projectileSpeed());
-//        break;
-      case rm_freeFlight:
-        setDesiredRotation(freeFlightRotation);
         break;
     }
   }

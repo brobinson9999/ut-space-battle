@@ -11,8 +11,8 @@ var private PhysicsIntegrator physicsIntegrator;
 var private PhysicsStateInterface physicsState;
 var private ShipControlStrategy shipControlStrategy;
 
-var float maximumLinearAcceleration;
-var float maximumRotationalAcceleration;
+var private float shipMaximumLinearAcceleration;
+var private float shipMaximumRotationalAcceleration;
 
 var array<ShipObserver> shipObservers;
 
@@ -73,16 +73,26 @@ simulated function updateShip(float delta) {
   updateShipPhysics(delta);
 }
 
-simulated function float getMaximumLinearAcceleration() {
-  return maximumLinearAcceleration;
+// (gen-accessors "shipMaximumLinearAcceleration" "float")
+simulated function float getShipMaximumLinearAcceleration() {
+  return shipMaximumLinearAcceleration;
 }
 
+simulated function setShipMaximumLinearAcceleration(float newShipMaximumLinearAcceleration) {
+  shipMaximumLinearAcceleration = newShipMaximumLinearAcceleration;
+}
+
+// (gen-accessors "shipMaximumRotationalAcceleration" "float")
 simulated function float getShipMaximumRotationalAcceleration() {
-  return maximumRotationalAcceleration;
+  return shipMaximumRotationalAcceleration;
+}
+
+simulated function setShipMaximumRotationalAcceleration(float newShipMaximumRotationalAcceleration) {
+  shipMaximumRotationalAcceleration = newShipMaximumRotationalAcceleration;
 }
 
 simulated function vector getLinearAcceleration(float delta) {
-  return capVector(getShipControlStrategy().getShipThrust(delta, getPhysicsState(), getMaximumLinearAcceleration()), getMaximumLinearAcceleration());
+  return capVector(getShipControlStrategy().getShipThrust(delta, getPhysicsState(), getShipMaximumLinearAcceleration()), getShipMaximumLinearAcceleration());
 }
 
 simulated function vector getRotationalAcceleration(float delta) {

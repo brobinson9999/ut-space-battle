@@ -9,14 +9,14 @@ simulated function runTests() {
   ship = Ship(allocateObject(class'Ship'));
   physicsState = ship.getPhysicsState();
   
-  ship.setShipMaximumAcceleration(100);
+  ship.setShipMaximumLinearAcceleration(100);
   
   shipControlStrategy.desiredAcceleration = vect(50,0,0);
-  myAssert(shipControlStrategy.getShipThrust(1, physicsState, ship.getShipMaximumAcceleration()) == vect(50,0,0), "specified desired acceleration");
+  myAssert(shipControlStrategy.getShipThrust(1, physicsState, ship.getShipMaximumLinearAcceleration()) == vect(50,0,0), "specified desired acceleration");
   shipControlStrategy.desiredAcceleration = vect(100,0,0);
-  myAssert(shipControlStrategy.getShipThrust(1, physicsState, ship.getShipMaximumAcceleration()) == vect(100,0,0), "specified desired acceleration");
+  myAssert(shipControlStrategy.getShipThrust(1, physicsState, ship.getShipMaximumLinearAcceleration()) == vect(100,0,0), "specified desired acceleration");
   shipControlStrategy.desiredAcceleration = vect(100,0,0);
-  myAssert(shipControlStrategy.getShipThrust(0.5, physicsState, ship.getShipMaximumAcceleration()) == vect(100,0,0), "specified desired acceleration with 0.5 delta");
+  myAssert(shipControlStrategy.getShipThrust(0.5, physicsState, ship.getShipMaximumLinearAcceleration()) == vect(100,0,0), "specified desired acceleration with 0.5 delta");
 
   myAssert(shipControlStrategy.getDesiredChangeRate(0.5, vect(0,0,0)) == vect(0,0,0), "getDesiredChangeRate - no change");
   myAssert(shipControlStrategy.getDesiredChangeRate(0.5, vect(100,0,0)) == vect(200,0,0), "getDesiredChangeRate - full acceleration");
@@ -28,16 +28,16 @@ simulated function runTests() {
   shipControlStrategy.desiredVelocity = vect(0,0,0);
   ship.setShipVelocity(vect(0,0,0));
 
-  myAssert(shipControlStrategy.getShipThrust(0.5, physicsState, ship.getShipMaximumAcceleration()) == vect(0,0,0), "desired velocity - no change");
+  myAssert(shipControlStrategy.getShipThrust(0.5, physicsState, ship.getShipMaximumLinearAcceleration()) == vect(0,0,0), "desired velocity - no change");
 
   shipControlStrategy.desiredVelocity = vect(100,0,0);
-  myAssert(shipControlStrategy.getShipThrust(0.5, physicsState, ship.getShipMaximumAcceleration()) == vect(200,0,0), "desired velocity - full acceleration");
+  myAssert(shipControlStrategy.getShipThrust(0.5, physicsState, ship.getShipMaximumLinearAcceleration()) == vect(200,0,0), "desired velocity - full acceleration");
   shipControlStrategy.desiredVelocity = vect(100,0,0);
-  myAssert(shipControlStrategy.getShipThrust(1, physicsState, ship.getShipMaximumAcceleration()) == vect(100,0,0), "desired velocity - full acceleration");
+  myAssert(shipControlStrategy.getShipThrust(1, physicsState, ship.getShipMaximumLinearAcceleration()) == vect(100,0,0), "desired velocity - full acceleration");
   shipControlStrategy.desiredVelocity = vect(0,100,0);
-  myAssert(shipControlStrategy.getShipThrust(1, physicsState, ship.getShipMaximumAcceleration()) == vect(0,100,0), "desired velocity - full acceleration");
+  myAssert(shipControlStrategy.getShipThrust(1, physicsState, ship.getShipMaximumLinearAcceleration()) == vect(0,100,0), "desired velocity - full acceleration");
   shipControlStrategy.desiredVelocity = vect(100,0,0);
-  myAssert(shipControlStrategy.getShipThrust(2, physicsState, ship.getShipMaximumAcceleration()) == vect(50,0,0), "desired velocity - excess time");
+  myAssert(shipControlStrategy.getShipThrust(2, physicsState, ship.getShipMaximumLinearAcceleration()) == vect(50,0,0), "desired velocity - excess time");
 
   ship.setShipMaximumRotationalAcceleration(100);
   ship.setShipRotation(rot(0,0,0));

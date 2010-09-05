@@ -25,7 +25,7 @@ simulated function vector getShipSteering(float deltaTime, PhysicsStateInterface
 
   if (bUseDesiredRotationRate || bUseDesiredRotation)
     desiredRotationalAcceleration = getDesiredChangeRate(deltaTime, smallestVRotatorMagnitude(desiredRotationRate - physicsState.getRotationVelocity()));
-    
+
   return desiredRotationalAcceleration;
 }
 

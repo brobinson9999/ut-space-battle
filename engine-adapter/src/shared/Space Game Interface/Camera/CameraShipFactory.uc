@@ -13,7 +13,7 @@ simulated protected function Ship createPrototype() {
   
   newPrototype = Ship(allocateObject(class'DefaultShip'));
 
-  newPrototype.setShipMaximumAcceleration(30000);
+  newPrototype.setShipMaximumLinearAcceleration(30000);
   newPrototype.setShipMaximumRotationalAcceleration(100000);
 
   newPrototype.setShipRadius(1);

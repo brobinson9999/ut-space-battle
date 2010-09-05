@@ -74,7 +74,7 @@ simulated function PartShip newPartShip(BaseUser other, string identifier, strin
   // this is less than ideal
   prototype = DefaultShip(shipFactory.getPrototype());
 
-  prototype.setShipMaximumAcceleration(thrust / mass);
+  prototype.setShipMaximumLinearAcceleration(thrust / mass);
   prototype.setShipMaximumRotationalAcceleration(rotationRate);
   prototype.armor = armor;
   

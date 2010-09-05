@@ -32,6 +32,7 @@ var UnrealEngineAdapter engineAdapter;
   var bool                                    bRelativeJoystickControls;
 
   var vector                                  thrustDirB;
+  var private AimingShipControlMapper         freeFlightShipControlMapper;
   
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
@@ -100,6 +101,14 @@ var UnrealEngineAdapter engineAdapter;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 
+  simulated function AimingShipControlMapper getFreeFlightShipControlMapper() {
+    if (freeFlightShipControlMapper == none) {
+      freeFlightShipControlMapper = AimingShipControlMapper(allocateObject(class'AimingShipControlMapper'));
+    }
+      
+    return freeFlightShipControlMapper;
+  }
+  
   simulated function SpaceGameplayInterfaceCameraShaker getCameraShaker() {
     if (cameraShaker == none) {
       cameraShaker = SpaceGameplayInterfaceCameraShaker(allocateObject(class'SpaceGameplayInterfaceCameraShaker'));
@@ -707,9 +716,6 @@ var UnrealEngineAdapter engineAdapter;
 // Interface
 
 simulated function rawInput(float deltaTime, float aBaseX, float aBaseY, float aBaseZ, float aMouseX, float aMouseY, float aForward, float aTurn, float aStrafe, float aUp, float aLookUp) {
-  local rotator rotationDelta;
-  local rotator rotationFrame;
-
   if (bStrategicControls) {
     if (aLookUp != 0)
       receivedConsoleCommand(none, "strategic_camera_pitch_delta "$(aLookUp * strategicCameraSensitivity));
@@ -717,19 +723,9 @@ simulated function rawInput(float deltaTime, float aBaseX, float aBaseY, float a
       receivedConsoleCommand(none, "strategic_camera_yaw_delta "$(aTurn * strategicCameraSensitivity));
   } else {
     if (playerShip != None) {
-      // Which direction the ship should turn toward depends on the camera's roll.
-      // It must be relative to the player's free flight rotation since we will be rotating it into that reference frame later.
-      // Pitch and yaw of the camera should not be considered, else even a small rotation becomes large when placed in the reference
-      // frame of the camera.
-      rotationFrame = cameraRotation uncoordRot getFreeFlightRotation();
-      rotationFrame.pitch = 0;
-      rotationFrame.yaw = 0;
+      getFreeFlightShipControlMapper().updateControls(deltaTime, getFreeFlightRotation(), aForward, aStrafe, aUp, aTurn * strategicCameraSensitivity, aLookUp * strategicCameraSensitivity, 0);
 
-      rotationDelta = (((rot(0,1,0) * aTurn) + (rot(1,0,0) * aLookUp)) * strategicCameraSensitivity) coordRot rotationFrame;
-      rotationDelta.roll = 0;
-
-      setFreeFlightRotation(rotationDelta coordRot getFreeFlightRotation());
-      
+      // TODO left in for now, should be phased out eventually
       thrustDirB = capVector(((vect(1,0,0) * aForward) + (vect(0,1,0) * aStrafe) + (vect(0,0,1) * aUp)), 1);
     }
   }
@@ -792,7 +788,7 @@ simulated function use() {
         desiredThrustDir = normal(thrustDirB) coordRot cameraRotation;     
         manualAcceleration = fmin(1,vsize(thrustDirB));
 //        desiredThrustDir = vector(getFreeFlightRotation());
-        setFreeFlightAcceleration(class'TempIntermediateShipControlStrategy'.static.getNewFreeFlightAcceleration(delta, playerShip.getShipMaximumAcceleration(), playerShip.getShipVelocity(), desiredThrustDir, manualAcceleration, freeFlightInertialCompensationFactor));
+        setFreeFlightAcceleration(class'TempIntermediateShipControlStrategy'.static.getNewFreeFlightAcceleration(delta, playerShip.getShipMaximumLinearAcceleration(), playerShip.getShipVelocity(), desiredThrustDir, manualAcceleration, freeFlightInertialCompensationFactor));
       } 
 
       // Fire Weapons
@@ -977,51 +973,48 @@ simulated function AIPilot getPlayerPilot() {
     return none;
 }
 
-simulated function setAIControl(bool bNewAIControl)
-{
-  local AIPilot playerPilot;
-
+simulated function setAIControl(bool bNewAIControl) {
   if (bAIControl != bNewAIControl) {
-    if (bNewAIControl)
+    if (bNewAIControl) {
+      enableAIControl();
       infoMessage("AI Control Enabled");
-    else
+    } else {
+      disableAIControl();
       infoMessage("AI Control Disabled");
+    }
+  }
+}
+
+simulated function disableAIControl() {
+  local rotator currentDesiredRotation;
+
+  if (playerShip != none && playerShip.getShipControlStrategy() == playerShip.getShipPilot()) {
+    currentDesiredRotation = playerShip.getDesiredRotation();
+    playerShip.setShipControlStrategy(getFreeFlightShipControlMapper());
+    setFreeFlightRotation(currentDesiredRotation);
   }
 
-  bAIControl = bNewAIControl;
+  bAIControl = false;
+}
 
-  playerPilot = getPlayerPilot();
-  if (playerPilot != none)
-    playerPilot.bFreeFlight = !bNewAIControl;
-
-  if (!bAIControl && playerShip != none)
-    setFreeFlightRotation(playerShip.getDesiredRotation());
+simulated function enableAIControl() {
+  if (playerShip == none && playerShip.getShipControlStrategy() == freeFlightShipControlMapper) {
+    playerShip.setShipControlStrategy(playerShip.getShipPilot());
+  }
+  
+  bAIControl = true;
 }
 
 simulated function rotator getFreeFlightRotation() {
-  local AIPilot playerPilot;
-
-  playerPilot = getPlayerPilot();
-  if (playerPilot != none)
-    return playerPilot.freeFlightRotation;
-  else
-    return rot(0,0,0);
+  return getFreeFlightShipControlMapper().desiredAim;
 }
 
 simulated function setFreeFlightRotation(rotator newRotation) {
-  local AIPilot playerPilot;
-
-  playerPilot = getPlayerPilot();
-  if (playerPilot != none)
-    playerPilot.freeFlightRotation = newRotation;
+  getFreeFlightShipControlMapper().desiredAim = newRotation;
 }
 
 simulated function setFreeFlightAcceleration(vector newAcceleration) {
-  local AIPilot playerPilot;
-
-  playerPilot = getPlayerPilot();
-  if (playerPilot != none)
-    playerPilot.freeFlightAcceleration = newAcceleration;
+  getFreeFlightShipControlMapper().shipThrust = newAcceleration;
 }
 
 simulated function bool receivedConsoleCommand(UserInterfaceMediator mediator, string command)
@@ -1846,6 +1839,12 @@ simulated function respawnedPlayer(UserInterfaceMediator mediator) {
     if (cameraShaker != none) {
       cameraShaker.cleanup();
       cameraShaker = none;
+    }
+    
+    if (freeFlightShipControlMapper != none) {
+      enableAIControl();
+      freeFlightShipControlMapper.cleanup();
+      freeFlightShipControlMapper = none;
     }
     
     setPlayerShip(none, none);

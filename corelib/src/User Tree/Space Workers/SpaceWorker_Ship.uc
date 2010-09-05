@@ -156,22 +156,22 @@ simulated function float Rate_Effectiveness_Against_Attack(Contact X)
   // 20080311: I'm seeing an issue here. As the ship approaches the target, it takes longer to
   // match speed - it looks like it's getting away.. Maybe I should only be measuring approach speed.
 //      Dv = X.getContactVelocity() - Ship.getShipVelocity();
-//      TimeToMatchSpeed = (VSize(Dv) / Ship.getShipMaximumAcceleration());
+//      TimeToMatchSpeed = (VSize(Dv) / Ship.getShipMaximumLinearAcceleration());
 //      Dp += ((Dv * 0.5) * TimeToMatchSpeed * (1+(Vector(ship.getDesiredRotation()) Dot Normal(Dv))));
 
   Dv = X.getContactVelocity() - Ship.getShipVelocity();
   RotDv = Dv UnCoordRot Rotator(Dp);
-  if (ship.getShipMaximumAcceleration() > 0) {
-    TimeToMatchSpeed = (FMin(RotDv.X,0) / Ship.getShipMaximumAcceleration());
+  if (ship.getShipMaximumLinearAcceleration() > 0) {
+    TimeToMatchSpeed = (FMin(RotDv.X,0) / Ship.getShipMaximumLinearAcceleration());
     Dp += ((Dv * 0.5) * TimeToMatchSpeed * (1+(Vector(ship.getDesiredRotation()) Dot Normal(Dv))));
   }
 
   XScore = 1;
 //    DistanceFactor = FMax(25, sqrt(VSize(Dp)));
 
-//    DistanceFactor = FMax(25, VSize(Dp) / Ship.getShipMaximumAcceleration());
-  if (ship.getShipMaximumAcceleration() > 0) {
-    DistanceFactor = FClamp(VSize(Dp) / (Ship.getShipMaximumAcceleration()), 5, 25);
+//    DistanceFactor = FMax(25, VSize(Dp) / Ship.getShipMaximumLinearAcceleration());
+  if (ship.getShipMaximumLinearAcceleration() > 0) {
+    DistanceFactor = FClamp(VSize(Dp) / (Ship.getShipMaximumLinearAcceleration()), 5, 25);
   } else {
     DistanceFactor = 1;
   }
@@ -190,8 +190,8 @@ simulated function float Rate_Effectiveness_Against_Attack(Contact X)
   if (Task_Defense(Current_Task) != None)
   {
     Dp = (Task_Defense(Current_Task).Target.getContactLocation() - X.getContactLocation());
-    if (ship.getShipMaximumAcceleration() > 0) {
-      DistanceFactor = FClamp(VSize(Dp) / (Ship.getShipMaximumAcceleration()), 0.5, 2);
+    if (ship.getShipMaximumLinearAcceleration() > 0) {
+      DistanceFactor = FClamp(VSize(Dp) / (Ship.getShipMaximumLinearAcceleration()), 0.5, 2);
     } else {
       DistanceFactor = 1;
     }
@@ -217,22 +217,22 @@ simulated function float Rate_Effectiveness_Against_Defense(Contact X)
 
   Dp = X.getContactLocation() - Ship.getShipLocation();
 
-  if (Ship.getShipMaximumAcceleration() > 0)
+  if (Ship.getShipMaximumLinearAcceleration() > 0)
   {
     // 20080311: I'm seeing an issue here. As the ship approaches the target, it takes longer to
     // match speed - it looks like it's getting away.. Maybe I should only be measuring approach speed.
 //      Dv = X.getContactVelocity() - Ship.getShipVelocity();
-//      TimeToMatchSpeed = (VSize(Dv) / Ship.getShipMaximumAcceleration());
+//      TimeToMatchSpeed = (VSize(Dv) / Ship.getShipMaximumLinearAcceleration());
 //      Dp += ((Dv * 0.5) * TimeToMatchSpeed * (1+(Vector(ship.getDesiredRotation()) Dot Normal(Dv))));
 
     Dv = X.getContactVelocity() - Ship.getShipVelocity();
     RotDv = Dv UnCoordRot Rotator(Dp);
-    TimeToMatchSpeed = (FMin(RotDv.X,0) / Ship.getShipMaximumAcceleration());
+    TimeToMatchSpeed = (FMin(RotDv.X,0) / Ship.getShipMaximumLinearAcceleration());
     Dp += ((Dv * 0.5) * TimeToMatchSpeed * (1+(Vector(ship.getDesiredRotation()) Dot Normal(Dv))));
   }
 
   XScore = 1;
-  DistanceFactor = FMax(25, VSize(Dp) / Ship.getShipMaximumAcceleration());
+  DistanceFactor = FMax(25, VSize(Dp) / Ship.getShipMaximumLinearAcceleration());
 //    DistanceFactor = FMin(500, DistanceFactor);
 
 //    DistanceFactor = sqrt(VSize(Dp)) + sqrt(VSize(X.getContactLocation()));
@@ -257,7 +257,7 @@ simulated function float Rate_Effectiveness_Against_Patrol(Contact X)
   local float XScore;
   local float DistanceFactor;
 
-  if (Ship.getShipMaximumAcceleration() == 0)
+  if (Ship.getShipMaximumLinearAcceleration() == 0)
     return 0;
 
   Dp = X.getContactLocation() - Ship.getShipLocation();
@@ -266,16 +266,16 @@ simulated function float Rate_Effectiveness_Against_Patrol(Contact X)
   // 20080311: I'm seeing an issue here. As the ship approaches the target, it takes longer to
   // match speed - it looks like it's getting away.. Maybe I should only be measuring approach speed.
 //      Dv = X.getContactVelocity() - Ship.getShipVelocity();
-//      TimeToMatchSpeed = (VSize(Dv) / Ship.getShipMaximumAcceleration());
+//      TimeToMatchSpeed = (VSize(Dv) / Ship.getShipMaximumLinearAcceleration());
 //      Dp += ((Dv * 0.5) * TimeToMatchSpeed * (1+(Vector(ship.getDesiredRotation()) Dot Normal(Dv))));
 
   Dv = X.getContactVelocity() - Ship.getShipVelocity();
   RotDv = Dv UnCoordRot Rotator(Dp);
-  TimeToMatchSpeed = (FMin(RotDv.X,0) / Ship.getShipMaximumAcceleration());
+  TimeToMatchSpeed = (FMin(RotDv.X,0) / Ship.getShipMaximumLinearAcceleration());
   Dp += ((Dv * 0.5) * TimeToMatchSpeed * (1+(Vector(ship.getDesiredRotation()) Dot Normal(Dv))));
 
   XScore = 1;
-  DistanceFactor = FMax(25, VSize(Dp) / Ship.getShipMaximumAcceleration());
+  DistanceFactor = FMax(25, VSize(Dp) / Ship.getShipMaximumLinearAcceleration());
 //    DistanceFactor = sqrt(VSize(Dp)) + sqrt(VSize(X.getContactLocation()));
 //    XScore /= sqrt(VSize(Dp)) + sqrt(VSize(X.getContactLocation()));
   XScore /= DistanceFactor;

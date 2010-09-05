@@ -70,7 +70,7 @@ simulated function setupObservers() {
 
   simulated function tick(float delta) {
     if (part != none && part.ship != none && part.ship.getShipPilot() != none) {
-      soundPitch = (64 - (baseSoundPitchAdjust * sqrt(part.ship.getShipRadius()))) + (soundPitchRangeAdjust * FMin(1, VSize(part.ship.getShipPilot().desiredAcceleration) / part.ship.getShipMaximumAcceleration()));
+      soundPitch = (64 - (baseSoundPitchAdjust * sqrt(part.ship.getShipRadius()))) + (soundPitchRangeAdjust * FMin(1, VSize(part.ship.getShipPilot().desiredAcceleration) / part.ship.getShipMaximumLinearAcceleration()));
     }
   }
   
