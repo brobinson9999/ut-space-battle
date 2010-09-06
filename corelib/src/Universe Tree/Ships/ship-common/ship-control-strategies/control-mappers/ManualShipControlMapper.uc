@@ -30,7 +30,7 @@ simulated function vector getShipThrust(float deltaTime, PhysicsStateInterface p
   return shipThrust * maximumAcceleration;
 }
 
-function rotator getWeaponFireRotation(rotator currentRotation) {
+simulated function rotator getWeaponFireRotation(rotator currentRotation) {
   return rotator(vector(copyVectToRot(shipSteering * steeringFireDirectionModifier)) >> currentRotation);
 }
 

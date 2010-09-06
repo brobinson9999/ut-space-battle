@@ -1,4 +1,4 @@
-class SpaceGameplayInterfaceConcrete extends SpaceGameMouseInterface;
+class SpaceGameplayInterfaceConcrete extends SpaceGameplayInterfaceConcreteBase;
 
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************

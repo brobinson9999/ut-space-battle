@@ -15,8 +15,6 @@ var array<ShipWeapon> weapons;
 var private Pilot shipPilot;
 var private SpaceWorker_Ship shipWorker;
 
-var private Pilot shipAutoPilot;
-
 var private float shipRadius;
 
 var private Sector shipSector;
@@ -182,14 +180,6 @@ simulated function setShipPilot(Pilot newShipPilot) {
     if (shipPilot != none)
       setShipControlStrategy(shipPilot);
   }
-}
-
-simulated function Pilot getShipAutopilot() {
-  return shipAutopilot;
-}
-
-simulated function setShipAutopilot(Pilot newShipAutopilot) {
-  shipAutopilot = newShipAutopilot;
 }
 
 simulated function SpaceWorker_Ship getShipWorker() {
@@ -409,7 +399,6 @@ simulated function cleanup()
     removeShipObserver(shipObservers[0]);
 
   setShipPilot(none);
-  setShipAutopilot(none);
   
   bCleanedUp = true;
 

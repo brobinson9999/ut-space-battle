@@ -201,7 +201,7 @@ simulated function vector getShipSteering(float deltaTime, PhysicsStateInterface
         return true;
 
     return false;
-  }
+  }  
   
   simulated function bool isFixedWeapon(Part Candidate)
   {
@@ -436,10 +436,10 @@ simulated function launchIfNecessary() {
   }
 
 simulated function vector AM_Intercept_Calculate_Lead_In(vector Target_Position, vector Target_Velocity, float ProjSpeed) {
-  return calculateLeadIn(pilotShip.getShipLocation(), pilotShip.getShipVelocity(), target_position, target_velocity, projSpeed);
+  return calculateLeadIn(pilotShip.getShipLocation(), pilotShip.getShipVelocity(), target_position, target_velocity, projSpeed, 2);
 }
 
-simulated static function vector calculateLeadIn(vector ownLocation, vector ownVelocity, vector Target_Position, vector Target_Velocity, float ProjSpeed) {
+simulated static function vector calculateLeadIn(vector ownLocation, vector ownVelocity, vector Target_Position, vector Target_Velocity, float ProjSpeed, optional float maxLeadInSeconds) {
   local int i;
   local vector Dp;
   local vector InterceptPoint;
@@ -477,8 +477,8 @@ simulated static function vector calculateLeadIn(vector ownLocation, vector ownV
       ETA = LDp / ProjApproachSpeed;
       IterateDelta = Abs(ETA - OldETA);
 
-      // Limit to 2 seconds lead in? For interception anyway.
-      ETA = FMin(ETA, 2);
+      if (maxLeadInSeconds > 0)
+        ETA = FMin(ETA, maxLeadInSeconds);
 
       InterceptPoint = Target_Position + (Target_Velocity * FMin(ETA, 2));
 

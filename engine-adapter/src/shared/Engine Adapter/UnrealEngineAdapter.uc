@@ -318,6 +318,9 @@ simulated function initializeGameSimulation() {
 
   createKeyBinding("IK_LeftBracket", "IST_Press", "set_camera chase|set_relative_controls 0|set_strategic_controls 0");
 
+  // Would like to move this, but the position of the mediator makes it tough.
+  createKeyBinding("IK_E", "IST_Press", "o fts atk closestToCameraCenter<hostile<knownContactsInPlayerShipSector");
+
 //  createKeyBinding("IK_MouseWheelDown", "IST_Press", "strategic_camera_distance_delta 50");
 //  createKeyBinding("IK_MouseWheelUp", "IST_Press", "strategic_camera_distance_delta -50");
 
