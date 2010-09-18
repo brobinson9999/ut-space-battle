@@ -58,6 +58,7 @@ simulated function Color getConsoleColor() {
   return consoleColor;
 }
 
+// TODO It is probably better if this returns a result rather than using an out array.
 simulated function wrapStringToArray(string text, out array<string> result, float dx, optional string EOL) {
   unrealCanvas.wrapStringToArray(text, result, dx, EOL);
 }
