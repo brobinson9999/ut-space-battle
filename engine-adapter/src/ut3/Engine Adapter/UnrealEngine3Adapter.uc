@@ -133,7 +133,7 @@ simulated function installCleanupWatcher()
 {
   // Create Level Change Interaction.
   cleanupWatcher = new class'LevelChangeInteraction';
-  cleanupWatcher.cleanupTarget = self;
+  cleanupWatcher.cleanupTargets[cleanupWatcher.cleanupTargets.length] = self;
 
   // Install the interaction.
   // The position of this interaction is not important.

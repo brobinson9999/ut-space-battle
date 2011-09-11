@@ -119,8 +119,8 @@ simulated function postLogin(PlayerController newPlayer) {
 // ********************************************************************************************************************************************
 
 simulated function installCleanupWatcher() {
-  cleanupWatcher = LevelChangeInteraction(pc.player.interactionMaster.addInteraction("ClientScripts.LevelChangeInteraction"));
-  cleanupWatcher.cleanupTarget = self;
+  cleanupWatcher = LevelChangeInteraction(class'InteractionUtils'.static.getSingletonInteraction(pc, class'LevelChangeInteraction', "ClientScripts.LevelChangeInteraction"));
+  cleanupWatcher.cleanupTargets[cleanupWatcher.cleanupTargets.length] = self;
 }
 
 // ********************************************************************************************************************************************
@@ -135,7 +135,8 @@ simulated function installHUDDriver() {
 // ********************************************************************************************************************************************
 
 simulated function installInputDriver() {
-  inputDriver = class'InputDriver'.static.installNewInputDriver(pc);
+  inputDriver = class'InputDriver'.static.getSingletonInputDriver(pc);
+//  inputDriver = class'InputDriver'.static.installNewInputDriver(pc);
   if (inputDriver == none)
     errorMessage("An error occurred while installing the input driver.");
 }

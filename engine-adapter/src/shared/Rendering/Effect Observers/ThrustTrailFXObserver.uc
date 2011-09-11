@@ -18,7 +18,7 @@ simulated function tick(float delta) {
   if (observed == none)
     return;
     
-  if (observed.part.ship.getShipPilot().desiredVelocity != Vect(0,0,0))
+  if (observed.part.ship.getShipCommon().getLinearAcceleration(1) != Vect(0,0,0))
     spawnTrail();
   else
     killTrail();

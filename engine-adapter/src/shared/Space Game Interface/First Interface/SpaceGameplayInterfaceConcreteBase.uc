@@ -991,7 +991,7 @@ simulated function disableAIControl() {
 }
 
 simulated function enableAIControl() {
-  if (playerShip == none && playerShip.getShipControlStrategy() == freeFlightShipControlMapper) {
+  if (playerShip != none && playerShip.getShipControlStrategy() == freeFlightShipControlMapper) {
     playerShip.setShipControlStrategy(playerShip.getShipPilot());
   }
   
