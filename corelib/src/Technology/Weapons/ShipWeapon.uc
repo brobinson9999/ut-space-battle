@@ -202,7 +202,7 @@ class ShipWeapon extends Part;
       return 0;
     
     // Get Target Location.
-    TargetLocation = class'AIPilot'.static.calculateLeadIn(ship.getShipLocation(), ship.getShipVelocity(), target.getContactLocation(), target.getContactVelocity(), localTechnology.MuzzleVelocity);
+    TargetLocation = class'Ballistics'.static.calculateLeadIn(ship.getShipLocation(), ship.getShipVelocity(), target.getContactLocation(), target.getContactVelocity(), localTechnology.MuzzleVelocity);
     
     // Determine range.
     Range = VSize(TargetLocation - Ship.getShipLocation());

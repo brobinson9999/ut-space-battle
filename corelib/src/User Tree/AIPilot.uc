@@ -436,61 +436,7 @@ simulated function launchIfNecessary() {
   }
 
 simulated function vector AM_Intercept_Calculate_Lead_In(vector Target_Position, vector Target_Velocity, float ProjSpeed) {
-  return calculateLeadIn(pilotShip.getShipLocation(), pilotShip.getShipVelocity(), target_position, target_velocity, projSpeed, 2);
-}
-
-simulated static function vector calculateLeadIn(vector ownLocation, vector ownVelocity, vector Target_Position, vector Target_Velocity, float ProjSpeed, optional float maxLeadInSeconds) {
-  local int i;
-  local vector Dp;
-  local vector InterceptPoint;
-  local float LDp;
-  local float ETA;
-  local vector RelativeVelocity;
-
-  local float OldETA;
-  local float IterateDelta;
-
-  local float ShipApproachSpeed;
-  local float ProjApproachSpeed;
-
-  // Get Relative Velocity.
-  RelativeVelocity = ownVelocity - Target_Velocity;
-
-  InterceptPoint = Target_Position;
-
-  // Head Toward
-  Dp = InterceptPoint - ownLocation;
-  LDp = VSize(Dp);
-  IterateDelta = LDp;
-
-  ETA = 0;
-
-  if (ProjSpeed > 0)
-  {
-    // Iterative approach - closed form would be better.
-    for (i=0;i<15;i++)
-    {
-      ShipApproachSpeed = (RelativeVelocity UnCoordRot Rotator(Dp)).X;
-      ProjApproachSpeed = (ProjSpeed + ShipApproachSpeed);
-
-      OldETA = ETA;
-      ETA = LDp / ProjApproachSpeed;
-      IterateDelta = Abs(ETA - OldETA);
-
-      if (maxLeadInSeconds > 0)
-        ETA = FMin(ETA, maxLeadInSeconds);
-
-      InterceptPoint = Target_Position + (Target_Velocity * FMin(ETA, 2));
-
-      // Calculate new distance.
-      Dp = InterceptPoint - ownLocation;
-      LDp = VSize(Dp);
-
-      if (IterateDelta < 0.01) break;
-    }
-  }
-
-  return InterceptPoint;
+  return class'Ballistics'.static.calculateLeadIn(pilotShip.getShipLocation(), pilotShip.getShipVelocity(), target_position, target_velocity, projSpeed, 2);
 }
 
 // ********************************************************************************************************************************************

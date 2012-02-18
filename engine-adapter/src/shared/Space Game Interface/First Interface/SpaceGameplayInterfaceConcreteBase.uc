@@ -198,7 +198,7 @@ var UnrealEngineAdapter engineAdapter;
       if (playerShipWorker != none) {
         // Show lead in.
         if (playerShipWorker.mainWeaponsTarget != none && AIPilot(playerShip.getShipPilot()).hasFixedWeapons(playerShip)) {
-          leadInPosition = class'AIPilot'.static.calculateLeadIn(playerShip.getShipLocation(), playerShip.getShipVelocity(), playerShipWorker.mainWeaponsTarget.getContactLocation(), playerShipWorker.mainWeaponsTarget.getContactVelocity(), AIPilot(playerShip.getShipPilot()).projectileSpeed());
+          leadInPosition = class'Ballistics'.static.calculateLeadIn(playerShip.getShipLocation(), playerShip.getShipVelocity(), playerShipWorker.mainWeaponsTarget.getContactLocation(), playerShipWorker.mainWeaponsTarget.getContactVelocity(), AIPilot(playerShip.getShipPilot()).projectileSpeed());
           leadInDelta = leadInPosition - playerShipWorker.mainWeaponsTarget.getContactLocation();
 
           canvas.setDrawColor(reticleColorHostile);
