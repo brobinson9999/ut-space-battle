@@ -145,7 +145,7 @@ class ShipWeapon extends Part;
       newProjectile.endLocation += VRand() * FRand() * target.contactRadius;
 
     desiredFireDirection = normal(newProjectile.endLocation - newProjectile.startLocation);
-    actualFireDirection = getBestFireDirection(desiredFireDirection, vector(ship.getShipRotation()), maxFireArc);
+    actualFireDirection = class'FireArc'.static.constrainVectorToFireArc(desiredFireDirection, vector(ship.getShipRotation()), maxFireArc);
     newProjectile.endLocation = newProjectile.startLocation + (actualFireDirection * vsize(newProjectile.endLocation - newProjectile.startLocation));
     
     newProjectile.endLocation += VRand() * FRand() * localTechnology.precision * range;
@@ -223,7 +223,7 @@ class ShipWeapon extends Part;
     if (maxFireArc < 32768)
     {
       desiredFireDirection = normal(targetLocation - ship.getShipLocation());
-      Fixed_Cos = getBestFireDirection(desiredFireDirection, vector(ship.getShipRotation()), maxFireArc) dot desiredFireDirection;
+      Fixed_Cos = class'FireArc'.static.constrainVectorToFireArc(desiredFireDirection, vector(ship.getShipRotation()), maxFireArc) dot desiredFireDirection;
 //      Fixed_Cos = Normal(Vector(Ship.getShipRotation())) Dot Normal(TargetLocation - Ship.getShipLocation());
       
       Fixed_Cos = FMax(minFixedCos, fixed_Cos);
@@ -331,31 +331,6 @@ class ShipWeapon extends Part;
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
 // ********************************************************************************************************************************************
-
-// getBestFireDirection: vector vector float -> vector
-// Consumes a desired direction to fire in, the facing of the weapon, and the maximum fire arc of the weapon. Returns the
-// direction closest to the desired direction that is also within the arc. If the desired direction is within the fire arc
-// of the weapon it is returned unchanged. The fire arc is measured in Unreal Rotation Units and is independant on each of
-// yaw and pitch.
-simulated static function vector getBestFireDirection(vector desiredFireDirection, vector centerOfFireArc, float fireArcSize) {
-  local rotator relativeFireRotation;
-  
-  if (fireArcSize == 0)
-    return centerOfFireArc;
-  if (fireArcSize == 32768)
-    return normal(desiredFireDirection);
-  
-  relativeFireRotation = normalize(rotator(desiredFireDirection unCoordRot rotator(centerOfFireArc)));
-  
-  // Give the desired fire direction exactly if it is within the arc.
-  if (abs(relativeFireRotation.yaw) - fireArcSize <= 0 && abs(relativeFireRotation.pitch) - fireArcSize <= 0)
-    return desiredFireDirection;
-
-  // This introduces an imperfect result due to the conversion to rotator and then back to vector, but it is extremely close.
-  relativeFireRotation.yaw = FClamp(relativeFireRotation.yaw, -fireArcSize, fireArcSize);
-  relativeFireRotation.pitch = FClamp(relativeFireRotation.pitch, -fireArcSize, fireArcSize);
-  return vector(relativeFireRotation) coordRot rotator(centerOfFireArc);
-}
 
   simulated function Cleanup()
   {
